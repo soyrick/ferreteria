@@ -274,6 +274,23 @@ $$('.fila').forEach((fila) => {
   const entrada = $('#input-buscar');
   const caja = $('#resultados-buscar');
   const limpiar = $('#btn-limpiar');
+  const zona = $('.buscador');
+  const boton = $('#btn-buscar');
+
+  const desplegado = () => zona.classList.contains('abierto');
+
+  function desplegar() {
+    zona.classList.add('abierto');
+    boton.setAttribute('aria-expanded', 'true');
+    entrada.focus();
+  }
+
+  /** Solo se repliega si no quedó texto escrito. */
+  function replegar(forzar = false) {
+    if (!forzar && entrada.value.trim()) return;
+    zona.classList.remove('abierto');
+    boton.setAttribute('aria-expanded', 'false');
+  }
 
   /* Sin acentos ni mayúsculas: "plomeria" consigue "Plomería". */
   const TILDES = new RegExp('[\\u0300-\\u036f]', 'g');
@@ -331,15 +348,24 @@ $$('.fila').forEach((fila) => {
 
   $('#form-buscar').addEventListener('submit', (e) => {
     e.preventDefault();
+    if (!desplegado()) return desplegar();          // primer clic: abre la barra
     if (!entrada.value.trim()) return entrada.focus();
     pintar(entrada.value);
     avisar(`Buscando “${entrada.value.trim()}” en el catálogo…`);
   });
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.buscador')) cerrar();
+    if (e.target.closest('.buscador')) return;
+    cerrar();
+    replegar();
   });
-  entrada.addEventListener('keydown', (e) => e.key === 'Escape' && cerrar());
+
+  entrada.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    cerrar();
+    if (entrada.value) { entrada.value = ''; limpiar.hidden = true; }
+    else { replegar(true); entrada.blur(); }
+  });
 })();
 
 /* ---------------------------------------------------------

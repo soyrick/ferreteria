@@ -80,13 +80,19 @@
 
       <div class="buscador" role="search">
         <form class="buscador-caja" id="form-buscar" autocomplete="off">
-          <svg class="ico buscador-ico"><use href="#i-buscar"/></svg>
-          <input type="search" id="input-buscar" placeholder="¿Qué estás buscando? Taladro, cemento, bombillo…"
-                 aria-label="Buscar productos" role="combobox" aria-expanded="false" aria-controls="resultados-buscar">
-          <button type="button" class="buscador-limpiar" id="btn-limpiar" aria-label="Limpiar búsqueda" hidden>
-            <svg class="ico"><use href="#i-cerrar"/></svg>
+          <!-- Este bloque nace con ancho 0: al abrir, empuja el botón hacia la derecha. -->
+          <div class="buscador-campo">
+            <svg class="ico buscador-ico"><use href="#i-buscar"/></svg>
+            <input type="search" id="input-buscar" placeholder="¿Qué estás buscando? Taladro, cemento, bombillo…"
+                   aria-label="Buscar productos" role="combobox" aria-expanded="false" aria-controls="resultados-buscar">
+            <button type="button" class="buscador-limpiar" id="btn-limpiar" aria-label="Limpiar búsqueda" hidden>
+              <svg class="ico"><use href="#i-cerrar"/></svg>
+            </button>
+          </div>
+          <button type="submit" class="buscador-btn" id="btn-buscar" aria-expanded="false" aria-controls="input-buscar">
+            <svg class="ico buscador-lupa"><use href="#i-buscar"/></svg>
+            <span>Buscar</span>
           </button>
-          <button type="submit" class="buscador-btn">Buscar</button>
         </form>
         <div class="buscador-resultados" id="resultados-buscar" role="listbox" hidden></div>
       </div>
