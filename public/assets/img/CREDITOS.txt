@@ -1,0 +1,60 @@
+Imagenes del demo — origen y atribucion
+=======================================
+Todas provienen de Wikimedia Commons, tomadas por dos vias:
+  - imagen principal del articulo de Wikipedia (en) indicado, o
+  - archivo concreto de Commons cuando el articulo no ilustraba bien el producto.
+
+IMPORTANTE: cada archivo tiene su propia licencia (CC BY, CC BY-SA, dominio publico...).
+Antes de usar el sitio en produccion hay que revisar la licencia de cada uno
+o —mejor— reemplazarlos por fotos propias de los productos de la tienda.
+
+tobo-industrial        Commons: Lime green bucket 1.jpg
+coleto-microfibra      Wikipedia: Mop
+escalera-aluminio      Commons: Ladder aluminum.jpg
+cerradura-seguridad    Wikipedia: Mortise_lock
+organizador-gavetas    Wikipedia: Screw
+juego-bisagras         Wikipedia: Hinge
+cemento-gris           Wikipedia: Portland_cement
+cabilla-estriada       Wikipedia: Rebar
+carretilla-obra        Wikipedia: Wheelbarrow
+cuchara-albanil        Wikipedia: Trowel
+nivel-burbuja          Wikipedia: Spirit_level
+malla-truckson         Commons: Fer à béton FerraillageReinforcement.jpg
+taladro-percutor       Wikipedia: Hammer_drill
+esmeril-angular        Wikipedia: Angle_grinder
+sierra-caladora        Wikipedia: Jigsaw_(power_tool)
+lijadora-orbital       Wikipedia: Random_orbital_sander
+atornillador-bateria   Wikipedia: Screw_gun
+pistola-calor          Wikipedia: Heat_gun
+llave-paso             Commons: Ball valve--The-Alloy-Valve-Stockist.JPG
+tuberia-pvc            Wikipedia: Plastic_pipework
+griferia-lavamanos     Wikipedia: Tap_(valve)
+poceta-blanca          Wikipedia: Flush_toilet
+teflon-rollo           Wikipedia: Thread_seal_tape
+manguera-jardin        Wikipedia: Garden_hose
+bombillo-led           Wikipedia: LED_lamp
+cable-thw              Wikipedia: Copper_conductor
+breaker-monofasico     Wikipedia: Circuit_breaker
+tomacorriente-doble    Wikipedia: AC_power_plugs_and_sockets
+cinta-aislante         Wikipedia: Electrical_tape
+linterna-recargable    Wikipedia: Flashlight
+set-destornilladores   Wikipedia: Screwdriver
+llaves-combinadas      Wikipedia: Wrench
+martillo-una           Wikipedia: Framing_hammer
+cinta-metrica          Wikipedia: Tape_measure
+alicate-universal      Wikipedia: Lineman's_pliers
+caja-herramientas      Commons: Cajas de herramientas de diferentes medidas .jpg
+pintura-caucho         Commons: White primer bucket.jpg
+brocha-cerda           Wikipedia: Paintbrush
+guantes-seguridad      Commons: Chainsaw gloves.JPG
+casco-seguridad        Commons: Yellow hard hat.jpg
+candado-acero          Wikipedia: Padlock
+extension-electrica    Wikipedia: Extension_cord
+silicon-pistola        Wikipedia: Caulk
+disco-corte            Commons: Abrasive-Discs 41508-480x360 (5000494680).jpg
+cepillo-acero          Wikipedia: Wire_brush
+multimetro-digital     Wikipedia: Multimeter
+hero-1                 Commons: -2019-08-03 Inside Blyth & Wright, Station Road, Sheringham (1).JPG
+hero-2                 Commons: Steel iron construction worker - 8338.jpg
+hero-3                 Wikipedia: Construction
+hero-4                 Wikipedia: Workshop

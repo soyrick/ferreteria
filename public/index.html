@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casa Herramientas, C.A. — Ferretería y Construcción C.H | Barcelona, Anzoátegui</title>
+<meta name="description" content="Ferretería y construcción en Barcelona, estado Anzoátegui. Herramientas, materiales, plomería, electricidad y todo para el hogar. Calle Guayaquil, frente al estadio de béisbol de Barrio Sucre.">
+<meta name="theme-color" content="#FFDD00">
+<link rel="icon" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ ICONOS (sprite en línea) ============ -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></symbol>
+  <symbol id="i-usuario" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-carrito" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></symbol>
+  <symbol id="i-ubicacion" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-telefono" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-camion" viewBox="0 0 24 24"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></symbol>
+  <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-tarjeta" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></symbol>
+  <symbol id="i-herramienta" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-etiqueta" viewBox="0 0 24 24"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.2"/></symbol>
+  <symbol id="i-tienda" viewBox="0 0 24 24"><path d="M3 9 4.5 3h15L21 9"/><path d="M4 9v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></symbol>
+  <symbol id="i-abajo" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-izq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-der" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-arriba" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-estrella" viewBox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+  <symbol id="i-correo" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></symbol>
+</svg>
+
+<!-- ============ INTRO ============ -->
+<div id="intro" role="presentation">
+  <img src="assets/logo.png" alt="Casa Herramientas">
+</div>
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<!-- ============ BARRA SUPERIOR ============ -->
+<header class="cabecera" id="cabecera">
+
+  <!-- Aviso corredizo -->
+  <div class="aviso">
+    <div class="aviso-pista">
+      <span><svg class="ico"><use href="#i-camion"/></svg> Delivery en Barcelona, Lechería y Puerto La Cruz</span>
+      <span><svg class="ico"><use href="#i-etiqueta"/></svg> Precios especiales para maestros de obra y contratistas</span>
+      <span><svg class="ico"><use href="#i-tarjeta"/></svg> Aceptamos pago móvil, divisas, débito y Zelle</span>
+      <span><svg class="ico"><use href="#i-herramienta"/></svg> Más de 8.000 artículos en existencia</span>
+      <span aria-hidden="true"><svg class="ico"><use href="#i-camion"/></svg> Delivery en Barcelona, Lechería y Puerto La Cruz</span>
+      <span aria-hidden="true"><svg class="ico"><use href="#i-etiqueta"/></svg> Precios especiales para maestros de obra y contratistas</span>
+      <span aria-hidden="true"><svg class="ico"><use href="#i-tarjeta"/></svg> Aceptamos pago móvil, divisas, débito y Zelle</span>
+      <span aria-hidden="true"><svg class="ico"><use href="#i-herramienta"/></svg> Más de 8.000 artículos en existencia</span>
+    </div>
+  </div>
+
+  <!-- Nav principal: marca / buscador / sesión -->
+  <nav class="nav-principal" aria-label="Principal">
+    <div class="contenedor nav-principal-int">
+
+      <a href="#inicio" class="marca" data-inicio>
+        <img src="assets/logo.png" alt="" class="marca-logo">
+        <span class="marca-texto">
+          <strong>CASA HERRAMIENTAS</strong>
+          <small>Ferretería y Construcción C.H</small>
+        </span>
+      </a>
+
+      <div class="buscador" role="search">
+        <form class="buscador-caja" id="form-buscar" autocomplete="off">
+          <svg class="ico buscador-ico"><use href="#i-buscar"/></svg>
+          <input type="search" id="input-buscar" placeholder="¿Qué estás buscando? Taladro, cemento, bombillo…"
+                 aria-label="Buscar productos" role="combobox" aria-expanded="false" aria-controls="resultados-buscar">
+          <button type="button" class="buscador-limpiar" id="btn-limpiar" aria-label="Limpiar búsqueda" hidden>
+            <svg class="ico"><use href="#i-cerrar"/></svg>
+          </button>
+          <button type="submit" class="buscador-btn">Buscar</button>
+        </form>
+        <div class="buscador-resultados" id="resultados-buscar" role="listbox" hidden></div>
+      </div>
+
+      <div class="nav-acciones">
+        <a class="btn-icono solo-escritorio" href="#carrito" id="btn-carrito" aria-label="Ver presupuesto">
+          <svg class="ico"><use href="#i-carrito"/></svg>
+          <span class="contador" id="contador-carrito" hidden>0</span>
+        </a>
+        <button class="btn btn-sesion" id="btn-sesion">
+          <svg class="ico"><use href="#i-usuario"/></svg>
+          <span>Iniciar sesión</span>
+        </button>
+        <button class="btn-icono solo-movil" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">
+          <svg class="ico"><use href="#i-menu"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Nav secundario: productos + accesos -->
+  <nav class="nav-secundaria" aria-label="Secciones" id="nav-secundaria">
+    <div class="contenedor nav-secundaria-int">
+
+      <div class="desplegable" id="desplegable-productos">
+        <button class="nav-enlace nav-productos" id="btn-productos" aria-expanded="false" aria-haspopup="true">
+          <svg class="ico"><use href="#i-menu"/></svg>
+          <span>Productos</span>
+          <svg class="ico flechita"><use href="#i-abajo"/></svg>
+        </button>
+
+        <div class="megamenu" id="megamenu" hidden>
+          <div class="contenedor megamenu-int">
+            <div class="megamenu-col">
+              <h3><svg class="ico"><use href="#i-tienda"/></svg> Hogar</h3>
+              <a href="#hogar">Limpieza y aseo</a>
+              <a href="#hogar">Cerraduras y candados</a>
+              <a href="#hogar">Organización</a>
+              <a href="#hogar">Escaleras</a>
+              <a href="#hogar">Herrajes y bisagras</a>
+            </div>
+            <div class="megamenu-col">
+              <h3><svg class="ico"><use href="#i-escudo"/></svg> Construcción</h3>
+              <a href="#construccion">Cemento y agregados</a>
+              <a href="#construccion">Cabillas y mallas</a>
+              <a href="#construccion">Herramienta de albañil</a>
+              <a href="#construccion">Carretillas</a>
+              <a href="#construccion">Medición y nivelación</a>
+            </div>
+            <div class="megamenu-col">
+              <h3><svg class="ico"><use href="#i-herramienta"/></svg> Herramientas eléctricas</h3>
+              <a href="#electricas">Taladros y rotomartillos</a>
+              <a href="#electricas">Esmeriles y pulidoras</a>
+              <a href="#electricas">Sierras</a>
+              <a href="#electricas">Lijadoras</a>
+              <a href="#electricas">Inalámbricas 20V</a>
+            </div>
+            <div class="megamenu-col">
+              <h3><svg class="ico"><use href="#i-camion"/></svg> Plomería</h3>
+              <a href="#plomeria">Tuberías y conexiones</a>
+              <a href="#plomeria">Grifería</a>
+              <a href="#plomeria">Piezas sanitarias</a>
+              <a href="#plomeria">Bombas y tanques</a>
+              <a href="#plomeria">Mangueras</a>
+            </div>
+            <div class="megamenu-col">
+              <h3><svg class="ico"><use href="#i-tarjeta"/></svg> Electricidad</h3>
+              <a href="#electricidad">Iluminación LED</a>
+              <a href="#electricidad">Cables y conductores</a>
+              <a href="#electricidad">Breakers y tableros</a>
+              <a href="#electricidad">Tomacorrientes</a>
+              <a href="#electricidad">Instrumentos de medición</a>
+            </div>
+            <div class="megamenu-destacado">
+              <span class="mini-etiqueta">Esta semana</span>
+              <p>Hasta <strong>25% de descuento</strong> en herramientas eléctricas de marcas seleccionadas.</p>
+              <a class="btn btn-negro" href="#estrellas">Ver ofertas</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <span class="nav-separador" aria-hidden="true"></span>
+
+      <a class="nav-enlace" href="#estrellas"><svg class="ico"><use href="#i-etiqueta"/></svg> Ofertas</a>
+      <a class="nav-enlace" href="#ubicacion"><svg class="ico"><use href="#i-ubicacion"/></svg> Ubicación</a>
+      <a class="nav-enlace" href="#horarios"><svg class="ico"><use href="#i-reloj"/></svg> Horarios</a>
+      <a class="nav-enlace" href="#sucursales"><svg class="ico"><use href="#i-tienda"/></svg> Sucursales</a>
+      <a class="nav-enlace" href="#contacto"><svg class="ico"><use href="#i-telefono"/></svg> Contacto</a>
+      <a class="nav-enlace" href="#nosotros">Nosotros</a>
+
+      <a class="nav-whatsapp" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">
+        <svg class="ico"><use href="#i-chat"/></svg> Cotiza por WhatsApp
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main id="contenido">
+  <span id="inicio" class="ancla"></span>
+
+  <!-- ============ HERO SLIDER ============ -->
+  <section class="hero" id="hero" aria-roledescription="carrusel" aria-label="Promociones destacadas">
+    <div class="hero-pista">
+
+      <article class="hero-lamina activa">
+        <img src="assets/img/hero-1.jpg" alt="" loading="eager">
+        <div class="hero-velo"></div>
+        <div class="contenedor hero-texto">
+          <span class="hero-cinta">Barrio Sucre · Barcelona</span>
+          <h1>Todo para tu obra<br>en un solo sitio</h1>
+          <p>Ferretería, construcción, plomería y electricidad. Lo que necesitas, cuando lo necesitas.</p>
+          <div class="hero-botones">
+            <a class="btn btn-amarillo" href="#hogar">Ver catálogo</a>
+            <a class="btn btn-fantasma" href="#ubicacion">Cómo llegar</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="hero-lamina">
+        <img src="assets/img/hero-2.jpg" alt="" loading="lazy">
+        <div class="hero-velo"></div>
+        <div class="contenedor hero-texto">
+          <span class="hero-cinta">Marcas que aguantan</span>
+          <h1>Herramientas eléctricas<br>de las buenas</h1>
+          <p>Taladros, esmeriles, sierras y lijadoras con garantía y repuestos aquí mismo.</p>
+          <div class="hero-botones">
+            <a class="btn btn-amarillo" href="#electricas">Ver herramientas</a>
+            <a class="btn btn-fantasma" href="#estrellas">Ofertas de la semana</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="hero-lamina">
+        <img src="assets/img/hero-3.jpg" alt="" loading="lazy">
+        <div class="hero-velo"></div>
+        <div class="contenedor hero-texto">
+          <span class="hero-cinta">Al mayor y al detal</span>
+          <h1>Materiales de construcción<br>al mejor precio</h1>
+          <p>Cemento, cabillas, mallas y agregados. Cotizamos tu obra completa y te la despachamos.</p>
+          <div class="hero-botones">
+            <a class="btn btn-amarillo" href="#construccion">Ver materiales</a>
+            <a class="btn btn-fantasma" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">Pedir cotización</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="hero-lamina">
+        <img src="assets/img/hero-4.jpg" alt="" loading="lazy">
+        <div class="hero-velo"></div>
+        <div class="contenedor hero-texto">
+          <span class="hero-cinta">Gente que sabe</span>
+          <h1>Asesoría de verdad,<br>no adivinanzas</h1>
+          <p>Vente con el problema y te ayudamos a resolverlo. Aquí sí sabemos de ferretería.</p>
+          <div class="hero-botones">
+            <a class="btn btn-amarillo" href="#contacto">Hablar con un asesor</a>
+            <a class="btn btn-fantasma" href="#nosotros">Conócenos</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <button class="hero-flecha izq" id="hero-anterior" aria-label="Lámina anterior"><svg class="ico"><use href="#i-izq"/></svg></button>
+    <button class="hero-flecha der" id="hero-siguiente" aria-label="Lámina siguiente"><svg class="ico"><use href="#i-der"/></svg></button>
+    <div class="hero-puntos" id="hero-puntos" role="tablist" aria-label="Seleccionar lámina"></div>
+  </section>
+
+  <!-- ============ FRANJA DE CONFIANZA ============ -->
+  <section class="franja">
+    <div class="contenedor franja-int">
+      <div class="franja-item"><svg class="ico"><use href="#i-camion"/></svg><div><strong>Delivery propio</strong><span>Barcelona, Lechería y P.L.C.</span></div></div>
+      <div class="franja-item"><svg class="ico"><use href="#i-tarjeta"/></svg><div><strong>Paga como puedas</strong><span>Pago móvil, divisas, débito y Zelle</span></div></div>
+      <div class="franja-item"><svg class="ico"><use href="#i-escudo"/></svg><div><strong>Garantía real</strong><span>Respaldo directo de fábrica</span></div></div>
+      <div class="franja-item"><svg class="ico"><use href="#i-herramienta"/></svg><div><strong>Asesoría técnica</strong><span>Te decimos qué sirve y qué no</span></div></div>
+    </div>
+  </section>
+
+  <!-- ============ CATEGORÍAS (se pintan desde app.js) ============ -->
+  <div id="categorias"></div>
+
+  <!-- ============ ESTRELLAS DE LA SEMANA ============ -->
+  <section class="estrellas" id="estrellas">
+    <div class="contenedor">
+      <header class="seccion-cabeza estrellas-cabeza">
+        <div>
+          <span class="mini-etiqueta">Lo más vendido</span>
+          <h2>Estrellas de la semana</h2>
+          <p>Lo que más sale del mostrador en Barrio Sucre. Precios de esta semana, hasta agotar existencia.</p>
+        </div>
+        <a class="btn btn-amarillo" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">Apartar por WhatsApp</a>
+      </header>
+      <div class="rejilla-estrellas" id="rejilla-estrellas"></div>
+    </div>
+  </section>
+
+  <!-- ============ MARCAS ============ -->
+  <section class="marcas">
+    <div class="contenedor">
+      <p class="marcas-titulo">Trabajamos con las marcas que el maestro pide</p>
+      <div class="marcas-lista">
+        <span>TRUPER</span><span>STANLEY</span><span>DEWALT</span><span>BLACK+DECKER</span>
+        <span>BOSCH</span><span>TOTAL</span><span>INGCO</span><span>PAVCO</span>
+        <span>3M</span><span>SIKA</span><span>CORIMON</span><span>MONTANA</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NOSOTROS + UBICACIÓN + HORARIOS ============ -->
+  <section class="info" id="nosotros">
+    <div class="contenedor info-int">
+
+      <div class="info-texto">
+        <span class="mini-etiqueta">Desde Barrio Sucre para todo el oriente</span>
+        <h2>Somos Casa Herramientas</h2>
+        <p>Somos una ferretería de barrio que creció con la gente de Barcelona. Empezamos vendiendo herramienta suelta y hoy despachamos obras completas: desde el tornillo que te falta hasta el cemento y la cabilla para levantar la casa.</p>
+        <p>Aquí no te vendemos por vender. Te preguntamos qué vas a hacer y te decimos qué material te sirve de verdad, aunque sea el más barato. Por eso el maestro vuelve.</p>
+        <ul class="info-lista">
+          <li><svg class="ico"><use href="#i-check"/></svg> Más de 8.000 artículos en existencia</li>
+          <li><svg class="ico"><use href="#i-check"/></svg> Cotizaciones para constructoras y contratistas</li>
+          <li><svg class="ico"><use href="#i-check"/></svg> Despacho a obra en toda la zona norte de Anzoátegui</li>
+          <li><svg class="ico"><use href="#i-check"/></svg> Atención por WhatsApp de lunes a sábado</li>
+        </ul>
+        <div class="info-numeros">
+          <div><strong>17K+</strong><span>Clientes nos siguen en Instagram</span></div>
+          <div><strong>8.000+</strong><span>Artículos en catálogo</span></div>
+          <div><strong>100%</strong><span>Asesoría antes de vender</span></div>
+        </div>
+      </div>
+
+      <div class="info-tarjetas">
+
+        <article class="tarjeta-info" id="ubicacion">
+          <h3><svg class="ico"><use href="#i-ubicacion"/></svg> Dónde estamos</h3>
+          <p><strong>Calle Guayaquil</strong>, frente al estadio de béisbol de Barrio Sucre.<br>Barcelona, estado Anzoátegui, Venezuela.</p>
+          <p class="tarjeta-nota">Referencia: entrando por la Av. Fuerzas Armadas, a dos cuadras del estadio.</p>
+          <a class="btn btn-negro" href="https://www.google.com/maps/search/?api=1&query=Calle+Guayaquil+Barrio+Sucre+Barcelona+Anzoategui" target="_blank" rel="noopener">Abrir en Google Maps</a>
+        </article>
+
+        <article class="tarjeta-info" id="horarios">
+          <h3><svg class="ico"><use href="#i-reloj"/></svg> Horarios de atención</h3>
+          <!-- DATO PLACEHOLDER: horario referencial, confirmar con el cliente -->
+          <table class="tabla-horario">
+            <tr><th>Lunes a viernes</th><td>8:00 a.m. – 5:00 p.m.</td></tr>
+            <tr><th>Sábado</th><td>8:00 a.m. – 1:00 p.m.</td></tr>
+            <tr><th>Domingo</th><td class="cerrado">Cerrado</td></tr>
+          </table>
+          <p class="tarjeta-nota">Los feriados nacionales atendemos solo pedidos por WhatsApp.</p>
+        </article>
+
+        <article class="tarjeta-info" id="sucursales">
+          <h3><svg class="ico"><use href="#i-tienda"/></svg> Sucursales</h3>
+          <ul class="lista-sucursales">
+            <li><strong>Barrio Sucre (principal)</strong><span>Calle Guayaquil, frente al estadio · Barcelona</span></li>
+            <!-- DATO PLACEHOLDER: sucursales de ejemplo para el demo -->
+            <li><strong>Depósito de materiales</strong><span>Zona industrial Los Montones · Barcelona</span></li>
+            <li><strong>Punto de despacho</strong><span>Av. Municipal · Puerto La Cruz</span></li>
+          </ul>
+        </article>
+
+        <article class="tarjeta-info" id="contacto">
+          <h3><svg class="ico"><use href="#i-telefono"/></svg> Contacto</h3>
+          <ul class="lista-contacto">
+            <li><svg class="ico"><use href="#i-chat"/></svg> <a href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">WhatsApp — pedidos y cotizaciones</a></li>
+            <!-- DATO PLACEHOLDER: teléfono y correo de ejemplo -->
+            <li><svg class="ico"><use href="#i-telefono"/></svg> <a href="tel:+582810000000">+58 281 000 0000</a></li>
+            <li><svg class="ico"><use href="#i-correo"/></svg> <a href="mailto:ventas@casaherramientas.com.ve">ventas@casaherramientas.com.ve</a></li>
+            <li><svg class="ico"><use href="#i-instagram"/></svg> <a href="https://www.instagram.com/casaherramientas.ca/" target="_blank" rel="noopener">@casaherramientas.ca</a></li>
+          </ul>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ PIE ============ -->
+<footer class="pie" id="carrito">
+  <div class="contenedor pie-int">
+
+    <div class="pie-col pie-marca">
+      <img src="assets/logo.png" alt="Casa Herramientas" class="pie-logo">
+      <p class="pie-legal">Ferretería y Construcción C.H<br><span>Casa Herramientas, C.A.</span></p>
+      <p class="pie-descripcion">Tu ferretería de Barrio Sucre. Herramientas, materiales y asesoría para que la obra salga bien a la primera.</p>
+      <div class="pie-social">
+        <a href="https://www.instagram.com/casaherramientas.ca/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico"><use href="#i-instagram"/></svg></a>
+        <a href="https://www.facebook.com/casaherramientasca/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico"><use href="#i-facebook"/></svg></a>
+        <a href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="ico"><use href="#i-chat"/></svg></a>
+      </div>
+    </div>
+
+    <div class="pie-col">
+      <h4>Categorías</h4>
+      <a href="#hogar">Hogar</a>
+      <a href="#construccion">Construcción</a>
+      <a href="#electricas">Herramientas eléctricas</a>
+      <a href="#plomeria">Plomería</a>
+      <a href="#electricidad">Electricidad</a>
+      <a href="#estrellas">Ofertas de la semana</a>
+    </div>
+
+    <div class="pie-col">
+      <h4>La empresa</h4>
+      <a href="#nosotros">Quiénes somos</a>
+      <a href="#sucursales">Sucursales</a>
+      <a href="#horarios">Horarios</a>
+      <a href="#contacto">Contacto</a>
+      <a href="#nosotros">Trabaja con nosotros</a>
+      <a href="#nosotros">Ventas al mayor</a>
+    </div>
+
+    <div class="pie-col">
+      <h4>Dónde estamos</h4>
+      <p class="pie-dato"><svg class="ico"><use href="#i-ubicacion"/></svg> Calle Guayaquil, frente al estadio de béisbol de Barrio Sucre. Barcelona, Edo. Anzoátegui, Venezuela.</p>
+      <p class="pie-dato"><svg class="ico"><use href="#i-reloj"/></svg> Lun a vie 8:00 a.m. – 5:00 p.m.<br>Sáb 8:00 a.m. – 1:00 p.m.</p>
+      <p class="pie-dato"><svg class="ico"><use href="#i-telefono"/></svg> +58 281 000 0000</p>
+      <p class="pie-dato"><svg class="ico"><use href="#i-correo"/></svg> ventas@casaherramientas.com.ve</p>
+    </div>
+
+    <div class="pie-col pie-boletin">
+      <h4>Ofertas al correo</h4>
+      <p>Te avisamos cuando lleguen las promociones y la mercancía nueva.</p>
+      <form class="pie-form" id="form-boletin">
+        <input type="email" placeholder="tucorreo@ejemplo.com" aria-label="Tu correo" required>
+        <button class="btn btn-amarillo" type="submit">Suscribirme</button>
+      </form>
+      <p class="pie-mini">Al suscribirte aceptas recibir promociones. Puedes salirte cuando quieras.</p>
+    </div>
+
+  </div>
+
+  <div class="pie-barra">
+    <div class="contenedor pie-barra-int">
+      <p>© <span id="anio"></span> Casa Herramientas, C.A. — Ferretería y Construcción C.H. Todos los derechos reservados.</p>
+      <p class="pie-aviso">Demo de interfaz. Precios e inventario de ejemplo.</p>
+      <ul>
+        <li><a href="#nosotros">Términos y condiciones</a></li>
+        <li><a href="#nosotros">Política de privacidad</a></li>
+        <li><a href="#contacto">Reclamos</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ FLOTANTES ============ -->
+<a class="flotante-whatsapp" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <svg class="ico"><use href="#i-chat"/></svg>
+  <span>¿Te ayudo?</span>
+</a>
+
+<button class="flotante-arriba" id="btn-arriba" aria-label="Volver arriba" hidden>
+  <svg class="ico"><use href="#i-arriba"/></svg>
+</button>
+
+<div class="tostada" id="tostada" role="status" aria-live="polite" hidden></div>
+
+<!-- ============ MODAL DE SESIÓN ============ -->
+<div class="modal" id="modal-sesion" hidden>
+  <div class="modal-fondo" data-cerrar-modal></div>
+  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="titulo-sesion">
+    <button class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button>
+    <img src="assets/logo.png" alt="" class="modal-logo">
+    <h2 id="titulo-sesion">Entra a tu cuenta</h2>
+    <p class="modal-sub">Lleva el historial de tus compras, tus cotizaciones y tus precios de contratista.</p>
+
+    <form id="form-sesion" class="modal-form">
+      <label>Correo o teléfono
+        <input type="text" name="usuario" placeholder="tucorreo@ejemplo.com" required>
+      </label>
+      <label>Contraseña
+        <input type="password" name="clave" placeholder="••••••••" required>
+      </label>
+      <div class="modal-fila">
+        <label class="modal-check"><input type="checkbox"> Mantener sesión abierta</label>
+        <a href="#" class="modal-enlace">¿Olvidaste la clave?</a>
+      </div>
+      <button class="btn btn-amarillo btn-ancho" type="submit">Entrar</button>
+    </form>
+
+    <p class="modal-pie">¿Todavía no tienes cuenta? <a href="#" class="modal-enlace">Regístrate aquí</a></p>
+    <p class="modal-demo">Módulo de demostración: no se envía ni se guarda ningún dato.</p>
+  </div>
+</div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>

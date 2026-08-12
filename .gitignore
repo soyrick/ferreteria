@@ -1,0 +1,17 @@
+node_modules/
+
+# Vercel
+.vercel
+
+# Estado local de herramientas, no es código del proyecto
+.claude/settings.local.json
+.atl/
+
+# Basura del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
