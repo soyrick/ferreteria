@@ -14,9 +14,9 @@ automático hasta que lo indiques con "modo automático".
 1. **Embellecer el tablero del panel.** Hoy cumple pero es plano: faltan gráficos,
    comparativas contra el período anterior y una jerarquía visual que se lea de un
    vistazo.
-2. **Verificar que Analytics esté midiendo de verdad.** Las variables están
-   cargadas y el sitio desplegado, pero falta confirmar en GA4 → Tiempo real que
-   llegan las visitas y los eventos (`add_to_cart`, `search`, `abrir_chat`).
+2. **Comprobar que lleguen los eventos propios.** Las visitas ya se registran;
+   falta ver en GA4 que aparezcan `add_to_cart`, `search` y `abrir_chat` cuando
+   alguien usa esas funciones.
 
 ---
 
@@ -93,7 +93,7 @@ mover solo ese sector sin tocar la tienda.
 | F2 Carrito de compras | ⬜ pendiente | — |
 | F3 Ventana de chat | ✅ interfaz hecha | — |
 | F4 SEO base y rendimiento | ⬜ pendiente | — |
-| F5 Analítica | 🟡 cableada y desplegada, **falta confirmar que mide** | — |
+| F5 Analítica | ✅ hecha y verificada midiendo | — |
 | F6 API de productos y catálogo real | ⛔ bloqueada | API de productos |
 | F7 Conexión del chatbot | ⛔ bloqueada | API del chatbot |
 | F8 Panel de administración | 🟡 funcionando, **faltan las cifras reales** | APIs de Google |
@@ -120,8 +120,9 @@ Verificado el 2026-08-24 en el sitio desplegado.
 - **Sección de Ofertas propia.** Antes cuatro enlaces llevaban a "lo más vendido".
 - **Ventana de chat** con el botón flotante amarillo. Sin bot todavía: responde una
   plantilla que deriva a WhatsApp.
-- **GA4 con consentimiento** — no se descarga nada de Google hasta aceptar — y la
-  etiqueta de verificación de Search Console.
+- **GA4 con consentimiento** — no se descarga nada de Google hasta aceptar.
+  Verificado el 2026-08-24: las visitas llegan a Tiempo real.
+- **Sitio público** en https://casaherramientas.vercel.app
 - **Buscador replegable**, hero por tramos responsive, franjas de toque invisibles en
   el hero para móvil.
 
