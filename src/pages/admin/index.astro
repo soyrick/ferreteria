@@ -1,0 +1,138 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+
+// Estado real de la configuración: se lee del entorno, no está inventado.
+const GA_ID = import.meta.env.PUBLIC_GA_ID ?? '';
+const GSC_TOKEN = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
+
+const conexiones = [
+  {
+    nombre: 'Google Analytics 4',
+    variable: 'PUBLIC_GA_ID',
+    valor: GA_ID,
+    listo: Boolean(GA_ID),
+    detalle: GA_ID ? `Midiendo con ${GA_ID}` : 'Falta el ID de medición (G-XXXXXXXXXX)',
+  },
+  {
+    nombre: 'Google Search Console',
+    variable: 'PUBLIC_GSC_VERIFICACION',
+    valor: GSC_TOKEN,
+    listo: Boolean(GSC_TOKEN),
+    detalle: GSC_TOKEN ? 'Etiqueta de verificación publicada' : 'Falta el token de verificación del dominio',
+  },
+];
+
+/* DATOS DE MUESTRA — no salen de ninguna API.
+   Existen para que la interfaz esté construida y probada. En F8 los reemplaza
+   la GA4 Data API y la Search Console API, que necesitan credenciales de
+   servicio: por eso esa parte sigue bloqueada. */
+const visitas = [
+  { etiqueta: 'Usuarios', valor: '1.284', delta: '+12,4 %', sube: true },
+  { etiqueta: 'Sesiones', valor: '1.907', delta: '+8,1 %', sube: true },
+  { etiqueta: 'Vistas de página', valor: '5.412', delta: '+15,3 %', sube: true },
+  { etiqueta: 'Duración media', valor: '2m 18s', delta: '−4,0 %', sube: false },
+];
+
+const buscador = [
+  { etiqueta: 'Clics', valor: '342', delta: '+22,0 %', sube: true },
+  { etiqueta: 'Impresiones', valor: '9.806', delta: '+31,5 %', sube: true },
+  { etiqueta: 'CTR', valor: '3,49 %', delta: '−0,6 %', sube: false },
+  { etiqueta: 'Posición media', valor: '14,2', delta: '+2,1', sube: true },
+];
+
+const paginasTop = [
+  { ruta: '/', vistas: '2.140' },
+  { ruta: '/categoria/herramientas-electricas', vistas: '861' },
+  { ruta: '/categoria/construccion', vistas: '714' },
+  { ruta: '/categoria/plomeria', vistas: '498' },
+  { ruta: '/categoria/electricidad', vistas: '402' },
+];
+
+const consultasTop = [
+  { consulta: 'ferretería barcelona anzoátegui', clics: '78', impresiones: '1.902' },
+  { consulta: 'casa herramientas', clics: '64', impresiones: '810' },
+  { consulta: 'taladro percutor barcelona', clics: '41', impresiones: '1.140' },
+  { consulta: 'cemento precio anzoátegui', clics: '35', impresiones: '1.688' },
+  { consulta: 'cabilla 3/8 barcelona', clics: '28', impresiones: '992' },
+];
+---
+<Admin titulo="Estadísticas">
+  <div class="admin-aviso" role="status">
+      <strong>Los números de abajo son de muestra.</strong>
+      La interfaz ya está construida, pero traer las cifras reales necesita
+      credenciales de servicio de Google (GA4 Data API y Search Console API).
+      Eso se conecta en la fase 8.
+    </div>
+
+    <section class="admin-seccion">
+      <h2>Estado de las conexiones</h2>
+      <div class="admin-conexiones">
+        {conexiones.map((c) => (
+          <article class={`conexion ${c.listo ? 'lista' : 'pendiente'}`}>
+            <span class="conexion-punto"></span>
+            <div>
+              <strong>{c.nombre}</strong>
+              <span>{c.detalle}</span>
+              <code>{c.variable}</code>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="admin-seccion">
+      <h2>Visitas <span class="admin-muestra">muestra</span></h2>
+      <p class="admin-fuente">Google Analytics 4 · últimos 28 días</p>
+      <div class="admin-metricas">
+        {visitas.map((m) => (
+          <article class="metrica">
+            <span class="metrica-etiqueta">{m.etiqueta}</span>
+            <strong class="metrica-valor">{m.valor}</strong>
+            <span class={`metrica-delta ${m.sube ? 'sube' : 'baja'}`}>{m.delta}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="admin-seccion">
+      <h2>Búsqueda en Google <span class="admin-muestra">muestra</span></h2>
+      <p class="admin-fuente">Search Console · últimos 28 días</p>
+      <div class="admin-metricas">
+        {buscador.map((m) => (
+          <article class="metrica">
+            <span class="metrica-etiqueta">{m.etiqueta}</span>
+            <strong class="metrica-valor">{m.valor}</strong>
+            <span class={`metrica-delta ${m.sube ? 'sube' : 'baja'}`}>{m.delta}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <div class="admin-dos">
+      <section class="admin-seccion">
+        <h2>Páginas más vistas <span class="admin-muestra">muestra</span></h2>
+        <table class="admin-tabla">
+          <thead><tr><th>Ruta</th><th>Vistas</th></tr></thead>
+          <tbody>
+            {paginasTop.map((p) => (
+              <tr><td><code>{p.ruta}</code></td><td>{p.vistas}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="admin-seccion">
+        <h2>Búsquedas que traen gente <span class="admin-muestra">muestra</span></h2>
+        <table class="admin-tabla">
+          <thead><tr><th>Consulta</th><th>Clics</th><th>Impr.</th></tr></thead>
+          <tbody>
+            {consultasTop.map((c) => (
+              <tr><td>{c.consulta}</td><td>{c.clics}</td><td>{c.impresiones}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </div>
+</Admin>

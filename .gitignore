@@ -1,5 +1,9 @@
 node_modules/
 
+# Astro
+dist/
+.astro/
+
 # Vercel
 .vercel
 
@@ -15,3 +19,11 @@ desktop.ini
 # Logs
 *.log
 npm-debug.log*
+
+# Variables de entorno
+.env
+.env.local
+.env.production
+
+.vercel
+.env*

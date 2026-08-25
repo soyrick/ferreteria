@@ -1,0 +1,87 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { TODOS, precioLista } from '../../datos/catalogo.js';
+import { leer, guardar, almacenListo } from '../../datos/curaduria.js';
+
+let errores = [];
+let guardado = false;
+
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const ofertas = f.getAll('oferta').map(String).map((id) => ({
+    id,
+    precio: Number(String(f.get(`precio:${id}`) ?? '').replace(',', '.')),
+    vence: String(f.get(`vence:${id}`) ?? ''),
+  }));
+  errores = await guardar({ ofertas });
+  guardado = errores.length === 0;
+}
+
+const actuales = new Map((await leer()).ofertas.map((o) => [o.id, o]));
+---
+<Admin titulo="Ofertas">
+  <header class="admin-titulo">
+    <div>
+      <h1>Ofertas</h1>
+      <p>Marcá el producto, poné el precio rebajado y hasta cuándo vale. Aparecen en su propia sección de la página principal.</p>
+    </div>
+    <button type="submit" form="form-ofertas" class="btn btn-amarillo">Guardar cambios</button>
+  </header>
+
+  {guardado && <p class="admin-ok" role="status">Listo. Las ofertas quedaron publicadas.</p>}
+  {errores.length > 0 && (
+    <ul class="admin-errores" role="alert">{errores.map((e) => <li>{e}</li>)}</ul>
+  )}
+
+  {!almacenListo() && (
+    <div class="admin-aviso">
+      <strong>Guardando solo en memoria.</strong>
+      No encuentro <code>BLOB_READ_WRITE_TOKEN</code>. Creá el store de Vercel
+      Blob marcando <em>"Add a read-write token env var"</em>, y después corré
+      <code>npx vercel env pull</code>. Sin eso los cambios se pierden al
+      reiniciar, y en producción no se guardarían nunca.
+    </div>
+  )}
+
+  <form method="POST" id="form-ofertas" class="admin-form">
+    <table class="admin-tabla tabla-ofertas">
+      <thead>
+        <tr>
+          <th>En oferta</th>
+          <th>Producto</th>
+          <th>Precio de lista</th>
+          <th>Precio de oferta</th>
+          <th>Vence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {TODOS.map((p) => {
+          const o = actuales.get(p.id);
+          return (
+            <tr class={o ? 'en-oferta' : ''}>
+              <td><input type="checkbox" name="oferta" value={p.id} checked={Boolean(o)} aria-label={`Poner ${p.n} en oferta`}></td>
+              <td class="celda-producto">
+                <img src={`/assets/img/${p.img}.jpg`} alt="" loading="lazy">
+                <span><strong>{p.n}</strong><small>{p.m}</small></span>
+              </td>
+              <td class="celda-num">${precioLista(p).toFixed(2)}</td>
+              <td>
+                <input type="number" step="0.01" min="0.01" max={precioLista(p) - 0.01}
+                       name={`precio:${p.id}`} value={o ? o.precio.toFixed(2) : ''}
+                       placeholder="—" aria-label={`Precio de oferta de ${p.n}`}>
+              </td>
+              <td>
+                <input type="date" name={`vence:${p.id}`} value={o?.vence ?? ''} aria-label={`Vencimiento de la oferta de ${p.n}`}>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+    <div class="admin-pie-form">
+      <button type="submit" class="btn btn-amarillo">Guardar cambios</button>
+    </div>
+  </form>
+</Admin>

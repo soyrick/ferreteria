@@ -1,0 +1,52 @@
+---
+/* Marco común de las cuatro pantallas del panel.
+   Se extrae ahora y no antes: con una sola página habría sido una abstracción
+   con una sola implementación. */
+import '../styles/styles.css';
+import '../styles/admin.css';
+
+const { titulo } = Astro.props;
+const actual = Astro.url.pathname.replace(/\/$/, '') || '/admin';
+
+const SECCIONES = [
+  { ruta: '/admin',            nombre: 'Estadísticas' },
+  { ruta: '/admin/categorias', nombre: 'Categorías' },
+  { ruta: '/admin/semana',     nombre: 'Lo más vendido' },
+  { ruta: '/admin/ofertas',    nombre: 'Ofertas' },
+];
+---
+<!doctype html>
+<html lang="es-VE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{titulo} — Panel de Casa Herramientas</title>
+  <link rel="icon" href="/assets/logo.png">
+</head>
+<body class="admin">
+
+  <header class="admin-cabecera">
+    <a class="admin-marca" href="/admin">
+      <img src="/assets/logo.png" alt="">
+      <span><strong>Casa Herramientas</strong><small>Panel de administración</small></span>
+    </a>
+    <nav class="admin-nav">
+      <a href="/" target="_blank" rel="noopener">Ver la tienda ↗</a>
+      <a class="admin-salir" href="/admin/salir">Salir</a>
+    </nav>
+  </header>
+
+  <nav class="admin-pestanas" aria-label="Secciones del panel">
+    {SECCIONES.map((s) => (
+      <a href={s.ruta} class={s.ruta === actual ? 'activa' : ''} aria-current={s.ruta === actual ? 'page' : undefined}>
+        {s.nombre}
+      </a>
+    ))}
+  </nav>
+
+  <main class="admin-cuerpo">
+    <slot />
+  </main>
+</body>
+</html>

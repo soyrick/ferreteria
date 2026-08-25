@@ -5,7 +5,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^11.0.8",
+    "@vercel/blob": "^2.8.0",
+    "astro": "^7.2.6"
   }
 }

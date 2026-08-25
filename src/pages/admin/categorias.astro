@@ -1,0 +1,71 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { CATEGORIAS, idDe } from '../../datos/catalogo.js';
+import { leer, guardar, almacenListo } from '../../datos/curaduria.js';
+
+let errores = [];
+let guardado = false;
+
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const destacados = Object.fromEntries(
+    CATEGORIAS.map((c) => [c.id, f.getAll(`cat:${c.id}`).map(String)])
+  );
+  errores = await guardar({ destacados });
+  guardado = errores.length === 0;
+}
+
+const actual = (await leer()).destacados;
+---
+<Admin titulo="Categorías">
+  <header class="admin-titulo">
+    <div>
+      <h1>Productos de cada categoría</h1>
+      <p>Lo que se marque acá es lo que aparece en las filas de la página principal.</p>
+    </div>
+    <button type="submit" form="form-categorias" class="btn btn-amarillo">Guardar cambios</button>
+  </header>
+
+  {guardado && <p class="admin-ok" role="status">Listo. La página principal ya muestra esta selección.</p>}
+  {errores.length > 0 && (
+    <ul class="admin-errores" role="alert">{errores.map((e) => <li>{e}</li>)}</ul>
+  )}
+
+  {!almacenListo() && (
+    <div class="admin-aviso">
+      <strong>Guardando solo en memoria.</strong>
+      No encuentro <code>BLOB_READ_WRITE_TOKEN</code>. Creá el store de Vercel
+      Blob marcando <em>"Add a read-write token env var"</em>, y después corré
+      <code>npx vercel env pull</code>. Sin eso los cambios se pierden al
+      reiniciar, y en producción no se guardarían nunca.
+    </div>
+  )}
+
+  <form method="POST" id="form-categorias" class="admin-form">
+    {CATEGORIAS.map((c) => {
+      const elegidos = actual[c.id] ?? [];
+      return (
+        <section class="admin-seccion">
+          <h2>{c.nombre} <span class="admin-cuenta">{elegidos.length} de {c.productos.length}</span></h2>
+          <div class="elegir">
+            {c.productos.map((p) => (
+              <label class="elegir-item">
+                <input type="checkbox" name={`cat:${c.id}`} value={idDe(p)} checked={elegidos.includes(idDe(p))}>
+                <img src={`/assets/img/${p.img}.jpg`} alt="" loading="lazy">
+                <span class="elegir-datos">
+                  <strong>{p.n}</strong>
+                  <small>{p.m} · ${p.p.toFixed(2)}</small>
+                </span>
+              </label>
+            ))}
+          </div>
+        </section>
+      );
+    })}
+    <div class="admin-pie-form">
+      <button type="submit" class="btn btn-amarillo">Guardar cambios</button>
+    </div>
+  </form>
+</Admin>

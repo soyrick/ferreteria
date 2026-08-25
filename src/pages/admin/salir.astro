@@ -1,0 +1,7 @@
+---
+export const prerender = false;
+
+// Borrar la cookie con el mismo path con el que se creó; si no, sobrevive.
+Astro.cookies.delete('ch_sesion', { path: '/admin' });
+return Astro.redirect('/admin/entrar', 302);
+---

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# El panel no se indexa. La protección real es el middleware; esto solo evita
+# que aparezca en resultados de búsqueda.
+Disallow: /admin

@@ -1,0 +1,83 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { CATEGORIAS, TODOS } from '../../datos/catalogo.js';
+import { leer, guardar, almacenListo } from '../../datos/curaduria.js';
+
+const CUPOS = 16;   // la rejilla de la página principal es de 4 x 4
+
+let errores = [];
+let guardado = false;
+
+if (Astro.request.method === 'POST') {
+  const semana = (await Astro.request.formData()).getAll('semana').map(String);
+  if (semana.length > CUPOS) {
+    errores = [`Elegiste ${semana.length} productos y la rejilla tiene ${CUPOS} cupos. Quitá ${semana.length - CUPOS}.`];
+  } else {
+    errores = await guardar({ semana });
+    guardado = errores.length === 0;
+  }
+}
+
+const elegidos = (await leer()).semana;
+
+// Se elige del catálogo entero, agrupado por categoría para poder encontrarlos.
+const porCategoria = CATEGORIAS.map((c) => ({
+  nombre: c.nombre,
+  productos: TODOS.filter((p) => p.catId === c.id),
+}));
+const sueltos = TODOS.filter((p) => !CATEGORIAS.some((c) => c.id === p.catId));
+if (sueltos.length) porCategoria.push({ nombre: 'Otros', productos: sueltos });
+---
+<Admin titulo="Lo más vendido">
+  <header class="admin-titulo">
+    <div>
+      <h1>Lo más vendido de la semana</h1>
+      <p>Estos son los que salen en la rejilla de estrellas. Entran {CUPOS}.</p>
+    </div>
+    <button type="submit" form="form-semana" class="btn btn-amarillo">Guardar cambios</button>
+  </header>
+
+  {guardado && <p class="admin-ok" role="status">Listo. La rejilla de la semana quedó actualizada.</p>}
+  {errores.length > 0 && (
+    <ul class="admin-errores" role="alert">{errores.map((e) => <li>{e}</li>)}</ul>
+  )}
+
+  {!almacenListo() && (
+    <div class="admin-aviso">
+      <strong>Guardando solo en memoria.</strong>
+      No encuentro <code>BLOB_READ_WRITE_TOKEN</code>. Creá el store de Vercel
+      Blob marcando <em>"Add a read-write token env var"</em>, y después corré
+      <code>npx vercel env pull</code>. Sin eso los cambios se pierden al
+      reiniciar, y en producción no se guardarían nunca.
+    </div>
+  )}
+
+  <p class="admin-cuenta-grande">
+    Seleccionados ahora: <strong>{elegidos.length}</strong> de {CUPOS}
+  </p>
+
+  <form method="POST" id="form-semana" class="admin-form">
+    {porCategoria.map((g) => (
+      <section class="admin-seccion">
+        <h2>{g.nombre}</h2>
+        <div class="elegir">
+          {g.productos.map((p) => (
+            <label class="elegir-item">
+              <input type="checkbox" name="semana" value={p.id} checked={elegidos.includes(p.id)}>
+              <img src={`/assets/img/${p.img}.jpg`} alt="" loading="lazy">
+              <span class="elegir-datos">
+                <strong>{p.n}</strong>
+                <small>{p.m} · ${p.p.toFixed(2)}</small>
+              </span>
+            </label>
+          ))}
+        </div>
+      </section>
+    ))}
+    <div class="admin-pie-form">
+      <button type="submit" class="btn btn-amarillo">Guardar cambios</button>
+    </div>
+  </form>
+</Admin>

@@ -1,0 +1,72 @@
+---
+export const prerender = false;
+
+import { firmar, claveCorrecta, destinoSeguro } from '../../lib/sesion.js';
+import '../../styles/styles.css';
+import '../../styles/admin.css';
+
+const CLAVE = import.meta.env.ADMIN_CLAVE;
+const SECRETO = import.meta.env.ADMIN_SECRETO;
+const configurado = Boolean(CLAVE && SECRETO);
+
+const HORAS = 8;
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const formulario = await Astro.request.formData();
+  const clave = String(formulario.get('clave') ?? '');
+
+  if (!configurado) {
+    error = 'Faltan las variables ADMIN_CLAVE y ADMIN_SECRETO en el entorno.';
+  } else if (!(await claveCorrecta(clave, CLAVE))) {
+    // ponytail: sin límite de intentos. En serverless un contador en memoria no
+    // sirve (cada invocación arranca limpia); el freno real va en F10, con
+    // almacenamiento compartido o el rate limiting de la plataforma.
+    error = 'Clave incorrecta.';
+  } else {
+    const token = await firmar({ vence: Date.now() + HORAS * 3600_000 }, SECRETO);
+    Astro.cookies.set('ch_sesion', token, {
+      httpOnly: true,                      // fuera del alcance de cualquier script
+      secure: import.meta.env.PROD,        // en local no hay HTTPS
+      sameSite: 'lax',
+      path: '/admin',                      // no viaja en las peticiones de la tienda
+      maxAge: HORAS * 3600,
+    });
+    return Astro.redirect(destinoSeguro(Astro.url.searchParams.get('volver')), 302);
+  }
+}
+---
+<!doctype html>
+<html lang="es-VE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Entrar — Panel de Casa Herramientas</title>
+  <link rel="icon" href="/assets/logo.png">
+</head>
+<body class="admin-entrar">
+  <main class="entrar-caja">
+    <img src="/assets/logo.png" alt="Casa Herramientas" class="entrar-logo">
+    <h1>Panel de administración</h1>
+    <p class="entrar-sub">Acceso solo para el personal de la tienda.</p>
+
+    {error && <p class="entrar-error" role="alert">{error}</p>}
+
+    {!configurado && (
+      <p class="entrar-aviso">
+        Todavía no hay clave configurada. Definí <code>ADMIN_CLAVE</code> y
+        <code>ADMIN_SECRETO</code> en las variables de entorno.
+      </p>
+    )}
+
+    <form method="POST" class="entrar-form">
+      <label for="clave">Clave de acceso</label>
+      <input type="password" id="clave" name="clave" required autocomplete="current-password" autofocus>
+      <button type="submit" class="btn btn-amarillo btn-ancho">Entrar</button>
+    </form>
+
+    <a class="entrar-volver" href="/">← Volver a la tienda</a>
+  </main>
+</body>
+</html>

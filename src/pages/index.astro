@@ -1,16 +1,25 @@
+---
+// ponytail: todo el marcado vive acá a propósito. Sin layout ni componentes
+// hasta que exista una segunda página que los justifique.
+import '../styles/styles.css';
+
+// La verificación de Search Console es una etiqueta que Google busca en el
+// <head>. Sale del entorno: no se escribe a mano en el repo.
+const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
+---
 <!doctype html>
 <html lang="es-VE">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{GSC && <meta name="google-site-verification" content={GSC} />}
 <title>Casa Herramientas, C.A. — Ferretería y Construcción C.H | Barcelona, Anzoátegui</title>
 <meta name="description" content="Ferretería y construcción en Barcelona, estado Anzoátegui. Herramientas, materiales, plomería, electricidad y todo para el hogar. Calle Guayaquil, frente al estadio de béisbol de Barrio Sucre.">
 <meta name="theme-color" content="#FFDD00">
-<link rel="icon" href="assets/logo.png">
+<link rel="icon" href="/assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -44,7 +53,7 @@
 
 <!-- ============ INTRO ============ -->
 <div id="intro" role="presentation">
-  <img src="assets/logo.png" alt="Casa Herramientas">
+  <img src="/assets/logo.png" alt="Casa Herramientas">
 </div>
 
 <a class="saltar" href="#contenido">Saltar al contenido</a>
@@ -71,7 +80,7 @@
     <div class="contenedor nav-principal-int">
 
       <a href="#inicio" class="marca" data-inicio>
-        <img src="assets/logo.png" alt="" class="marca-logo">
+        <img src="/assets/logo.png" alt="" class="marca-logo">
         <span class="marca-texto">
           <strong>CASA HERRAMIENTAS</strong>
           <small>Ferretería y Construcción C.H</small>
@@ -170,7 +179,7 @@
             <div class="megamenu-destacado">
               <span class="mini-etiqueta">Esta semana</span>
               <p>Hasta <strong>25% de descuento</strong> en herramientas eléctricas de marcas seleccionadas.</p>
-              <a class="btn btn-negro" href="#estrellas">Ver ofertas</a>
+              <a class="btn btn-negro" href="#ofertas">Ver ofertas</a>
             </div>
           </div>
         </div>
@@ -178,16 +187,12 @@
 
       <span class="nav-separador" aria-hidden="true"></span>
 
-      <a class="nav-enlace" href="#estrellas"><svg class="ico"><use href="#i-etiqueta"/></svg> Ofertas</a>
+      <a class="nav-enlace" href="#ofertas"><svg class="ico"><use href="#i-etiqueta"/></svg> Ofertas</a>
       <a class="nav-enlace" href="#ubicacion"><svg class="ico"><use href="#i-ubicacion"/></svg> Ubicación</a>
       <a class="nav-enlace" href="#horarios"><svg class="ico"><use href="#i-reloj"/></svg> Horarios</a>
       <a class="nav-enlace" href="#sucursales"><svg class="ico"><use href="#i-tienda"/></svg> Sucursales</a>
       <a class="nav-enlace" href="#contacto"><svg class="ico"><use href="#i-telefono"/></svg> Contacto</a>
       <a class="nav-enlace" href="#nosotros">Nosotros</a>
-
-      <a class="nav-whatsapp" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">
-        <svg class="ico"><use href="#i-chat"/></svg> Cotiza por WhatsApp
-      </a>
     </div>
   </nav>
 </header>
@@ -200,7 +205,7 @@
     <div class="hero-pista">
 
       <article class="hero-lamina activa">
-        <img src="assets/img/hero-1.jpg" alt="" loading="eager">
+        <img src="/assets/img/hero-1.jpg" alt="" loading="eager">
         <div class="hero-velo"></div>
         <div class="contenedor hero-texto">
           <span class="hero-cinta">Barrio Sucre · Barcelona</span>
@@ -214,7 +219,7 @@
       </article>
 
       <article class="hero-lamina">
-        <img src="assets/img/hero-2.jpg" alt="" loading="lazy">
+        <img src="/assets/img/hero-2.jpg" alt="" loading="lazy">
         <div class="hero-velo"></div>
         <div class="contenedor hero-texto">
           <span class="hero-cinta">Marcas que aguantan</span>
@@ -222,13 +227,13 @@
           <p>Taladros, esmeriles, sierras y lijadoras con garantía y repuestos aquí mismo.</p>
           <div class="hero-botones">
             <a class="btn btn-amarillo" href="#electricas">Ver herramientas</a>
-            <a class="btn btn-fantasma" href="#estrellas">Ofertas de la semana</a>
+            <a class="btn btn-fantasma" href="#ofertas">Ofertas de la semana</a>
           </div>
         </div>
       </article>
 
       <article class="hero-lamina">
-        <img src="assets/img/hero-3.jpg" alt="" loading="lazy">
+        <img src="/assets/img/hero-3.jpg" alt="" loading="lazy">
         <div class="hero-velo"></div>
         <div class="contenedor hero-texto">
           <span class="hero-cinta">Al mayor y al detal</span>
@@ -242,7 +247,7 @@
       </article>
 
       <article class="hero-lamina">
-        <img src="assets/img/hero-4.jpg" alt="" loading="lazy">
+        <img src="/assets/img/hero-4.jpg" alt="" loading="lazy">
         <div class="hero-velo"></div>
         <div class="contenedor hero-texto">
           <span class="hero-cinta">Gente que sabe</span>
@@ -274,6 +279,21 @@
 
   <!-- ============ CATEGORÍAS (se pintan desde app.js) ============ -->
   <div id="categorias"></div>
+
+  <!-- ============ OFERTAS ============ -->
+  <section class="ofertas" id="ofertas">
+    <div class="contenedor">
+      <header class="seccion-cabeza revelar">
+        <div>
+          <span class="mini-etiqueta">Precio rebajado</span>
+          <h2>Ofertas de la semana</h2>
+          <p>Rebajas que pone la tienda. <strong id="cuenta-ofertas">0</strong> productos con precio especial, hasta agotar existencia.</p>
+        </div>
+        <a class="btn btn-negro" href="#contacto">Preguntar por una oferta</a>
+      </header>
+      <div class="rejilla-ofertas" id="rejilla-ofertas"></div>
+    </div>
+  </section>
 
   <!-- ============ ESTRELLAS DE LA SEMANA ============ -->
   <section class="estrellas" id="estrellas">
@@ -376,7 +396,7 @@
   <div class="contenedor pie-int">
 
     <div class="pie-col pie-marca">
-      <img src="assets/logo.png" alt="Casa Herramientas" class="pie-logo">
+      <img src="/assets/logo.png" alt="Casa Herramientas" class="pie-logo">
       <p class="pie-legal">Ferretería y Construcción C.H<br><span>Casa Herramientas, C.A.</span></p>
       <p class="pie-descripcion">Tu ferretería de Barrio Sucre. Herramientas, materiales y asesoría para que la obra salga bien a la primera.</p>
       <div class="pie-social">
@@ -393,7 +413,7 @@
       <a href="#electricas">Herramientas eléctricas</a>
       <a href="#plomeria">Plomería</a>
       <a href="#electricidad">Electricidad</a>
-      <a href="#estrellas">Ofertas de la semana</a>
+      <a href="#ofertas">Ofertas de la semana</a>
     </div>
 
     <div class="pie-col">
@@ -440,10 +460,36 @@
 </footer>
 
 <!-- ============ FLOTANTES ============ -->
-<a class="flotante-whatsapp" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+<button class="flotante-chat" id="btn-chat" aria-expanded="false" aria-controls="panel-chat">
   <svg class="ico"><use href="#i-chat"/></svg>
   <span>¿Te ayudo?</span>
-</a>
+</button>
+
+<!-- ============ VENTANA DE CHAT ============ -->
+<!-- aria-modal="false": la página sigue usable con el chat abierto, a
+     diferencia del modal de sesión. -->
+<section class="chat" id="panel-chat" role="dialog" aria-modal="false" aria-labelledby="chat-titulo" hidden>
+  <header class="chat-cabecera">
+    <img src="/assets/logo.png" alt="" class="chat-avatar">
+    <div class="chat-quien">
+      <strong id="chat-titulo">Asistente de Casa Herramientas</strong>
+      <span class="chat-estado">Te ayudo a encontrar lo que buscas</span>
+    </div>
+    <button class="chat-cerrar" id="chat-cerrar" aria-label="Cerrar el chat">
+      <svg class="ico"><use href="#i-cerrar"/></svg>
+    </button>
+  </header>
+
+  <div class="chat-mensajes" id="chat-mensajes" role="log" aria-live="polite" aria-atomic="false"></div>
+
+  <form class="chat-barra" id="chat-form" autocomplete="off">
+    <label class="visualmente-oculto" for="chat-entrada">Escribí tu mensaje</label>
+    <input type="text" id="chat-entrada" placeholder="Escribí tu consulta…" maxlength="500" required>
+    <button type="submit" class="chat-enviar" aria-label="Enviar mensaje">
+      <svg class="ico"><use href="#i-der"/></svg>
+    </button>
+  </form>
+</section>
 
 <button class="flotante-arriba" id="btn-arriba" aria-label="Volver arriba" hidden>
   <svg class="ico"><use href="#i-arriba"/></svg>
@@ -451,12 +497,24 @@
 
 <div class="tostada" id="tostada" role="status" aria-live="polite" hidden></div>
 
+<!-- ============ CONSENTIMIENTO DE ANALÍTICA ============ -->
+<aside class="consentimiento" id="consentimiento" hidden>
+  <p>
+    Usamos Google Analytics para saber qué busca la gente y tener mejor
+    surtido. No se carga nada hasta que nos digas que sí.
+  </p>
+  <div class="consentimiento-botones">
+    <button class="btn" id="consent-no">Solo lo necesario</button>
+    <button class="btn btn-amarillo" id="consent-si">Aceptar</button>
+  </div>
+</aside>
+
 <!-- ============ MODAL DE SESIÓN ============ -->
 <div class="modal" id="modal-sesion" hidden>
   <div class="modal-fondo" data-cerrar-modal></div>
   <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="titulo-sesion">
     <button class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button>
-    <img src="assets/logo.png" alt="" class="modal-logo">
+    <img src="/assets/logo.png" alt="" class="modal-logo">
     <h2 id="titulo-sesion">Entra a tu cuenta</h2>
     <p class="modal-sub">Lleva el historial de tus compras, tus cotizaciones y tus precios de contratista.</p>
 
@@ -479,6 +537,10 @@
   </div>
 </div>
 
-<script src="app.js" type="module"></script>
+<script>
+  // Astro lo empaqueta y lo sirve como módulo diferido: mismo momento de
+  // ejecución que el <script type="module"> que había al final del body.
+  import '../scripts/app.js';
+</script>
 </body>
 </html>
