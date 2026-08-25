@@ -27,7 +27,6 @@ const actuales = new Map((await leer()).ofertas.map((o) => [o.id, o]));
       <h1>Ofertas</h1>
       <p>Marcá el producto, poné el precio rebajado y hasta cuándo vale. Aparecen en su propia sección de la página principal.</p>
     </div>
-    <button type="submit" form="form-ofertas" class="btn btn-amarillo">Guardar cambios</button>
   </header>
 
   {guardado && <p class="admin-ok" role="status">Listo. Las ofertas quedaron publicadas.</p>}

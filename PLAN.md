@@ -9,6 +9,17 @@ automático hasta que lo indiques con "modo automático".
 
 ---
 
+## Para mañana
+
+1. **Embellecer el tablero del panel.** Hoy cumple pero es plano: faltan gráficos,
+   comparativas contra el período anterior y una jerarquía visual que se lea de un
+   vistazo.
+2. **Verificar que Analytics esté midiendo de verdad.** Las variables están
+   cargadas y el sitio desplegado, pero falta confirmar en GA4 → Tiempo real que
+   llegan las visitas y los eventos (`add_to_cart`, `search`, `abrir_chat`).
+
+---
+
 ## Cómo trabajamos cada fase
 
 1. Te muestro **qué voy a tocar** y qué queda fuera.
@@ -76,19 +87,43 @@ mover solo ese sector sin tocar la tienda.
 > dejamos los tramos bloqueados para cuando lleguen. El chat se parte en dos:
 > la ventana (no necesita API) y la conexión con el bot (sí).
 
-| Fase | Necesita API |
-|------|--------------|
-| F1 Base técnica — **hecha** | no |
-| F2 Carrito de compras | no |
-| F3 Ventana de chat | no |
-| F4 SEO base y rendimiento | no |
-| F5 Analítica — **cableada**, falta tu ID de GA4 | no |
-| F6 API de productos y catálogo real | **sí** |
-| F7 Conexión del chatbot | **sí** |
-| F8 Panel de administración — **shell y acceso hechos**; faltan las cifras reales | sí (APIs de Google) |
-| F9 Auditoría de accesibilidad y UI | no |
-| F10 Auditoría de ciberseguridad | no |
-| F11 Puesta en producción | no |
+| Fase | Estado | Bloqueada por |
+|------|--------|---------------|
+| F1 Base técnica | ✅ hecha | — |
+| F2 Carrito de compras | ⬜ pendiente | — |
+| F3 Ventana de chat | ✅ interfaz hecha | — |
+| F4 SEO base y rendimiento | ⬜ pendiente | — |
+| F5 Analítica | 🟡 cableada y desplegada, **falta confirmar que mide** | — |
+| F6 API de productos y catálogo real | ⛔ bloqueada | API de productos |
+| F7 Conexión del chatbot | ⛔ bloqueada | API del chatbot |
+| F8 Panel de administración | 🟡 funcionando, **faltan las cifras reales** | APIs de Google |
+| F9 Auditoría de accesibilidad y UI | ⬜ pendiente | — |
+| F10 Auditoría de ciberseguridad | ⬜ pendiente | — |
+| F11 Puesta en producción | ⬜ pendiente | dominio |
+
+---
+
+## Lo que ya está en producción
+
+Verificado el 2026-08-24 en el sitio desplegado.
+
+- **Astro híbrido.** La tienda se sirve estática; solo `/admin` y `/api` corren en servidor.
+- **Panel de administración** con acceso por clave, cookie firmada con HMAC, `HttpOnly`
+  y limitada a `/admin`. Puerta única en middleware: toda página nueva bajo `/admin`
+  nace protegida.
+- **Cuatro pantallas:** estadísticas, categorías, lo más vendido y ofertas.
+  Formularios HTML puros, sin JavaScript de cliente.
+- **Curaduría guardada en Vercel Blob.** Probado en producción: se guarda, persiste,
+  y la tienda lo refleja. Si el almacén no responde, cae a memoria y lo avisa en pantalla.
+- **`/api/vitrinas.json`** sirve las vitrinas, así lo que se edita se ve sin reconstruir
+  (caché de 60 s). Si falla, la tienda pinta el catálogo empaquetado y nunca queda vacía.
+- **Sección de Ofertas propia.** Antes cuatro enlaces llevaban a "lo más vendido".
+- **Ventana de chat** con el botón flotante amarillo. Sin bot todavía: responde una
+  plantilla que deriva a WhatsApp.
+- **GA4 con consentimiento** — no se descarga nada de Google hasta aceptar — y la
+  etiqueta de verificación de Search Console.
+- **Buscador replegable**, hero por tramos responsive, franjas de toque invisibles en
+  el hero para móvil.
 
 ---
 
@@ -273,4 +308,5 @@ Si alguno hace falta, se agrega como fase nueva y se estima aparte.
 
 ## Próximo paso
 
-F1 cerrada. Sigue **F2 — Carrito de compras**, que no depende de ninguna API.
+Los dos puntos de **Para mañana**, arriba de este documento. Después, **F2 —
+Carrito de compras**, que no depende de ninguna API.
