@@ -4,6 +4,7 @@
    ========================================================= */
 
 import { iniciarConsentimiento, evento } from './analitica.js';
+import { agregar, iniciar as iniciarCarrito } from './carrito.js';
 
 /* ---------------------------------------------------------
    1. CATÁLOGO
@@ -53,7 +54,9 @@ function tarjetaProducto(p, rango) {
         <span class="producto-precio">${precio(p.p)}</span>
         ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span><span class="producto-baja">−${baja}%</span>` : ''}
       </div>
-      <button class="producto-agregar" data-agregar="${limpio(p.n)}">
+      <button class="producto-agregar" data-agregar
+              data-id="${p.img}" data-nombre="${limpio(p.n)}"
+              data-marca="${limpio(p.m)}" data-precio="${p.p}">
         <svg class="ico"><use href="#i-carrito"/></svg> Agregar
       </button>
     </div>
@@ -379,17 +382,17 @@ $('#btn-menu').addEventListener('click', () => {
 /* ---------------------------------------------------------
    10. PRESUPUESTO (contador) Y TOSTADA
    --------------------------------------------------------- */
-let enCarrito = 0;
-
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-agregar]');
   if (!btn) return;
-  enCarrito++;
-  const contador = $('#contador-carrito');
-  contador.textContent = enCarrito;
-  contador.hidden = false;
-  avisar(`Agregado al presupuesto: ${btn.dataset.agregar}`);
-  evento('add_to_cart', { item_name: btn.dataset.agregar });
+  agregar({
+    id: btn.dataset.id,
+    n: btn.dataset.nombre,
+    m: btn.dataset.marca,
+    p: Number(btn.dataset.precio),
+  });
+  avisar(`Agregado: ${btn.dataset.nombre}`);
+  evento('add_to_cart', { item_name: btn.dataset.nombre });
 });
 
 let relojTostada;
@@ -509,6 +512,7 @@ $('[data-inicio]').addEventListener('click', (e) => {
 })();
 
 iniciarConsentimiento();
+iniciarCarrito();
 
 /* Arranque de las vitrinas. Va al final: para acá ya están declaradas todas
    las funciones que pintar() necesita. */

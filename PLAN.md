@@ -1,5 +1,7 @@
 # Plan de trabajo — de demo a web funcional
 
+> Para recuperar contexto rápido, ver [BITACORA.md](BITACORA.md).
+
 Convertir el demo actual (2.056 líneas de HTML/CSS/JS estático) en la web
 operativa de Casa Herramientas: catálogo real desde API, carrito que cierra por
 WhatsApp, chat con bot, SEO activo, analítica y panel de administración.
@@ -11,6 +13,8 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
+0. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
+   `src/scripts/carrito.js`) por el real, cuando el cliente lo tenga.
 1. **Embellecer el tablero del panel.** Hoy cumple pero es plano: faltan gráficos,
    comparativas contra el período anterior y una jerarquía visual que se lea de un
    vistazo.
@@ -90,7 +94,7 @@ mover solo ese sector sin tocar la tienda.
 | Fase | Estado | Bloqueada por |
 |------|--------|---------------|
 | F1 Base técnica | ✅ hecha | — |
-| F2 Carrito de compras | ⬜ pendiente | — |
+| F2 Carrito de compras | ✅ hecha (número de WhatsApp de ejemplo) | — |
 | F3 Ventana de chat | ✅ interfaz hecha | — |
 | F4 SEO base y rendimiento | ⬜ pendiente | — |
 | F5 Analítica | ✅ hecha y verificada midiendo | — |

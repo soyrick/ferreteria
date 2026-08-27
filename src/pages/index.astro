@@ -107,10 +107,10 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
       </div>
 
       <div class="nav-acciones">
-        <a class="btn-icono solo-escritorio" href="#carrito" id="btn-carrito" aria-label="Ver presupuesto">
+        <button class="btn-icono" id="btn-carrito" aria-label="Ver el pedido" aria-controls="panel-carrito">
           <svg class="ico"><use href="#i-carrito"/></svg>
           <span class="contador" id="contador-carrito" hidden>0</span>
-        </a>
+        </button>
         <button class="btn btn-sesion" id="btn-sesion">
           <svg class="ico"><use href="#i-usuario"/></svg>
           <span>Iniciar sesión</span>
@@ -392,7 +392,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 </main>
 
 <!-- ============ PIE ============ -->
-<footer class="pie" id="carrito">
+<footer class="pie">
   <div class="contenedor pie-int">
 
     <div class="pie-col pie-marca">
@@ -458,6 +458,37 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
     </div>
   </div>
 </footer>
+
+<!-- ============ CARRITO ============ -->
+<div class="carrito" id="panel-carrito" hidden>
+  <div class="carrito-fondo" id="carrito-fondo"></div>
+  <aside class="carrito-panel" role="dialog" aria-modal="true" aria-labelledby="carrito-titulo">
+    <header class="carrito-cabecera">
+      <h2 id="carrito-titulo">Tu pedido</h2>
+      <button class="carrito-cerrar" id="carrito-cerrar" aria-label="Cerrar el pedido">
+        <svg class="ico"><use href="#i-cerrar"/></svg>
+      </button>
+    </header>
+
+    <p class="carrito-sin" id="carrito-vacio">
+      Todavía no agregaste nada. Buscá lo que necesitás y tocá <strong>Agregar</strong>.
+    </p>
+
+    <ul class="carrito-lista" id="carrito-items"></ul>
+
+    <footer class="carrito-pie" id="carrito-pie" hidden>
+      <div class="carrito-total">
+        <span>Total</span>
+        <strong id="carrito-total">$0,00</strong>
+      </div>
+      <a class="btn btn-amarillo btn-ancho" id="carrito-enviar" href="#" target="_blank" rel="noopener">
+        <svg class="ico"><use href="#i-chat"/></svg> Enviar el pedido por WhatsApp
+      </a>
+      <p class="carrito-nota">Se abre WhatsApp con la lista lista para mandar. El precio final te lo confirmamos ahí.</p>
+      <button class="carrito-vaciar" id="carrito-vaciar">Vaciar el pedido</button>
+    </footer>
+  </aside>
+</div>
 
 <!-- ============ FLOTANTES ============ -->
 <button class="flotante-chat" id="btn-chat" aria-expanded="false" aria-controls="panel-chat">
