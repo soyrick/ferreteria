@@ -708,7 +708,7 @@ h1, h2, h3, h4 {
 /* =========================================================
    ESTRELLAS DE LA SEMANA (4x4)
    ========================================================= */
-.estrellas { background: var(--negro); padding-block: 62px; margin-top: 44px; }
+.estrellas { background: var(--negro); padding-block: 62px; }
 .estrellas-cabeza h2, .estrellas-cabeza .mini-etiqueta { color: var(--blanco); }
 .estrellas-cabeza h2 { color: var(--blanco); }
 .estrellas-cabeza .mini-etiqueta { background: var(--amarillo); color: var(--negro); }

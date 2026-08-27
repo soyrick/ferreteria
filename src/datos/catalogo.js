@@ -105,7 +105,7 @@ export const idDe = (p) => p.img;
 /** Todos los productos, aplanados y con su categoría a mano. */
 export const TODOS = [
   ...CATEGORIAS.flatMap((c) => c.productos.map((p) => ({ ...p, id: idDe(p), cat: c.nombre, catId: c.id }))),
-  ...ESTRELLAS.map((p) => ({ ...p, id: idDe(p), cat: 'Estrellas de la semana', catId: 'estrellas' })),
+  ...ESTRELLAS.map((p) => ({ ...p, id: idDe(p), cat: 'Lo más vendido', catId: 'estrellas' })),
 ];
 
 /** Índice por id, sin repetidos (un producto puede estar en más de una vitrina). */
