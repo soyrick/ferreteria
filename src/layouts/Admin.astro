@@ -1,7 +1,5 @@
 ---
-/* Marco común de las cuatro pantallas del panel.
-   Se extrae ahora y no antes: con una sola página habría sido una abstracción
-   con una sola implementación. */
+/* Marco común de las cuatro pantallas del panel. */
 import '../styles/styles.css';
 import '../styles/admin.css';
 
@@ -9,10 +7,10 @@ const { titulo } = Astro.props;
 const actual = Astro.url.pathname.replace(/\/$/, '') || '/admin';
 
 const SECCIONES = [
-  { ruta: '/admin',            nombre: 'Estadísticas' },
-  { ruta: '/admin/categorias', nombre: 'Categorías' },
-  { ruta: '/admin/semana',     nombre: 'Lo más vendido' },
-  { ruta: '/admin/ofertas',    nombre: 'Ofertas' },
+  { ruta: '/admin',            nombre: 'Estadísticas',   icono: 'i-etiqueta' },
+  { ruta: '/admin/categorias', nombre: 'Categorías',     icono: 'i-tienda' },
+  { ruta: '/admin/semana',     nombre: 'Productos estrella', icono: 'i-estrella' },
+  { ruta: '/admin/ofertas',    nombre: 'Ofertas',        icono: 'i-etiqueta' },
 ];
 ---
 <!doctype html>
@@ -26,6 +24,12 @@ const SECCIONES = [
 </head>
 <body class="admin">
 
+  <svg style="display:none" aria-hidden="true">
+    <symbol id="i-tienda" viewBox="0 0 24 24"><path d="M3 9 4.5 3h15L21 9"/><path d="M4 9v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></symbol>
+    <symbol id="i-etiqueta" viewBox="0 0 24 24"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.2"/></symbol>
+    <symbol id="i-estrella" viewBox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+  </svg>
+
   <header class="admin-cabecera">
     <a class="admin-marca" href="/admin">
       <img src="/assets/logo.png" alt="">
@@ -37,16 +41,19 @@ const SECCIONES = [
     </nav>
   </header>
 
-  <nav class="admin-pestanas" aria-label="Secciones del panel">
-    {SECCIONES.map((s) => (
-      <a href={s.ruta} class={s.ruta === actual ? 'activa' : ''} aria-current={s.ruta === actual ? 'page' : undefined}>
-        {s.nombre}
-      </a>
-    ))}
-  </nav>
+  <div class="admin-marco">
+    <nav class="admin-lateral" aria-label="Secciones del panel">
+      {SECCIONES.map((s) => (
+        <a href={s.ruta} class={s.ruta === actual ? 'activa' : ''} aria-current={s.ruta === actual ? 'page' : undefined}>
+          <svg class="ico"><use href={`#${s.icono}`}/></svg>
+          <span>{s.nombre}</span>
+        </a>
+      ))}
+    </nav>
 
-  <main class="admin-cuerpo">
-    <slot />
-  </main>
+    <main class="admin-cuerpo">
+      <slot />
+    </main>
+  </div>
 </body>
 </html>

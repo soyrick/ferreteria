@@ -39,7 +39,8 @@ function tarjetaProducto(p, rango) {
   return `
   <article class="producto">
     <div class="producto-foto">
-      ${p.et ? `<span class="producto-etiqueta ${p.et}">${ETIQUETAS[p.et]}</span>` : ''}
+      ${p.et && p.et !== 'oferta' ? `<span class="producto-etiqueta ${p.et}">${ETIQUETAS[p.et]}</span>` : ''}
+      ${baja ? `<span class="sello-oferta" aria-label="${baja}% de descuento"><b>−${baja}%</b></span>` : ''}
       ${rango ? `<span class="producto-rango">${rango}</span>` : ''}
       <img src="/assets/img/${p.img}.jpg" alt="${limpio(p.n)}" loading="lazy">
     </div>
@@ -52,7 +53,7 @@ function tarjetaProducto(p, rango) {
       </div>
       <div class="producto-precios">
         <span class="producto-precio">${precio(p.p)}</span>
-        ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span><span class="producto-baja">−${baja}%</span>` : ''}
+        ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span>` : ''}
       </div>
       <button class="producto-agregar" data-agregar
               data-id="${p.img}" data-nombre="${limpio(p.n)}"

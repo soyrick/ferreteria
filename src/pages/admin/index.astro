@@ -24,6 +24,58 @@ const conexiones = [
   },
 ];
 
+
+/* --- Mes que se está mirando ---
+   Viaja por la URL (?mes=2026-07). Cuando en F8 entre la GA4 Data API, este
+   mismo parámetro se traduce al rango de fechas que se le pide a Google. */
+const MESES_ATRAS = 12;
+const ahora = new Date();
+
+const claveMes = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+const nombreMes = (d) => d.toLocaleDateString('es-VE', { month: 'long', year: 'numeric' });
+
+const disponibles = Array.from({ length: MESES_ATRAS }, (_, i) => {
+  const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+  return { valor: claveMes(d), nombre: nombreMes(d), fecha: d };
+});
+
+const pedido = Astro.url.searchParams.get('mes');
+const mes = disponibles.find((m) => m.valor === pedido) ?? disponibles[0];
+const esMesActual = mes.valor === disponibles[0].valor;
+
+/* DATOS DE MUESTRA — reemplazar por la GA4 Data API en F8.
+   La curva se genera a partir del año y el mes, así cada mes tiene siempre la
+   misma forma: si fuera aleatoria, cambiaría en cada recarga y no parecería
+   un histórico. */
+const primerDia = new Date(mes.fecha.getFullYear(), mes.fecha.getMonth(), 1);
+const diasDelMes = new Date(mes.fecha.getFullYear(), mes.fecha.getMonth() + 1, 0).getDate();
+// Del mes en curso solo hay datos hasta hoy.
+const DIAS = esMesActual ? ahora.getDate() : diasDelMes;
+const semilla = mes.fecha.getFullYear() * 12 + mes.fecha.getMonth();
+
+const serie = Array.from({ length: DIAS }, (_, i) => {
+  const fecha = new Date(primerDia);
+  fecha.setDate(i + 1);
+  const finde = [0, 6].includes(fecha.getDay()) ? 0.62 : 1;   // los sábados y domingos baja
+  const base = 20 + (semilla % 17) * 1.4 + i * 1.5;
+  const ruido = Math.sin((i + semilla) * 1.7) * 7 + Math.cos((i + semilla) * 0.9) * 4;
+  return { fecha, valor: Math.max(8, Math.round((base + ruido) * finde)) };
+});
+
+/* Chart.js dibuja; acá solo se preparan los datos y el resumen. */
+const puntos = serie.map((d) => ({
+  fecha: d.fecha.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' }),
+  corta: d.fecha.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }),
+  valor: d.valor,
+}));
+const valores = serie.map((d) => d.valor);
+
+const totalMes = valores.reduce((a, b) => a + b, 0);
+const mitad = Math.floor(DIAS / 2);
+const primeraMitad = valores.slice(0, mitad).reduce((a, b) => a + b, 0) || 1;
+const segundaMitad = valores.slice(mitad).reduce((a, b) => a + b, 0);
+const variacion = Math.round(((segundaMitad - primeraMitad) / primeraMitad) * 100);
+
 /* DATOS DE MUESTRA — no salen de ninguna API.
    Existen para que la interfaz esté construida y probada. En F8 los reemplaza
    la GA4 Data API y la Search Console API, que necesitan credenciales de
@@ -83,6 +135,38 @@ const consultasTop = [
     </section>
 
     <section class="admin-seccion">
+      <div class="grafica-cabeza">
+        <div>
+          <h2>Visitas <span class="admin-muestra">muestra</span></h2>
+          <p class="admin-fuente">
+            {DIAS} días · pasá el mouse por la curva para ver cada día
+            {!esMesActual && <> · <a href="/admin">volver al mes actual</a></>}
+          </p>
+          <form method="GET" class="grafica-mes" id="form-mes">
+            <label for="mes">Mes</label>
+            <select name="mes" id="mes">
+              {disponibles.map((m) => (
+                <option value={m.valor} selected={m.valor === mes.valor}>{m.nombre}</option>
+              ))}
+            </select>
+            <button type="submit" class="btn btn-negro">Ver</button>
+          </form>
+        </div>
+        <div class="grafica-resumen">
+          <strong>{totalMes.toLocaleString('es-VE')}</strong>
+          <span class={variacion >= 0 ? 'sube' : 'baja'}>
+            {variacion >= 0 ? '▲' : '▼'} {Math.abs(variacion)}% vs. la quincena anterior
+          </span>
+        </div>
+      </div>
+
+      <div class="grafica">
+        <canvas data-grafica={JSON.stringify(puntos)}
+                aria-label={`Visitas diarias de los últimos ${DIAS} días`} role="img"></canvas>
+      </div>
+    </section>
+
+    <section class="admin-seccion">
       <h2>Visitas <span class="admin-muestra">muestra</span></h2>
       <p class="admin-fuente">Google Analytics 4 · últimos 28 días</p>
       <div class="admin-metricas">
@@ -135,4 +219,7 @@ const consultasTop = [
         </table>
       </section>
     </div>
+  <script>
+    import '../../scripts/grafica.js';
+  </script>
 </Admin>

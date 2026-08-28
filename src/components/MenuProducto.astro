@@ -1,0 +1,17 @@
+---
+/* Menú "⋯" de un producto.
+   Va con <details>/<summary>: el navegador ya sabe abrir y cerrar un menú,
+   cerrarlo con Escape y manejarlo con teclado. Cero JavaScript.
+   Cada opción es un submit con su acción, así que también anda sin JS. */
+const { id, acciones } = Astro.props;
+---
+<details class="menu-prod">
+  <summary aria-label="Más acciones para este producto">⋯</summary>
+  <div class="menu-prod-lista">
+    {acciones.map((a) => (
+      <button type="submit" name="accion" value={`${a.valor}:${id}`} class={a.peligro ? 'peligro' : ''}>
+        {a.texto}
+      </button>
+    ))}
+  </div>
+</details>

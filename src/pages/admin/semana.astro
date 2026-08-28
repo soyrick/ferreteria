@@ -2,81 +2,85 @@
 export const prerender = false;
 
 import Admin from '../../layouts/Admin.astro';
-import { CATEGORIAS, TODOS } from '../../datos/catalogo.js';
-import { leer, guardar, almacenListo } from '../../datos/curaduria.js';
+import MenuProducto from '../../components/MenuProducto.astro';
+import { POR_ID } from '../../datos/catalogo.js';
+import { leer, almacenListo, accionProducto, CUPOS_SEMANA } from '../../datos/curaduria.js';
 
-const CUPOS = 16;   // la rejilla de la página principal es de 4 x 4
-
-let errores = [];
-let guardado = false;
+let mensaje = null;
 
 if (Astro.request.method === 'POST') {
-  const semana = (await Astro.request.formData()).getAll('semana').map(String);
-  if (semana.length > CUPOS) {
-    errores = [`Elegiste ${semana.length} productos y la rejilla tiene ${CUPOS} cupos. Quitá ${semana.length - CUPOS}.`];
-  } else {
-    errores = await guardar({ semana });
-    guardado = errores.length === 0;
-  }
+  const accion = (await Astro.request.formData()).get('accion');
+  const [que, id] = String(accion ?? '').split(':');
+  if (que) mensaje = await accionProducto(que, id);
 }
 
-const elegidos = (await leer()).semana;
-
-// Se elige del catálogo entero, agrupado por categoría para poder encontrarlos.
-const porCategoria = CATEGORIAS.map((c) => ({
-  nombre: c.nombre,
-  productos: TODOS.filter((p) => p.catId === c.id),
-}));
-const sueltos = TODOS.filter((p) => !CATEGORIAS.some((c) => c.id === p.catId));
-if (sueltos.length) porCategoria.push({ nombre: 'Otros', productos: sueltos });
+const estado = await leer();
+const elegidos = estado.semana.map((id) => POR_ID.get(id)).filter(Boolean);
+const enOferta = new Set(estado.ofertas.map((o) => o.id));
 ---
-<Admin titulo="Lo más vendido">
+<Admin titulo="Productos estrella">
   <header class="admin-titulo">
     <div>
-      <h1>Lo más vendido de la semana</h1>
-      <p>Estos son los que salen en la rejilla de estrellas. Entran {CUPOS}.</p>
+      <h1>Productos estrella</h1>
+      <p>
+        Los que salen en la rejilla de la página principal. Entran {CUPOS_SEMANA}.
+        Para agregar uno, buscalo en <a href="/admin/categorias">Productos</a> y usá su menú <strong>⋯</strong>.
+      </p>
     </div>
   </header>
 
-  {guardado && <p class="admin-ok" role="status">Listo. La rejilla de la semana quedó actualizada.</p>}
-  {errores.length > 0 && (
-    <ul class="admin-errores" role="alert">{errores.map((e) => <li>{e}</li>)}</ul>
-  )}
+  {mensaje?.ok && <p class="admin-ok" role="status">{mensaje.ok}</p>}
+  {mensaje?.aviso && <p class="admin-aviso" role="status">{mensaje.aviso}</p>}
+  {mensaje?.error && <p class="admin-errores" role="alert">{mensaje.error}</p>}
 
   {!almacenListo() && (
     <div class="admin-aviso">
       <strong>Guardando solo en memoria.</strong>
-      No encuentro <code>BLOB_READ_WRITE_TOKEN</code>. Creá el store de Vercel
-      Blob marcando <em>"Add a read-write token env var"</em>, y después corré
-      <code>npx vercel env pull</code>. Sin eso los cambios se pierden al
-      reiniciar, y en producción no se guardarían nunca.
+      No encuentro <code>BLOB_READ_WRITE_TOKEN</code>. Los cambios se pierden al reiniciar.
     </div>
   )}
 
-  <p class="admin-cuenta-grande">
-    Seleccionados ahora: <strong>{elegidos.length}</strong> de {CUPOS}
-  </p>
+  <div class="panel-buscador">
+    <label for="buscar-producto">Buscar</label>
+    <input type="search" id="buscar-producto" placeholder="Nombre o marca…" autocomplete="off">
+    <span class="panel-cuenta">{elegidos.length} de {CUPOS_SEMANA} cupos</span>
+  </div>
 
-  <form method="POST" id="form-semana" class="admin-form">
-    {porCategoria.map((g) => (
-      <section class="admin-seccion">
-        <h2>{g.nombre}</h2>
-        <div class="elegir">
-          {g.productos.map((p) => (
-            <label class="elegir-item">
-              <input type="checkbox" name="semana" value={p.id} checked={elegidos.includes(p.id)}>
+  <form method="POST" class="admin-form">
+    <section class="admin-seccion" data-grupo>
+      {elegidos.length === 0 && (
+        <p class="panel-sin">
+          Todavía no hay ninguno. Elegilos desde <a href="/admin/categorias">Productos</a>.
+        </p>
+      )}
+      <div class="elegir">
+        {elegidos.map((p) => (
+          <div class="elegir-fila" data-busca={`${p.n} ${p.m}`}>
+            <div class="elegir-item sin-casilla">
               <img src={`/assets/img/${p.img}.jpg`} alt="" loading="lazy">
               <span class="elegir-datos">
                 <strong>{p.n}</strong>
-                <small>{p.m} · ${p.p.toFixed(2)}</small>
+                <small>
+                  {p.m} · ${p.p.toFixed(2)}
+                  {enOferta.has(p.id) && <em class="marca-oferta">en oferta</em>}
+                </small>
               </span>
-            </label>
-          ))}
-        </div>
-      </section>
-    ))}
-    <div class="admin-pie-form">
-      <button type="submit" class="btn btn-amarillo">Guardar cambios</button>
-    </div>
+            </div>
+            <MenuProducto id={p.id} acciones={[
+              { valor: 'quitar-estrella', texto: 'Quitar de Productos estrella', peligro: true },
+              { valor: 'a-oferta', texto: 'Poner también en oferta' },
+            ]} />
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="panel-sin" id="sin-coincidencias" hidden>
+      No hay productos que coincidan con “<span data-termino></span>”.
+    </p>
   </form>
+
+  <script>
+    import '../../scripts/panel.js';
+  </script>
 </Admin>

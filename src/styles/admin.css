@@ -143,24 +143,6 @@
   .admin-marca small { display: none; }
 }
 
-/* ---------- Pestañas ---------- */
-.admin-pestanas {
-  display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
-  padding: 0 24px;
-  background: var(--negro-suave);
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  position: sticky; top: 62px; z-index: 9;
-}
-.admin-pestanas::-webkit-scrollbar { display: none; }
-.admin-pestanas a {
-  padding: 12px 16px; white-space: nowrap;
-  font-size: 13.5px; font-weight: 600; color: var(--gris-500);
-  border-bottom: 3px solid transparent;
-  transition: color .16s, border-color .16s;
-}
-.admin-pestanas a:hover { color: var(--blanco); }
-.admin-pestanas a.activa { color: var(--amarillo); border-bottom-color: var(--amarillo); }
-
 /* ---------- Cabecera de pantalla ---------- */
 .admin-titulo {
   display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap;
@@ -212,27 +194,208 @@
 .elegir-datos strong { font-size: 13px; color: var(--negro); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .elegir-datos small { font-size: 11.5px; color: var(--gris-500); }
 
-/* ---------- Tabla de ofertas ---------- */
-.tabla-ofertas td { vertical-align: middle; }
-.tabla-ofertas tr.en-oferta { background: #FFFCEB; }
-.tabla-ofertas input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--negro); cursor: pointer; }
-.tabla-ofertas input[type="number"], .tabla-ofertas input[type="date"] {
-  width: 100%; max-width: 140px; height: 34px; padding: 0 9px;
-  border: 1.5px solid var(--gris-200); border-radius: var(--radio-sm);
-  font: inherit; font-size: 13px; outline: 0;
-}
-.tabla-ofertas input:focus { border-color: var(--amarillo); }
-.celda-producto { display: flex; align-items: center; gap: 10px; }
-.celda-producto img { width: 38px; height: 38px; object-fit: cover; border-radius: 7px; flex: none; }
-.celda-producto span { display: flex; flex-direction: column; line-height: 1.3; }
-.celda-producto strong { font-size: 13px; color: var(--negro); }
-.celda-producto small { font-size: 11.5px; color: var(--gris-500); }
-.celda-num { font-weight: 700; }
-.tabla-ofertas td:first-child, .tabla-ofertas th:first-child { text-align: center; }
-.tabla-ofertas td:nth-child(2), .tabla-ofertas th:nth-child(2) { text-align: left; }
-
 @media (max-width: 860px) {
   .admin-pestanas { top: 62px; padding-inline: 16px; }
   .elegir { grid-template-columns: 1fr; }
-  .tabla-ofertas { display: block; overflow-x: auto; }
+}
+
+/* ---------- Barra lateral ---------- */
+.admin-marco { display: flex; align-items: flex-start; }
+
+.admin-lateral {
+  position: sticky; top: 62px; flex: none;
+  width: 220px; align-self: stretch;
+  min-height: calc(100vh - 62px);
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 16px 12px;
+  background: var(--negro-suave);
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+.admin-lateral a {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 13px; border-radius: var(--radio-sm);
+  font-size: 13.5px; font-weight: 600; color: var(--gris-300);
+  transition: background .16s, color .16s;
+}
+.admin-lateral .ico { width: 17px; height: 17px; flex: none; opacity: .7; }
+.admin-lateral a:hover { background: rgba(255,255,255,.08); color: var(--blanco); }
+.admin-lateral a.activa { background: var(--amarillo); color: var(--negro); }
+.admin-lateral a.activa .ico { opacity: 1; }
+
+.admin-cuerpo { flex: 1; min-width: 0; max-width: none; margin: 0; }
+
+/* ---------- Gráfica de visitas ---------- */
+.grafica-cabeza {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.grafica-resumen { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+.grafica-resumen strong { font-family: var(--display); font-size: 34px; font-weight: 800; color: var(--negro); line-height: 1; }
+.grafica-resumen span { font-size: 12.5px; font-weight: 700; }
+.grafica-resumen .sube { color: var(--verde); }
+.grafica-resumen .baja { color: var(--rojo); }
+
+.grafica {
+  position: relative;
+  height: 300px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-200);
+  border-radius: var(--radio);
+  padding: 14px 16px 10px;
+}
+
+@media (max-width: 860px) {
+  /* En pantalla angosta la barra vuelve a ser una fila arriba del contenido. */
+  .admin-marco { flex-direction: column; }
+  .admin-lateral {
+    position: static; width: 100%; min-height: 0;
+    flex-direction: row; overflow-x: auto; scrollbar-width: none;
+    padding: 8px 12px; border-right: 0;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .admin-lateral::-webkit-scrollbar { display: none; }
+  .admin-lateral a { white-space: nowrap; }
+  .grafica-cabeza { flex-direction: column; }
+  .grafica-resumen { text-align: left; }
+  .grafica { height: 230px; padding-inline: 10px; }
+}
+
+/* ---------- Selector de mes ---------- */
+.grafica-mes { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.grafica-mes label {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--gris-500);
+}
+.grafica-mes select {
+  height: 34px; padding: 0 10px;
+  border: 1.5px solid var(--gris-200); border-radius: var(--radio-sm);
+  background: var(--blanco); font: inherit; font-size: 13px;
+  color: var(--negro); cursor: pointer; text-transform: capitalize;
+}
+.grafica-mes select:focus { border-color: var(--amarillo); outline: 0; }
+.grafica-mes .btn { height: 34px; padding: 0 14px; font-size: 13px; }
+.admin-fuente a { color: var(--gris-700); border-bottom: 1px solid var(--amarillo); }
+.admin-fuente a:hover { color: var(--negro); }
+
+/* ---------- Buscador de las pantallas de curaduría ---------- */
+.panel-buscador {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--blanco); border: 1px solid var(--gris-200);
+  border-radius: var(--radio); padding: 10px 14px;
+  position: sticky; top: 62px; z-index: 8;
+}
+.panel-buscador label {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--gris-500);
+}
+.panel-buscador input {
+  flex: 1; min-width: 0; height: 38px; padding: 0 14px;
+  background: var(--gris-100); border: 2px solid transparent; border-radius: 99px;
+  font: inherit; font-size: 14px; color: var(--negro); outline: 0;
+  transition: background .18s, border-color .18s;
+}
+.panel-buscador input:focus { background: var(--blanco); border-color: var(--amarillo); }
+.panel-cuenta { font-size: 12.5px; color: var(--gris-500); white-space: nowrap; }
+
+.panel-sin { padding: 30px 16px; text-align: center; color: var(--gris-500); font-size: 14px; }
+.panel-sin a { color: var(--negro); border-bottom: 2px solid var(--amarillo); font-weight: 600; }
+
+/* ---------- Fila de producto con menú ---------- */
+.elegir-fila {
+  display: flex; align-items: stretch; gap: 0;
+  background: var(--blanco); border: 1px solid var(--gris-200);
+  border-radius: var(--radio); overflow: visible;
+  transition: border-color .16s, box-shadow .16s;
+}
+.elegir-fila:has(input[type="checkbox"]:checked) { border-color: var(--negro); box-shadow: inset 3px 0 0 var(--amarillo); }
+.elegir-fila .elegir-item { flex: 1; min-width: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.elegir-item.sin-casilla { cursor: default; }
+
+.marca-estrella, .marca-oferta {
+  font-style: normal; font-size: 10px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 99px; margin-left: 6px;
+}
+.marca-estrella { background: var(--negro); color: var(--amarillo); }
+.marca-oferta { background: var(--rojo); color: #fff; }
+
+/* ---------- Menú "⋯" ---------- */
+.menu-prod { position: relative; flex: none; display: flex; align-items: center; }
+.menu-prod summary {
+  list-style: none; cursor: pointer;
+  width: 34px; height: 34px; margin-right: 8px;
+  display: grid; place-items: center; border-radius: 99px;
+  font-size: 19px; line-height: 1; color: var(--gris-500);
+  transition: background .16s, color .16s;
+}
+.menu-prod summary::-webkit-details-marker { display: none; }
+.menu-prod summary:hover { background: var(--gris-100); color: var(--negro); }
+.menu-prod[open] summary { background: var(--negro); color: var(--amarillo); }
+
+.menu-prod-lista {
+  position: absolute; top: calc(100% + 4px); right: 6px; z-index: 20;
+  min-width: 240px; padding: 5px;
+  background: var(--blanco); border: 1px solid var(--gris-200);
+  border-radius: var(--radio); box-shadow: var(--sombra-2);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.menu-prod-lista button {
+  text-align: left; padding: 9px 11px;
+  background: none; border: 0; border-radius: var(--radio-sm);
+  font-size: 13px; color: var(--gris-900); cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.menu-prod-lista button:hover { background: var(--gris-100); }
+.menu-prod-lista button.peligro { color: var(--rojo); }
+.menu-prod-lista button.peligro:hover { background: #FDECEA; }
+
+/* ---------- Lista de ofertas ---------- */
+.ofertas-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.oferta-fila {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--blanco); border: 1px solid var(--gris-200);
+  border-radius: var(--radio); padding: 10px 4px 10px 12px;
+}
+.oferta-fila img { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; flex: none; }
+.oferta-datos { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.oferta-datos strong { font-size: 13.5px; color: var(--negro); }
+.oferta-datos small { font-size: 11.5px; color: var(--gris-500); }
+.oferta-campo { display: flex; flex-direction: column; gap: 3px; flex: none; }
+.oferta-campo span { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gris-500); }
+.oferta-campo input {
+  width: 130px; height: 34px; padding: 0 9px;
+  border: 1.5px solid var(--gris-200); border-radius: var(--radio-sm);
+  font: inherit; font-size: 13px; outline: 0;
+}
+.oferta-campo input:focus { border-color: var(--amarillo); }
+
+@media (max-width: 860px) {
+  .panel-buscador { flex-wrap: wrap; position: static; }
+  .panel-cuenta { width: 100%; }
+  .oferta-fila { flex-wrap: wrap; }
+  .oferta-datos { flex: 1 0 60%; }
+  .oferta-campo input { width: 100%; }
+  .oferta-campo { flex: 1; }
+}
+
+.oferta-descuento { flex: none; display: flex; flex-direction: column; gap: 3px; text-align: center; min-width: 74px; }
+.oferta-descuento span { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gris-500); }
+.oferta-descuento strong { font-family: var(--display); font-size: 22px; font-weight: 800; color: var(--gris-300); line-height: 1.4; }
+.oferta-descuento strong.valido { color: var(--rojo); }
+
+/* ---------- Vencimiento de ofertas ---------- */
+.oferta-vence { min-width: 150px; }
+.oferta-indef {
+  display: flex; align-items: center; gap: 6px; margin-top: 5px;
+  font-size: 11.5px; color: var(--gris-700); cursor: pointer; text-transform: none;
+}
+.oferta-indef input { width: 15px; height: 15px; accent-color: var(--negro); cursor: pointer; }
+
+.oferta-fila.vencida { background: var(--gris-100); border-style: dashed; }
+.oferta-fila.vencida img, .oferta-fila.vencida .oferta-datos strong { opacity: .55; }
+.marca-vencida {
+  font-style: normal; font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  background: var(--gris-700); color: #fff;
+  padding: 2px 7px; border-radius: 99px; margin-left: 6px;
 }

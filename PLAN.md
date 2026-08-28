@@ -13,14 +13,11 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
-0. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
+1. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
    `src/scripts/carrito.js`) por el real, cuando el cliente lo tenga.
-1. **Embellecer el tablero del panel.** Hoy cumple pero es plano: faltan gráficos,
-   comparativas contra el período anterior y una jerarquía visual que se lea de un
-   vistazo.
-2. **Comprobar que lleguen los eventos propios.** Las visitas ya se registran;
-   falta ver en GA4 que aparezcan `add_to_cart`, `search` y `abrir_chat` cuando
-   alguien usa esas funciones.
+2. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
+   registran; falta ver que aparezcan `add_to_cart`, `search` y `abrir_chat`.
+3. **Seguir con F4 — SEO base**, que no depende de ninguna API.
 
 ---
 
@@ -62,6 +59,9 @@ diff. No son buenas intenciones.
 | R10 | **Datos de ejemplo siempre marcados** con `<!-- DATO PLACEHOLDER -->` o equivalente. | `grep` los encuentra todos. |
 | R11 | **Cero secretos en el repo.** Claves y tokens solo en variables de entorno de Vercel. | Escaneo antes de cada push. |
 | R12 | **Commits por unidad de trabajo**, no por tipo de archivo. Mensaje en conventional commits, sin atribución de IA. | `git log` cuenta una historia legible. |
+| R14 | **No suponer, no adelantarse.** Ante una duda, preguntar. Nada que Ricardo no haya pedido, por obvio que parezca. | Si el diff tiene algo que no se pidió, sobra. |
+| R15 | **Nunca commitear ni pushear sin que Ricardo lo pida.** Terminar, reportar, y dejar los cambios sin commitear. Igual para desplegar, borrar o crear recursos externos. | `git log` no debe tener commits que él no haya pedido. |
+| R16 | **Respuestas concretas y directas.** Lenguaje simple, sin rodeos ni jerga innecesaria. Que se entienda de una lectura. | Si hay que releer una frase para entenderla, está mal escrita. |
 | R13 | **Respuestas concisas.** Solo el resultado y qué tiene que hacer Ricardo. El detalle técnico va en los comentarios del código y en este plan, no en el chat. | Si la respuesta ocupa más que la pantalla sin que la haya pedido, sobra. |
 
 ---
@@ -100,7 +100,7 @@ mover solo ese sector sin tocar la tienda.
 | F5 Analítica | ✅ hecha y verificada midiendo | — |
 | F6 API de productos y catálogo real | ⛔ bloqueada | API de productos |
 | F7 Conexión del chatbot | ⛔ bloqueada | API del chatbot |
-| F8 Panel de administración | 🟡 funcionando, **faltan las cifras reales** | APIs de Google |
+| F8 Panel de administración | 🟡 completo salvo las cifras reales | APIs de Google |
 | F9 Auditoría de accesibilidad y UI | ⬜ pendiente | — |
 | F10 Auditoría de ciberseguridad | ⬜ pendiente | — |
 | F11 Puesta en producción | ⬜ pendiente | dominio |
@@ -129,6 +129,15 @@ Verificado el 2026-08-24 en el sitio desplegado.
 - **Sitio público** en https://casaherramientas.vercel.app
 - **Buscador replegable**, hero por tramos responsive, franjas de toque invisibles en
   el hero para móvil.
+- **Carrito** en panel lateral, con persistencia y pedido armado hacia WhatsApp.
+- **Panel con barra lateral** y cuatro pantallas: estadísticas (gráfica de visitas
+  con Chart.js e histórico por mes), Productos, Productos estrella y Ofertas.
+- **Buscador y menú ⋯** en las tres pantallas de curaduría, para mover un producto
+  entre vitrinas sin recargar la selección entera.
+- **Ofertas con vencimiento:** al pasar la fecha el producto sale solo de la tienda
+  y vuelve a su precio de lista. La opción *Indefinida* la mantiene hasta que el
+  admin la saque. Las vencidas quedan en el panel para reactivarlas.
+- **Sello de descuento** con forma de estrella, con el porcentaje calculado.
 
 ---
 

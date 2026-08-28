@@ -667,7 +667,6 @@ h1, h2, h3, h4 {
   padding: 5px 10px; border-radius: 4px;
   background: var(--amarillo); color: var(--negro);
 }
-.producto-etiqueta.oferta { background: var(--rojo); color: #fff; }
 .producto-etiqueta.nuevo  { background: var(--negro); color: var(--amarillo); }
 
 .producto-rango {
@@ -691,7 +690,6 @@ h1, h2, h3, h4 {
 .producto-precios { display: flex; align-items: baseline; gap: 8px; margin-top: auto; padding-top: 6px; }
 .producto-precio { font-family: var(--display); font-size: 27px; font-weight: 800; color: var(--negro); line-height: 1; }
 .producto-antes { font-size: 12.5px; color: var(--gris-500); text-decoration: line-through; }
-.producto-baja { font-size: 11px; font-weight: 800; color: var(--verde); }
 
 .producto-agregar {
   margin-top: 10px;
@@ -716,7 +714,8 @@ h1, h2, h3, h4 {
 
 .rejilla-estrellas {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
+  /* Mismo alto y ancho de tarjeta que el resto de las secciones. */
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 18px;
 }
 .rejilla-estrellas .producto { border-color: transparent; }
@@ -778,10 +777,7 @@ h1, h2, h3, h4 {
 .tabla-horario td { text-align: right; font-weight: 700; color: var(--negro); }
 .tabla-horario .cerrado { color: var(--rojo); }
 
-.lista-sucursales, .lista-contacto { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.lista-sucursales li { border-left: 3px solid var(--amarillo); padding-left: 12px; }
-.lista-sucursales strong { display: block; font-size: 13.5px; color: var(--negro); }
-.lista-sucursales span { font-size: 12.5px; color: var(--gris-500); }
+.lista-contacto { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
 .lista-contacto li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
 .lista-contacto .ico { width: 17px; height: 17px; color: var(--gris-700); }
 .lista-contacto a { color: var(--gris-700); border-bottom: 1px solid transparent; }
@@ -1045,7 +1041,6 @@ h1, h2, h3, h4 {
   .megamenu-int { grid-template-columns: repeat(3, 1fr); }
   .megamenu-destacado { grid-column: span 3; flex-direction: row; align-items: center; justify-content: space-between; }
   .megamenu-destacado p { margin: 0; }
-  .rejilla-estrellas { grid-template-columns: repeat(3, minmax(0,1fr)); }
   .pie-int { grid-template-columns: 1fr 1fr 1fr; }
 }
 
@@ -1270,4 +1265,38 @@ h1, h2, h3, h4 {
 @media (max-width: 560px) {
   .carrito-panel { width: 100%; }
   .carrito-item { padding-inline: 14px; }
+}
+
+/* =========================================================
+   SELLO DE OFERTA
+   Estrella de 16 puntas, como las de góndola de supermercado.
+   El polígono está calculado, no dibujado a ojo.
+   ========================================================= */
+.sello-oferta {
+  position: absolute; left: 8px; top: 8px; z-index: 3;
+  width: 72px; height: 72px;
+  display: grid; place-items: center;
+}
+/* La estrella va en una capa aparte: el clip-path, la rotación y la sombra
+   rasterizan lo que tocan, y si el número viaja en esa capa sale borroso.
+   Separado, el texto se dibuja nítido encima. */
+.sello-oferta::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--rojo);
+  clip-path: polygon(50.0% 0.0%, 58.2% 8.8%, 69.1% 3.8%, 73.3% 15.1%, 85.4% 14.6%, 84.9% 26.7%, 96.2% 30.9%, 91.2% 41.8%, 100.0% 50.0%, 91.2% 58.2%, 96.2% 69.1%, 84.9% 73.3%, 85.4% 85.4%, 73.3% 84.9%, 69.1% 96.2%, 58.2% 91.2%, 50.0% 100.0%, 41.8% 91.2%, 30.9% 96.2%, 26.7% 84.9%, 14.6% 85.4%, 15.1% 73.3%, 3.8% 69.1%, 8.8% 58.2%, 0.0% 50.0%, 8.8% 41.8%, 3.8% 30.9%, 15.1% 26.7%, 14.6% 14.6%, 26.7% 15.1%, 30.9% 3.8%, 41.8% 8.8%);
+  filter: drop-shadow(0 3px 8px rgba(217,45,32,.45));
+  rotate: -8deg;
+  transition: rotate .25s var(--curva);
+}
+.sello-oferta b {
+  position: relative;
+  font-family: var(--display); font-size: 22px; font-weight: 800;
+  color: #fff; line-height: 1; letter-spacing: -.01em;
+  text-rendering: geometricPrecision;
+}
+.producto:hover .sello-oferta::before { rotate: 0deg; }
+
+@media (max-width: 560px) {
+  .sello-oferta { width: 60px; height: 60px; left: 6px; top: 6px; }
+  .sello-oferta b { font-size: 18px; }
 }
