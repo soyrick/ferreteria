@@ -18,8 +18,8 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-08-27:** todo commiteado y pusheado, árbol limpio, último commit
-`cd10444`. Lo desplegado y lo local coinciden.
+**Al 2026-08-27:** todo commiteado y pusheado, árbol limpio. Lo desplegado y lo
+local coinciden. Para ver dónde quedó: `git log --oneline -5`.
 
 ## Cómo trabajar con Ricardo
 
