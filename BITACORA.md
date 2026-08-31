@@ -18,6 +18,9 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
+**Al 2026-08-27:** todo commiteado y pusheado, árbol limpio, último commit
+`cd10444`. Lo desplegado y lo local coinciden.
+
 ## Cómo trabajar con Ricardo
 
 Estas cuatro no se negocian y ya tuvo que repetirlas:
@@ -98,6 +101,16 @@ Documento guardado en Blob (`curaduria.json`, ~1,4 KB):
 - Las 10 ofertas de arranque están escritas explícitas en `inicial()`, no deducidas
   del catálogo.
 
+## Cómo pinta la tienda
+
+`index.astro` sirve el HTML estático con las secciones vacías. `app.js` pide
+`/api/vitrinas.json` y pinta las tres vitrinas: En oferta, Productos estrella y
+las filas de categoría. Si esa ruta falla usa `RESPALDO`, que es el catálogo
+empaquetado, así que **la tienda nunca queda vacía**.
+
+Orden de la home: hero → franja → En oferta → Productos estrella → categorías →
+marcas → nosotros → pie.
+
 ## Decisiones que no hay que volver a discutir
 
 | Decisión | Por qué |
@@ -138,6 +151,40 @@ Buscar `DATO PLACEHOLDER` en el repo.
 - Los 46 productos de `datos/catalogo.js`
 - Las métricas y la serie de visitas del panel (`pages/admin/index.astro`)
 - Las 50 imágenes: licencias variadas de Wikimedia Commons, ver `CREDITOS.txt`
+
+## Variables de entorno
+
+En Vercel están cargadas en **Production y Preview** (no en Development).
+
+| Variable | Para qué |
+|---|---|
+| `ADMIN_CLAVE` | clave de acceso al panel |
+| `ADMIN_SECRETO` | firma la cookie de sesión |
+| `PUBLIC_GA_ID` | `G-EENVGHWLEV`, Google Analytics |
+| `PUBLIC_GSC_VERIFICACION` | vacía; Search Console espera el dominio |
+| `BLOB_READ_WRITE_TOKEN`, `BLOB_STORE_ID` | los pone el store de Blob |
+
+Store de Blob: `ferreteria-blob` (`store_venOEHu33aAQbWxD`), privado, región `iad1`.
+
+## Cómo verificar sin levantar el servidor
+
+Ricardo corre el servidor, así que para comprobar cambios:
+
+```bash
+npx astro build                      # que compile
+node --input-type=module -e "..."    # probar módulos directo
+```
+
+Para los módulos que tocan el navegador hay que stubbear antes de importar:
+
+```js
+globalThis.localStorage = { getItem: () => null, setItem: () => {} };
+const cur = await import('./src/datos/curaduria.js');
+console.log((await cur.vitrinas()).ofertas.length);
+```
+
+`curaduria.js` sin credenciales de Blob cae al respaldo en memoria, así que se
+puede probar `guardar()` y `vitrinas()` sin tocar producción.
 
 ## Comandos
 
