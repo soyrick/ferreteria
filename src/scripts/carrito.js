@@ -9,6 +9,8 @@
 // Formato internacional sin signos: código de país + número.
 const WHATSAPP = '584120000000';
 
+import { trabarFondo, precio, limpio } from './tarjeta.js';
+
 const CLAVE = 'ch_carrito';
 const TOPE_URL = 1800;   // wa.me se rompe con URLs muy largas
 
@@ -33,12 +35,6 @@ function persistir() {
     // Modo privado o storage lleno: el carrito sigue vivo en memoria.
   }
 }
-
-const precio = (n) =>
-  '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
-
-const limpio = (s) =>
-  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export const unidades = () => items.reduce((n, i) => n + i.cant, 0);
 export const total = () => items.reduce((n, i) => n + i.p * i.cant, 0);
@@ -124,13 +120,14 @@ function pintar() {
 
 export function abrir() {
   $('#panel-carrito').hidden = false;
-  document.body.classList.add('sin-scroll');
+  trabarFondo();
   $('#carrito-cerrar').focus();
 }
 
 export function cerrar() {
   $('#panel-carrito').hidden = true;
-  document.body.classList.remove('sin-scroll');
+  // trabarFondo mira todas las capas: si quedó otra abierta, el fondo no se suelta.
+  trabarFondo();
   $('#btn-carrito').focus();
 }
 

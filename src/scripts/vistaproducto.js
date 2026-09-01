@@ -10,6 +10,7 @@
    compartir el enlace o volver con el botón "atrás" hacen lo esperado. */
 
 import { agregar } from './carrito.js';
+import { trabarFondo } from './tarjeta.js';
 
 const $ = (s, c = document) => c.querySelector(s);
 
@@ -77,7 +78,7 @@ if (panel) {
     urlPrevia = location.pathname + location.search;
 
     panel.hidden = false;
-    document.body.classList.add('sin-scroll');
+    trabarFondo();
     cuerpo.innerHTML = '<p class="vista-cargando">Cargando…</p>';
     $('#vista-cerrar').focus();
 
@@ -103,7 +104,8 @@ if (panel) {
 
   function cerrar({ volviendo = false } = {}) {
     panel.hidden = true;
-    document.body.classList.remove('sin-scroll');
+    // Si la rejilla de categoría quedó abierta detrás, el fondo sigue trabado.
+    trabarFondo();
     pidiendo?.abort();
     // Al cerrar a mano se devuelve la URL de antes; si el cierre vino del botón
     // "atrás", el navegador ya la cambió y tocarla otra vez rompería el historial.

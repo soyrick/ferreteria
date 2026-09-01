@@ -441,6 +441,35 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
   </aside>
 </div>
 
+<!-- ============ CATEGORÍA COMPLETA ============
+     Lo que abre "Ver todo". Los productos los carga vistacategoria.js de a
+     tandas: una categoría puede tener más de mil. -->
+<div class="vista-cat" id="vista-categoria" hidden>
+  <div class="vista-cat-fondo" id="categoria-fondo"></div>
+  <section class="vista-cat-panel" role="dialog" aria-modal="true" aria-labelledby="categoria-titulo">
+    <header class="vista-cat-cabecera">
+      <div class="vista-cat-quien">
+        <h2 id="categoria-titulo"></h2>
+        <span id="categoria-cuenta" class="vista-cat-cuenta"></span>
+      </div>
+      <div class="vista-cat-buscar">
+        <svg class="ico"><use href="#i-buscar"/></svg>
+        <label class="visualmente-oculto" for="categoria-buscar">Buscar en esta categoría</label>
+        <input type="search" id="categoria-buscar" placeholder="Buscar en esta categoría…" autocomplete="off">
+      </div>
+      <button class="carrito-cerrar" id="categoria-cerrar" aria-label="Cerrar">
+        <svg class="ico"><use href="#i-cerrar"/></svg>
+      </button>
+    </header>
+
+    <div class="vista-cat-cuerpo" id="categoria-cuerpo">
+      <p class="panel-sin" id="categoria-aviso" hidden>No hay productos que coincidan con esa búsqueda.</p>
+      <div class="vista-cat-rejilla" id="categoria-rejilla"></div>
+      <p class="vista-cat-mas" id="categoria-mas"></p>
+    </div>
+  </section>
+</div>
+
 <!-- ============ FICHA RÁPIDA ============
      El contenido lo pinta vistaproducto.js. La página real de cada producto
      vive en /producto/[codigo]: esto es un atajo para no perder el scroll,

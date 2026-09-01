@@ -5,7 +5,9 @@
 
 import { iniciarConsentimiento, evento } from './analitica.js';
 import { agregar, iniciar as iniciarCarrito } from './carrito.js';
+import { tarjetaProducto, precio, limpio } from './tarjeta.js';
 import './vistaproducto.js';
+import './vistacategoria.js';
 
 /* ---------------------------------------------------------
    1. CATÁLOGO
@@ -25,57 +27,6 @@ document.documentElement.classList.add('js');
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
-/** Formato de precio venezolano: $1.234,56 */
-const precio = (n) =>
-  '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
-
-/** Escapa texto antes de meterlo en innerHTML. */
-const limpio = (s) =>
-  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-/* El negocio todavía no cargó fotos: la API devuelve `imagenes: []` en todo el
-   catálogo. En vez de dejar el hueco vacío o poner una imagen inventada, se
-   dibuja un marcador con el icono de la casa. Ocupa exactamente el mismo
-   espacio que tendrá la foto, así el día que lleguen entran sin mover nada. */
-const foto = (p) =>
-  p.img
-    ? `<img src="${limpio(p.img)}" alt="${limpio(p.n)}" loading="lazy">`
-    : `<span class="producto-sinfoto" aria-hidden="true">
-         <svg class="ico"><use href="#i-herramienta"/></svg>
-       </span>`;
-
-/* La tarjeta lleva un enlace de verdad a la ficha. No es decorativo: sin él,
-   Google no tendría cómo llegar a los productos, el clic medio y el "abrir en
-   pestaña nueva" no funcionarían, y con el JavaScript caído la tienda quedaría
-   muerta. El panel que abre sin recargar se monta encima de este enlace. */
-function tarjetaProducto(p, rango) {
-  const baja = p.pa ? Math.round((1 - p.p / p.pa) * 100) : 0;
-  // La arma el servidor en normalizar(): una sola forma de escribir la dirección.
-  const url = p.url;
-  return `
-  <article class="producto">
-    <a class="producto-enlace" href="${url}" data-ficha="${limpio(p.id)}">
-      <div class="producto-foto${p.img ? '' : ' vacia'}">
-        ${baja ? `<span class="sello-oferta" aria-label="${baja}% de descuento"><b>−${baja}%</b></span>` : ''}
-        ${rango ? `<span class="producto-rango">${rango}</span>` : ''}
-        ${foto(p)}
-      </div>
-      <div class="producto-cuerpo">
-        <span class="producto-marca">${limpio(p.m || p.cat || '')}</span>
-        <h3 class="producto-nombre">${limpio(p.n)}</h3>
-        <div class="producto-precios">
-          <span class="producto-precio">${precio(p.p)}</span>
-          ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span>` : ''}
-        </div>
-      </div>
-    </a>
-    <button class="producto-agregar" data-agregar
-            data-id="${limpio(p.id)}" data-nombre="${limpio(p.n)}"
-            data-marca="${limpio(p.m)}" data-precio="${p.p}">
-      <svg class="ico"><use href="#i-carrito"/></svg> Agregar
-    </button>
-  </article>`;
-}
 
 /* ---------------------------------------------------------
    3. PINTAR LAS VITRINAS
@@ -112,7 +63,7 @@ function pintar(v) {
           <h2>${limpio(c.nombre)}</h2>
         </div>
         <div class="seccion-acciones">
-          <a class="enlace-todo" href="#${c.id}">Ver todo <svg class="ico"><use href="#i-der"/></svg></a>
+          <button class="enlace-todo" data-ver-todo="${limpio(c.nombre)}">Ver todo <svg class="ico"><use href="#i-der"/></svg></button>
           <button class="flecha-carrusel" data-mover="-1" data-fila="${c.id}" aria-label="Anterior"><svg class="ico"><use href="#i-izq"/></svg></button>
           <button class="flecha-carrusel" data-mover="1" data-fila="${c.id}" aria-label="Siguiente"><svg class="ico"><use href="#i-der"/></svg></button>
         </div>
@@ -138,12 +89,15 @@ function pintar(v) {
   $('#ofertas').hidden = !v.ofertas.length;
 
   /* El menú lista las categorías completas del negocio, no solo las ocho que
-     salen en la portada: son los 32 rubros reales que maneja la tienda. */
+     salen en la portada: son los 32 rubros reales que maneja la tienda.
+     Abren la rejilla completa y no un ancla de la home, porque veinticuatro de
+     los treinta y dos no tienen fila propia y el enlace no llevaba a ningún
+     lado. */
   $('#megamenu-lista').innerHTML = (v.rubros ?? []).map((r) => `
-    <a class="megamenu-rubro" href="#${limpio(r.id)}">
+    <button class="megamenu-rubro" data-ver-todo="${limpio(r.nombre)}">
       <strong>${limpio(r.nombre)}</strong>
       <span>${r.total}</span>
-    </a>`).join('');
+    </button>`).join('');
 
   // Estos dos dependen de que las grillas ya existan en el DOM.
   prepararCarruseles();
