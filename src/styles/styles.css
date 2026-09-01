@@ -738,12 +738,20 @@ h1, h2, h3, h4 {
   margin-top: 10px;
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   height: 38px; width: 100%;
-  border: 1.5px solid var(--negro); border-radius: var(--radio-sm);
-  background: var(--blanco); color: var(--negro);
+  border: 1.5px solid var(--amarillo); border-radius: var(--radio-sm);
+  background: var(--amarillo); color: var(--negro);
   font-size: 13px; font-weight: 700; cursor: pointer;
-  transition: background .18s, color .18s;
+  transition: background .18s, border-color .18s, box-shadow .18s;
 }
-.producto-agregar:hover { background: var(--amarillo); border-color: var(--amarillo); }
+/* El hover solo donde hay cursor de verdad: en pantalla táctil se queda pegado
+   después de tocar y el botón parece encendido sin que nadie lo esté señalando. */
+@media (hover: hover) {
+  .producto-agregar:hover {
+    background: var(--amarillo-vivo);
+    border-color: var(--amarillo-vivo);
+    box-shadow: 0 4px 14px rgba(255, 221, 0, .45);
+  }
+}
 .producto-agregar .ico { width: 16px; height: 16px; }
 
 /* =========================================================
@@ -1534,11 +1542,20 @@ h1, h2, h3, h4 {
 /* El botón de agregar pasa a ser un enlace de consulta: no se puede pedir algo
    que no hay. Conserva el mismo tamaño para que la rejilla no se descuadre. */
 .producto-agregar.preguntar {
+  /* Gris y no amarillo: el amarillo es la invitación a comprar, y acá no hay
+     nada que comprar todavía. Se pisa también el borde, que si no quedaría
+     amarillo alrededor de un botón apagado. */
   background: var(--gris-100);
+  border-color: var(--gris-300);
   color: var(--negro);
   text-decoration: none;
 }
-.producto-agregar.preguntar:hover { background: var(--negro); color: var(--blanco); }
+@media (hover: hover) {
+  .producto-agregar.preguntar:hover {
+    background: var(--negro); border-color: var(--negro);
+    color: var(--blanco); box-shadow: none;
+  }
+}
 
 @media (max-width: 560px) {
   .sello-agotado { width: 60px; height: 60px; font-size: 11.5px; left: 6px; top: 6px; }
