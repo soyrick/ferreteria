@@ -4,7 +4,7 @@
 
 Convertir el demo actual (2.056 líneas de HTML/CSS/JS estático) en la web
 operativa de Casa Herramientas: catálogo real desde API, carrito que cierra por
-WhatsApp, chat con bot, SEO activo, analítica y panel de administración.
+WhatsApp, SEO activo, analítica y panel de administración.
 
 **Once fases. Cada una se aprueba antes de pasar a la siguiente.** Nada corre en
 automático hasta que lo indiques con "modo automático".
@@ -23,7 +23,7 @@ automático hasta que lo indiques con "modo automático".
 3. **Terminar de curar las vitrinas.** *Lo más vendido* y *En oferta* tienen un
    producto cada una; las secciones se ocultan solas si quedan vacías.
 4. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
-   registran; falta ver que aparezcan `add_to_cart`, `search` y `abrir_chat`.
+   registran; falta ver que aparezcan `add_to_cart` y `search`.
 5. **Cerrar F4:** metadatos y `LocalBusiness` en la home, páginas de categoría,
    y medir Core Web Vitals.
 
@@ -97,21 +97,23 @@ mover solo ese sector sin tocar la tienda.
 
 > **Reordenado el 2026-08-12.** Las APIs (productos y chatbot) todavía no están
 > entregadas. En vez de esperar, adelantamos todo lo que no depende de ellas y
-> dejamos los tramos bloqueados para cuando lleguen. El chat se parte en dos:
-> la ventana (no necesita API) y la conexión con el bot (sí).
+> dejamos los tramos bloqueados para cuando lleguen.
 >
-> **La API de productos llegó el 2026-08-31 y F6 está integrada.** Sigue
-> faltando la del chatbot (F7).
+> **La API de productos llegó el 2026-08-31 y F6 está integrada.**
+>
+> **El chatbot se canceló el 2026-09-01.** F3 y F7 quedan cerradas sin hacer:
+> la atención va por WhatsApp, que es donde el negocio ya conversa con sus
+> clientes. De once fases quedan nueve.
 
 | Fase | Estado | Bloqueada por |
 |------|--------|---------------|
 | F1 Base técnica | ✅ hecha | — |
 | F2 Carrito de compras | ✅ hecha (número de WhatsApp de ejemplo) | — |
-| F3 Ventana de chat | ✅ interfaz hecha | — |
-| F4 SEO base y rendimiento | 🟡 fichas y sitemap hechos, en rama `products` | — |
+| ~~F3 Ventana de chat~~ | ⛔ **cancelada** el 2026-09-01 | — |
+| F4 SEO base y rendimiento | 🟡 fichas y sitemap hechos | — |
 | F5 Analítica | ✅ hecha y verificada midiendo | — |
 | F6 API de productos y catálogo real | ✅ integrada · faltan las fotos | el negocio no cargó fotos |
-| F7 Conexión del chatbot | ⛔ bloqueada | API del chatbot |
+| ~~F7 Conexión del chatbot~~ | ⛔ **cancelada** el 2026-09-01 | — |
 | F8 Panel de administración | 🟡 completo salvo las cifras reales | APIs de Google |
 | F9 Auditoría de accesibilidad y UI | ⬜ pendiente | — |
 | F10 Auditoría de ciberseguridad | ⬜ pendiente | — |
@@ -135,8 +137,6 @@ Verificado el 2026-08-24 en el sitio desplegado.
   (caché de 60 s). Si falla, la tienda avisa y deriva a WhatsApp: con 8.437 productos y
   precios que cambian durante el día ya no hay catálogo de respaldo que empaquetar.
 - **Sección de Ofertas propia.** Antes cuatro enlaces llevaban a "lo más vendido".
-- **Ventana de chat** con el botón flotante amarillo. Sin bot todavía: responde una
-  plantilla que deriva a WhatsApp.
 - **GA4 con consentimiento** — no se descarga nada de Google hasta aceptar.
   Verificado el 2026-08-24: las visitas llegan a Tiempo real.
 - **Sitio público** en https://casaherramientas.vercel.app
@@ -181,21 +181,20 @@ legible. Probado con 1 ítem y con 20.
 
 ---
 
-### F3 — Ventana de chat
-La interfaz completa, sin bot detrás. Cuando llegue la API solo se enchufa el
-envío y la respuesta.
+### ~~F3 — Ventana de chat~~ · **cancelada el 2026-09-01**
 
-- Botón flotante que abre y cierra el panel.
-- Lista de mensajes, campo de entrada, estados de carga y de error.
-- Accesible con teclado; en móvil ocupa la pantalla cómodamente.
-- Mientras no haya bot: respuesta de reserva que deriva a WhatsApp.
+Ricardo descartó el chatbot: no se va a usar. La atención va por WhatsApp, que
+es donde el negocio ya conversa con sus clientes.
 
-**Cierre:** conversación simulada de ida y vuelta, con la ventana probada en
-escritorio y en móvil.
+Se quitó todo: el botón flotante, el panel, su JavaScript, sus 112 líneas de
+CSS y el evento `abrir_chat` de la analítica. El icono `#i-chat` se queda,
+porque lo usan los botones de WhatsApp.
+
+Si algún día vuelve, está en la historia de git antes de ese commit.
 
 ---
 
-### F4 — SEO base y rendimiento · **en curso, rama `products`**
+### F4 — SEO base y rendimiento · **en curso**
 
 Se saltó en su momento y quedó como la única fase sin bloqueo. Rindió más que
 entonces: con la API integrada hay `codigo` estable, así que el `Product`
@@ -248,7 +247,7 @@ y arrastran al resto del sitio. Entran solo las vendibles; el resto existe con
 ### F5 — Analítica · cableada
 - ✅ GA4 con carga diferida tras consentimiento. Nada de Google se descarga hasta aceptar.
 - ✅ Etiqueta de verificación de Search Console, desde variable de entorno.
-- ✅ Eventos propios: `add_to_cart`, `search`, `abrir_chat`. Falta el del pedido a WhatsApp (llega con F2).
+- ✅ Eventos propios: `add_to_cart` y `search`. Falta el del pedido a WhatsApp (llega con F2).
 - ✅ Banner de consentimiento; rechazar cuesta un clic igual que aceptar.
 - ⏳ Falta: `PUBLIC_GA_ID` y `PUBLIC_GSC_VERIFICACION` reales, y enviar el sitemap (F4).
 
@@ -327,15 +326,15 @@ y deriva a WhatsApp.
 
 ---
 
-### F7 — Conexión del chatbot · **bloqueada**
-La ventana ya existe desde F3. Acá se enchufa.
+### ~~F7 — Conexión del chatbot~~ · **cancelada el 2026-09-01**
 
-- Ruta de API contra el chatbot.
-- Estados reales de carga y de error, reemplazando la respuesta de reserva.
-- Límite de peticiones por visitante, para que la API no quede expuesta a abuso.
+Sin chatbot no hay nada que conectar. Nunca llegó la API y ya no hace falta
+esperarla.
 
-**Cierre:** conversación completa de ida y vuelta, con el caso de error del bot
-probado, no solo el camino feliz.
+**Lo que se ahorra al no tenerlo,** además del trabajo: el bot habría sido el
+punto más expuesto del sitio —inyección de prompts, abuso de costo y filtrado
+de la salida, tres frentes propios en la auditoría de F10— y el único gasto
+recurrente del proyecto.
 
 ---
 
@@ -373,12 +372,12 @@ el resto ya funciona: se audita lo construido, no se construye.
 |--------|---------------|
 | Cabeceras | CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
 | Entradas | Validación y saneamiento en toda ruta de API. Inyección en los parámetros del catálogo |
-| XSS | Todo punto donde entra contenido del usuario o de la API al DOM — incluido el chat, que es el más expuesto |
+| XSS | Todo punto donde entra contenido del usuario o de la API al DOM: el buscador, las tarjetas y la ficha |
 | Autenticación | Cookies de sesión, `HttpOnly`/`Secure`/`SameSite`, expiración, fuerza bruta en el login |
 | APIs | Límite de peticiones, CORS, autorización por ruta, fuga de datos en respuestas de error |
 | Secretos | Que ninguna clave viaje al cliente ni quede en el repo |
 | Dependencias | `npm audit` y revisión de lo que efectivamente se instaló |
-| Bot de chat | Inyección de prompts, abuso de costo, filtrado de la salida |
+
 | Terceros | Qué carga y qué envía GA4; que el consentimiento se respete de verdad |
 
 **Cierre:** informe con severidad por hallazgo, corrección de todo lo crítico y
@@ -407,7 +406,7 @@ Ninguna bloquea el arranque. Cada una tiene que estar resuelta al empezar su fas
 | ~~D1~~ | ✅ **Resuelto.** API REST de solo lectura de kafe.agency, sincronizada desde el sistema del negocio. 8.437 productos. | hecho |
 | **D2** | **Las fotos: la API devuelve `imagenes: []` en todo el catálogo.** El código sí es el de fábrica, pero solo el 14 % es de marcas con catálogo web. Resuelto el camino —pedir las imágenes oficiales a los distribuidores—, falta hacerlo y que kafe las cargue. | F6 |
 | **D3** | **¿A qué número de WhatsApp llega el pedido?** Sin él no funcionan el carrito ni las consultas de producto agotado. El enlace de invitación que hay sirve para abrir el chat, pero no admite texto pre-cargado. | F2 |
-| D4 | ¿Qué chatbot? ¿Responde sobre el catálogo o es de propósito general? | F7 |
+| ~~D4~~ | ✅ **Resuelto: no habrá chatbot.** Ricardo lo descartó el 2026-09-01. La atención va por WhatsApp. | — |
 | D5 | ¿Cuántas personas entran al panel admin? ¿Hace falta más de un rol? | F8 |
 | ~~D6~~ | ✅ **Resuelto: solo cura, no administra.** El nombre y el precio los manda la API; el panel elige qué se muestra y qué está rebajado. | hecho |
 | D7 | ¿Hay dominio comprado? | F11 |

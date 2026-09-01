@@ -893,108 +893,6 @@ h1, h2, h3, h4 {
 /* =========================================================
    FLOTANTES
    ========================================================= */
-.flotante-chat {
-  position: fixed; right: 22px; bottom: 22px; z-index: 90;
-  display: inline-flex; align-items: center; gap: 9px;
-  height: 52px; padding: 0 20px 0 17px;
-  border: 0; cursor: pointer;
-  background: var(--amarillo); color: var(--negro);
-  border-radius: 99px; font-size: 14px; font-weight: 700;
-  box-shadow: var(--sombra-amarilla);
-  transition: transform .2s var(--curva), box-shadow .2s, background .18s;
-}
-.flotante-chat:hover { transform: translateY(-3px); background: var(--amarillo-vivo); box-shadow: 0 16px 36px rgba(255,221,0,.5); }
-.flotante-chat .ico { width: 22px; height: 22px; }
-/* Con el chat abierto el botón sobra y en móvil tapa el campo de escritura. */
-.flotante-chat[aria-expanded="true"] { opacity: 0; pointer-events: none; transform: scale(.85); }
-
-/* =========================================================
-   VENTANA DE CHAT
-   ========================================================= */
-.chat {
-  position: fixed; right: 22px; bottom: 22px; z-index: 95;
-  display: flex; flex-direction: column;
-  width: min(380px, calc(100vw - 44px));
-  height: min(560px, calc(100vh - 120px));
-  background: var(--blanco);
-  border: 1px solid var(--gris-200);
-  border-radius: var(--radio-lg);
-  box-shadow: var(--sombra-2);
-  overflow: hidden;
-  animation: chat-entra .28s var(--curva);
-}
-@keyframes chat-entra { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
-
-.chat-cabecera {
-  display: flex; align-items: center; gap: 11px;
-  padding: 13px 14px;
-  background: var(--negro); color: var(--blanco);
-  flex: none;
-}
-.chat-avatar { width: 38px; height: 38px; border-radius: 10px; flex: none; }
-.chat-quien { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; flex: 1; }
-.chat-quien strong { font-size: 14px; }
-.chat-estado { font-size: 11.5px; color: var(--gris-500); }
-.chat-cerrar {
-  display: grid; place-items: center; width: 32px; height: 32px; flex: none;
-  background: rgba(255,255,255,.1); border: 0; border-radius: 99px;
-  color: var(--blanco); cursor: pointer; transition: background .18s, color .18s;
-}
-.chat-cerrar:hover { background: var(--amarillo); color: var(--negro); }
-
-.chat-mensajes {
-  flex: 1; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 10px;
-  padding: 16px 14px;
-  background: var(--gris-100);
-  scrollbar-width: thin;
-}
-
-.chat-msg {
-  max-width: 82%;
-  padding: 9px 13px;
-  border-radius: 14px;
-  font-size: 13.5px; line-height: 1.5;
-  white-space: pre-wrap; word-break: break-word;
-  animation: chat-msg-entra .22s var(--curva);
-}
-@keyframes chat-msg-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.chat-msg.de-bot { align-self: flex-start; background: var(--blanco); border: 1px solid var(--gris-200); border-bottom-left-radius: 4px; }
-.chat-msg.de-usuario { align-self: flex-end; background: var(--amarillo); color: var(--negro); font-weight: 500; border-bottom-right-radius: 4px; }
-.chat-msg a { text-decoration: underline; font-weight: 600; }
-
-/* Tres puntitos mientras "piensa". Hoy es la respuesta de reserva; en F7 será
-   la espera real de la API. */
-.chat-escribiendo { display: flex; gap: 4px; align-items: center; }
-.chat-escribiendo i {
-  width: 6px; height: 6px; border-radius: 99px; background: var(--gris-500);
-  animation: chat-punto 1.1s infinite ease-in-out;
-}
-.chat-escribiendo i:nth-child(2) { animation-delay: .15s; }
-.chat-escribiendo i:nth-child(3) { animation-delay: .3s; }
-@keyframes chat-punto { 0%, 60%, 100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
-
-.chat-barra {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 12px; flex: none;
-  background: var(--blanco);
-  border-top: 1px solid var(--gris-200);
-}
-.chat-barra input {
-  flex: 1; min-width: 0; height: 40px; padding: 0 14px;
-  background: var(--gris-100);
-  border: 2px solid transparent; border-radius: 99px;
-  font: inherit; font-size: 14px; color: var(--negro); outline: 0;
-  transition: border-color .18s, background .18s;
-}
-.chat-barra input:focus { background: var(--blanco); border-color: var(--amarillo); }
-.chat-enviar {
-  display: grid; place-items: center; width: 40px; height: 40px; flex: none;
-  background: var(--negro); color: var(--blanco);
-  border: 0; border-radius: 99px; cursor: pointer;
-  transition: background .18s, color .18s;
-}
-.chat-enviar:hover { background: var(--amarillo); color: var(--negro); }
 
 /* Utilidad: visible para lectores de pantalla, invisible en pantalla. */
 .visualmente-oculto {
@@ -1139,16 +1037,6 @@ h1, h2, h3, h4 {
   .info-tarjetas { grid-template-columns: 1fr; }
   .pie-int { grid-template-columns: 1fr 1fr; gap: 28px; }
   .pie-marca { grid-column: span 2; }
-  .flotante-chat span { display: none; }
-  .flotante-chat { width: 52px; padding: 0; justify-content: center; }
-  /* En móvil el chat ocupa casi toda la pantalla: una ventanita flotante de
-     380px sobre 375px de ancho no tiene sentido. */
-  .chat {
-    right: 0; left: 0; bottom: 0;
-    width: 100%; height: 88svh; max-height: 88svh;
-    border-radius: var(--radio-lg) var(--radio-lg) 0 0;
-    border-left: 0; border-right: 0; border-bottom: 0;
-  }
 }
 
 @media (max-width: 560px) {

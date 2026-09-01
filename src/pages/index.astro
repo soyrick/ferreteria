@@ -483,37 +483,6 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 </div>
 
 <!-- ============ FLOTANTES ============ -->
-<button class="flotante-chat" id="btn-chat" aria-expanded="false" aria-controls="panel-chat">
-  <svg class="ico"><use href="#i-chat"/></svg>
-  <span>¿Te ayudo?</span>
-</button>
-
-<!-- ============ VENTANA DE CHAT ============ -->
-<!-- aria-modal="false": la página sigue usable con el chat abierto, a
-     diferencia del modal de sesión. -->
-<section class="chat" id="panel-chat" role="dialog" aria-modal="false" aria-labelledby="chat-titulo" hidden>
-  <header class="chat-cabecera">
-    <img src="/assets/logo.png" alt="" class="chat-avatar">
-    <div class="chat-quien">
-      <strong id="chat-titulo">Asistente de Casa Herramientas</strong>
-      <span class="chat-estado">Te ayudo a encontrar lo que buscas</span>
-    </div>
-    <button class="chat-cerrar" id="chat-cerrar" aria-label="Cerrar el chat">
-      <svg class="ico"><use href="#i-cerrar"/></svg>
-    </button>
-  </header>
-
-  <div class="chat-mensajes" id="chat-mensajes" role="log" aria-live="polite" aria-atomic="false"></div>
-
-  <form class="chat-barra" id="chat-form" autocomplete="off">
-    <label class="visualmente-oculto" for="chat-entrada">Escribe tu mensaje</label>
-    <input type="text" id="chat-entrada" placeholder="Escribe tu consulta…" maxlength="500" required>
-    <button type="submit" class="chat-enviar" aria-label="Enviar mensaje">
-      <svg class="ico"><use href="#i-der"/></svg>
-    </button>
-  </form>
-</section>
-
 <button class="flotante-arriba" id="btn-arriba" aria-label="Volver arriba" hidden>
   <svg class="ico"><use href="#i-arriba"/></svg>
 </button>

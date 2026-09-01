@@ -427,7 +427,11 @@ npx vercel env ls production
 
 Ver la tabla de fases en [PLAN.md](PLAN.md).
 
-**Hecho:** F1 base técnica · F2 carrito · F3 ventana de chat · F5 analítica
+**Cancelado el 2026-09-01:** el chatbot (F3 y F7). No se va a usar; la atención
+va por WhatsApp. Se quitó el botón flotante, el panel, su JavaScript y sus 112
+líneas de CSS. El icono `#i-chat` se queda: lo usan los botones de WhatsApp.
+
+**Hecho:** F1 base técnica · F2 carrito · F5 analítica
 (verificada midiendo) · **F6 catálogo real integrado** · panel de administración
 con acceso, curaduría en Blob, buscador, menús ⋯, sello de oferta y gráfica con
 histórico por mes.
