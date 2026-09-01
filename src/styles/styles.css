@@ -1507,3 +1507,39 @@ h1, h2, h3, h4 {
   .vista-cat-cuerpo { padding: 14px; }
   .vista-cat-rejilla { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 }
+
+/* ============ SELLO DE AGOTADO ============
+   Mismo lugar y tamaño que el de oferta, pero redondo y gris: la estrella
+   dentada es lenguaje de promoción y acá dice lo contrario. El gris lo aparta
+   de los sellos que invitan a comprar sin volverlo invisible. */
+.sello-agotado {
+  position: absolute; left: 8px; top: 8px; z-index: 3;
+  width: 72px; height: 72px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--negro);
+  color: var(--blanco);
+  font-family: var(--display);
+  font-size: 14px; font-weight: 800;
+  letter-spacing: .04em; text-transform: uppercase;
+  box-shadow: 0 3px 10px rgba(17,18,20,.35);
+  rotate: -8deg;
+}
+
+/* La foto se apaga para que la tarjeta se lea distinta de un vistazo, sin
+   esconder el producto: sigue siendo clicable y su ficha se abre igual. */
+.producto.agotado .producto-foto { opacity: .55; }
+.producto.agotado .producto-precio { color: var(--gris-500); }
+
+/* El botón de agregar pasa a ser un enlace de consulta: no se puede pedir algo
+   que no hay. Conserva el mismo tamaño para que la rejilla no se descuadre. */
+.producto-agregar.preguntar {
+  background: var(--gris-100);
+  color: var(--negro);
+  text-decoration: none;
+}
+.producto-agregar.preguntar:hover { background: var(--negro); color: var(--blanco); }
+
+@media (max-width: 560px) {
+  .sello-agotado { width: 60px; height: 60px; font-size: 11.5px; left: 6px; top: 6px; }
+}

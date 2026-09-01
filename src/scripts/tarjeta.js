@@ -31,11 +31,21 @@ export function tarjetaProducto(p, rango) {
   const baja = p.pa ? Math.round((1 - p.p / p.pa) * 100) : 0;
   // La arma el servidor en normalizar(): una sola forma de escribir la dirección.
   const url = p.url;
+
+  /* `disponible` puede no venir —las vitrinas viejas no lo mandaban—, así que
+     solo se marca agotado cuando la API lo dice explícitamente. Ante la duda,
+     el producto se ofrece: es peor esconder algo que sí hay. */
+  const agotado = p.disponible === false;
+
   return `
-  <article class="producto">
+  <article class="producto${agotado ? ' agotado' : ''}">
     <a class="producto-enlace" href="${limpio(url)}" data-ficha="${limpio(p.id)}">
       <div class="producto-foto${p.img ? '' : ' vacia'}">
-        ${baja ? `<span class="sello-oferta" aria-label="${baja}% de descuento"><b>−${baja}%</b></span>` : ''}
+        ${agotado
+          // Agotado tapa a la oferta: si no se puede comprar, el descuento no
+          // es la información que hace falta.
+          ? '<span class="sello-agotado">Agotado</span>'
+          : baja ? `<span class="sello-oferta" aria-label="${baja}% de descuento"><b>−${baja}%</b></span>` : ''}
         ${rango ? `<span class="producto-rango">${rango}</span>` : ''}
         ${foto(p)}
       </div>
@@ -48,11 +58,17 @@ export function tarjetaProducto(p, rango) {
         </div>
       </div>
     </a>
-    <button class="producto-agregar" data-agregar
-            data-id="${limpio(p.id)}" data-nombre="${limpio(p.n)}"
-            data-marca="${limpio(p.m)}" data-precio="${p.p}">
-      <svg class="ico"><use href="#i-carrito"/></svg> Agregar
-    </button>
+    ${agotado
+      // Sin botón de agregar: dejar armar un pedido de algo que no hay termina
+      // en una conversación incómoda por WhatsApp. Se ofrece preguntar.
+      ? `<a class="producto-agregar preguntar" href="${limpio(url)}" data-ficha="${limpio(p.id)}">
+           <svg class="ico"><use href="#i-chat"/></svg> Consultar
+         </a>`
+      : `<button class="producto-agregar" data-agregar
+                 data-id="${limpio(p.id)}" data-nombre="${limpio(p.n)}"
+                 data-marca="${limpio(p.m)}" data-precio="${p.p}">
+           <svg class="ico"><use href="#i-carrito"/></svg> Agregar
+         </button>`}
   </article>`;
 }
 
@@ -67,6 +83,7 @@ export const desdeApi = (p) => ({
   cat: p.categoria,
   img: p.imagenes?.[0]?.url ?? '',
   url: p.url,
+  disponible: p.disponible,
 });
 
 /* Trabar el scroll del fondo cuando hay una capa abierta.
