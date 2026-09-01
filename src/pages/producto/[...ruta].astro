@@ -10,20 +10,35 @@
    buscador o con el JavaScript apagado, esto es lo que recibe. */
 export const prerender = false;
 
-import { producto, apiLista } from '../../datos/api.js';
-import { ranura } from '../../datos/curaduria.js';
+import { producto, apiLista, ranura, urlProducto } from '../../datos/api.js';
 import '../../styles/styles.css';
 
-const { codigo } = Astro.params;
+/* La dirección es /producto/nombre-del-producto/CODIGO, pero también entra
+   /producto/CODIGO a secas: el código es siempre el último tramo. Eso mantiene
+   vivos los enlaces viejos y los que alguien escriba a mano. */
+const tramos = (Astro.params.ruta ?? '').split('/').filter(Boolean);
+const codigo = tramos.at(-1);
+
+if (!codigo) return new Response(null, { status: 404 });
+
 const p = apiLista() ? await producto(codigo).catch(() => null) : null;
 
 if (!p) return new Response(null, { status: 404, statusText: 'Producto no encontrado' });
+
+/* Si el nombre en la dirección no es el que corresponde —porque el producto se
+   renombró, o porque llegaron solo con el código— se redirige al canónico con
+   un 301. Sin esto Google vería el mismo producto en varias direcciones y
+   repartiría el posicionamiento entre todas. */
+const canonicaRelativa = urlProducto(p);
+if (`/producto/${tramos.join('/')}` !== canonicaRelativa) {
+  return Astro.redirect(canonicaRelativa, 301);
+}
 
 const precio = (n) =>
   '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
 
 const vendible = p.disponible && p.precio > 0;
-const canonica = new URL(`/producto/${encodeURIComponent(p.codigo)}`, Astro.site ?? Astro.url.origin).href;
+const canonica = new URL(canonicaRelativa, Astro.site ?? Astro.url.origin).href;
 
 /* Un producto agotado o sin precio se muestra, porque alguien puede llegar por
    un enlace viejo, pero no se ofrece a Google: son páginas sin nada que

@@ -17,7 +17,7 @@
    base de datos, necesita dónde escribirse. */
 
 import { put, get } from '@vercel/blob';
-import { resumen, productos, producto, normalizar } from './api.js';
+import { resumen, productos, producto, normalizar, ranura } from './api.js';
 
 const RUTA = 'curaduria.json';
 
@@ -279,9 +279,7 @@ async function traerPorCodigo(codigos, rebaja) {
     .map((p) => conRebaja(p, rebaja.get(p.id)));
 }
 
-/** Nombre de categoría → id usable en una URL y en un ancla de la página.
-    El rango de tildes va con \u escapado: el literal se corrompe al guardarse. */
-const TILDES = new RegExp('[\\u0300-\\u036f]', 'g');
-export const ranura = (nombre) =>
-  nombre.toLowerCase().normalize('NFD').replace(TILDES, '')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+/* `ranura` vive en el catálogo, junto a urlProducto, porque las direcciones se
+   arman todas ahí. Se re-exporta para que las pantallas la sigan pidiendo donde
+   ya la pedían. */
+export { ranura };

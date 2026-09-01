@@ -50,7 +50,8 @@ const foto = (p) =>
    muerta. El panel que abre sin recargar se monta encima de este enlace. */
 function tarjetaProducto(p, rango) {
   const baja = p.pa ? Math.round((1 - p.p / p.pa) * 100) : 0;
-  const url = `/producto/${encodeURIComponent(p.id)}`;
+  // La arma el servidor en normalizar(): una sola forma de escribir la dirección.
+  const url = p.url;
   return `
   <article class="producto">
     <a class="producto-enlace" href="${url}" data-ficha="${limpio(p.id)}">
@@ -291,7 +292,7 @@ function prepararCarruseles() {
 
       caja.innerHTML = hallados.length
         ? hallados.map((p) => `
-            <a class="resultado" href="/producto/${encodeURIComponent(p.codigo)}"
+            <a class="resultado" href="${limpio(p.url)}"
                data-ficha="${limpio(p.codigo)}">
               <span class="resultado-datos">
                 <strong>${limpio(p.nombre)}</strong>

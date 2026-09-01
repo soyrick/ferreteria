@@ -64,10 +64,15 @@ if (panel) {
         ${ficha.map(([k, v]) => `<tr><th>${limpio(k)}</th><td>${limpio(v)}</td></tr>`).join('')}
       </tbody></table>`;
 
-    enlaceCompleto.href = `/producto/${encodeURIComponent(p.codigo)}`;
+    enlaceCompleto.href = p.url;
+    // La dirección canónica la manda el servidor: la barra tiene que mostrar la
+    // misma que Google indexa, no una versión con el código pelado.
+    if (p.url && location.pathname !== p.url) {
+      history.replaceState({ ficha: p.codigo }, '', p.url);
+    }
   }
 
-  async function abrir(codigo) {
+  async function abrir(codigo, url) {
     ultimoFoco = document.activeElement;
     urlPrevia = location.pathname + location.search;
 
@@ -76,7 +81,9 @@ if (panel) {
     cuerpo.innerHTML = '<p class="vista-cargando">Cargando…</p>';
     $('#vista-cerrar').focus();
 
-    history.pushState({ ficha: codigo }, '', `/producto/${encodeURIComponent(codigo)}`);
+    /* Se usa la dirección del enlace, que ya trae el nombre. Si no viniera, se
+       navega con el código y pintar() corrige la barra al llegar la respuesta. */
+    history.pushState({ ficha: codigo }, '', url ?? `/producto/${encodeURIComponent(codigo)}`);
 
     pidiendo?.abort();
     pidiendo = new AbortController();
@@ -109,7 +116,7 @@ if (panel) {
     const enlace = e.target.closest('[data-ficha]');
     if (!enlace || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
-    abrir(enlace.dataset.ficha);
+    abrir(enlace.dataset.ficha, enlace.getAttribute('href'));
   });
 
   cuerpo.addEventListener('click', (e) => {

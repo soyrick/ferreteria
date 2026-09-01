@@ -4,3 +4,9 @@ Allow: /
 # El panel no se indexa. La protección real es el middleware; esto solo evita
 # que aparezca en resultados de búsqueda.
 Disallow: /admin
+
+# Las rutas de datos no son páginas: si Google las indexara, mostraría JSON
+# como si fuera contenido de la tienda.
+Disallow: /api/
+
+Sitemap: https://casaherramientas.vercel.app/sitemap.xml

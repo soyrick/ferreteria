@@ -59,6 +59,33 @@ export async function producto(codigo) {
   }
 }
 
+/* Texto → trozo de URL. El rango de tildes va con \u escapado: el literal se
+   corrompe al guardarse. */
+const TILDES = new RegExp('[\\u0300-\\u036f]', 'g');
+export const ranura = (texto) =>
+  String(texto ?? '').toLowerCase().normalize('NFD').replace(TILDES, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+/* Dirección de la ficha: nombre para la gente, código para el sistema.
+
+   El código va al final y es el que manda. Si el negocio le cambia el nombre al
+   producto, el enlace viejo sigue llevando al lugar correcto —la página
+   redirige al nombre nuevo— en vez de romperse. Y quien pega el enlace en un
+   grupo de WhatsApp manda algo que se entiende sin abrirlo.
+
+   Se arma en un solo lugar porque la usan las tarjetas, el buscador, el panel,
+   la canónica de la ficha y el sitemap: si cada uno la escribiera a su modo,
+   Google vería el mismo producto en cinco direcciones distintas. */
+const TOPE_RANURA = 60;   // URLs cortas: lo que sigue no aporta nada
+
+export function urlProducto(p) {
+  const codigo = p.codigo ?? p.id;
+  const nombre = ranura(p.nombre ?? p.n).slice(0, TOPE_RANURA).replace(/-$/, '');
+  return nombre
+    ? `/producto/${nombre}/${encodeURIComponent(codigo)}`
+    : `/producto/${encodeURIComponent(codigo)}`;
+}
+
 /* La tienda pinta con la forma del catálogo viejo (n, m, p, img…). Traducir acá
    y no en cada pantalla deja un solo lugar que tocar si la API cambia.
    ponytail: `img` queda vacío hasta que el negocio cargue fotos — hoy la API
@@ -71,4 +98,5 @@ export const normalizar = (p) => ({
   cat: p.categoria,
   img: p.imagenes?.[0]?.url ?? '',
   disponible: p.disponible,
+  url: urlProducto(p),
 });

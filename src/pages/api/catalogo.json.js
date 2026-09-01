@@ -10,7 +10,12 @@
    en esta lista no viaja. */
 export const prerender = false;
 
-import { productos, producto, apiLista } from '../../datos/api.js';
+import { productos, producto, apiLista, urlProducto } from '../../datos/api.js';
+
+/* La dirección de la ficha se calcula acá y no en el navegador: es la misma
+   que usan el sitemap y la canónica de la página, y tiene que salir del mismo
+   lugar o Google terminaría viendo variantes del mismo producto. */
+const conUrl = (p) => ({ ...p, url: urlProducto(p) });
 
 const json = (cuerpo, status, cache) =>
   new Response(JSON.stringify(cuerpo), {
@@ -36,7 +41,7 @@ export async function GET({ url }) {
     if (codigo) {
       const p = await producto(codigo);
       if (!p) return json({ error: 'no existe' }, 404, 'no-store');
-      return json({ producto: p }, 200, 'public, max-age=0, s-maxage=120, stale-while-revalidate=600');
+      return json({ producto: conUrl(p) }, 200, 'public, max-age=0, s-maxage=120, stale-while-revalidate=600');
     }
 
     const datos = await productos({
@@ -52,7 +57,11 @@ export async function GET({ url }) {
        más de unos minutos, y esto además hace que mil visitas cuesten una sola
        petición: el límite de 120 por minuto es por IP, y detrás del proxy
        todas comparten la de Vercel. */
-    return json(datos, 200, 'public, max-age=0, s-maxage=120, stale-while-revalidate=600');
+    return json(
+      { ...datos, productos: datos.productos.map(conUrl) },
+      200,
+      'public, max-age=0, s-maxage=120, stale-while-revalidate=600',
+    );
   } catch (e) {
     console.error('[api/catalogo] falló:', e.message);
     const limite = e.codigo === 429;
