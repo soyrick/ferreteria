@@ -176,7 +176,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
         <div class="hero-velo"></div>
         <div class="contenedor hero-texto">
           <span class="hero-cinta">Marcas que perduran</span>
-          <h1>Herramientas eléctricas<br>de las buenas</h1>
+          <p class="hero-titulo">Herramientas eléctricas<br>de las buenas</p>
           <p>Taladros, esmeriles, sierras y lijadoras con garantía y repuestos aquí mismo.</p>
           <div class="hero-botones">
             <a class="btn btn-amarillo" href="#electricas">Ver herramientas</a>
@@ -190,7 +190,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
         <div class="hero-velo"></div>
         <div class="contenedor hero-texto">
           <span class="hero-cinta">Al mayor y al detal</span>
-          <h1>Materiales de construcción<br>al mejor precio</h1>
+          <p class="hero-titulo">Materiales de construcción<br>al mejor precio</p>
           <p>Cemento, cabillas, mallas y agregados. Cotizamos tu obra completa y te la despachamos.</p>
           <div class="hero-botones">
             <a class="btn btn-amarillo" href="#construccion">Ver materiales</a>
@@ -204,7 +204,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
         <div class="hero-velo"></div>
         <div class="contenedor hero-texto">
           <span class="hero-cinta">Asesoria gratuita</span>
-          <h1>Asesoría de verdad,<br>no adivinanzas</h1>
+          <p class="hero-titulo">Asesoría de verdad,<br>no adivinanzas</p>
           <p>Vente con el problema y te ayudamos a resolverlo. Aquí sí sabemos de ferretería.</p>
           <div class="hero-botones">
             <a class="btn btn-amarillo" href="#contacto">Hablar con un asesor</a>
@@ -237,7 +237,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
         <div>
           <span class="mini-etiqueta">Precio rebajado</span>
           <h2>En oferta</h2>
-          <p>Rebajas que pone la tienda. <strong id="cuenta-ofertas">0</strong> productos con precio especial, hasta agotar existencia.</p>
+          <p>Rebajas que pone la tienda. <strong id="cuenta-ofertas">0</strong> <span id="cuenta-ofertas-palabra">productos</span> con precio especial, hasta agotar existencia.</p>
         </div>
         <a class="btn btn-negro" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener"><svg class="ico"><use href="#i-chat"/></svg> Preguntar por una oferta</a>
       </header>
@@ -319,10 +319,8 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 
         <article class="tarjeta-info" id="horarios">
           <h3><svg class="ico"><use href="#i-reloj"/></svg> Horarios de atención</h3>
-          <!-- DATO PLACEHOLDER: horario referencial, confirmar con el cliente -->
           <table class="tabla-horario">
-            <tr><th>Lunes a viernes</th><td>8:00 a.m. – 5:00 p.m.</td></tr>
-            <tr><th>Sábado</th><td>8:00 a.m. – 1:00 p.m.</td></tr>
+            <tr><th>Lunes a sábado</th><td>8:00 a.m. – 4:50 p.m.</td></tr>
             <tr><th>Domingo</th><td class="cerrado">Cerrado</td></tr>
           </table>
           <p class="tarjeta-nota">Los feriados nacionales atendemos solo pedidos por WhatsApp.</p>
@@ -332,9 +330,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
           <h3><svg class="ico"><use href="#i-telefono"/></svg> Contacto</h3>
           <ul class="lista-contacto">
             <li><svg class="ico"><use href="#i-chat"/></svg> <a href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">WhatsApp — pedidos y cotizaciones</a></li>
-            <!-- DATO PLACEHOLDER: teléfono y correo de ejemplo -->
-            <li><svg class="ico"><use href="#i-telefono"/></svg> <a href="tel:+582810000000">+58 281 000 0000</a></li>
-            <li><svg class="ico"><use href="#i-correo"/></svg> <a href="mailto:ventas@casaherramientas.com.ve">ventas@casaherramientas.com.ve</a></li>
+            <li><svg class="ico"><use href="#i-correo"/></svg> <a href="mailto:casaherramienta@gmail.com">casaherramienta@gmail.com</a></li>
             <li><svg class="ico"><use href="#i-instagram"/></svg> <a href="https://www.instagram.com/casaherramientas.ca/" target="_blank" rel="noopener">@casaherramientas.ca</a></li>
           </ul>
         </article>
@@ -380,9 +376,8 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
     <div class="pie-col">
       <h4>Dónde estamos</h4>
       <p class="pie-dato"><svg class="ico"><use href="#i-ubicacion"/></svg> Calle Guayaquil, frente al estadio de béisbol de Barrio Sucre. Barcelona, Edo. Anzoátegui, Venezuela.</p>
-      <p class="pie-dato"><svg class="ico"><use href="#i-reloj"/></svg> Lun a vie 8:00 a.m. – 5:00 p.m.<br>Sáb 8:00 a.m. – 1:00 p.m.</p>
-      <p class="pie-dato"><svg class="ico"><use href="#i-telefono"/></svg> +58 281 000 0000</p>
-      <p class="pie-dato"><svg class="ico"><use href="#i-correo"/></svg> ventas@casaherramientas.com.ve</p>
+      <p class="pie-dato"><svg class="ico"><use href="#i-reloj"/></svg> Lunes a sábado, 8:00 a.m. – 4:50 p.m.</p>
+      <p class="pie-dato"><svg class="ico"><use href="#i-correo"/></svg> <a href="mailto:casaherramienta@gmail.com">casaherramienta@gmail.com</a></p>
     </div>
 
     <div class="pie-col pie-boletin">

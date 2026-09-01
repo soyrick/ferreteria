@@ -16,6 +16,7 @@ const $ = (s, c = document) => c.querySelector(s);
 
 const panel = $('#vista-categoria');
 if (panel) {
+  const cuerpo = $('#categoria-cuerpo');
   const rejilla = $('#categoria-rejilla');
   const titulo = $('#categoria-titulo');
   const cuenta = $('#categoria-cuenta');
@@ -34,13 +35,22 @@ if (panel) {
   let pidiendo;
   let relojBusca;
 
-  /* Cuando el centinela del final entra en pantalla, se pide la tanda
-     siguiente. rootMargin adelanta la carga para que el visitante no llegue a
-     ver el hueco. */
-  const vigia = new IntersectionObserver(
-    (entradas) => { if (entradas[0].isIntersecting) traerMas(); },
-    { root: $('#categoria-cuerpo'), rootMargin: '400px' },
-  );
+  /* Se pide la tanda siguiente cuando faltan 400px para el final, para que el
+     visitante no llegue a ver el hueco.
+
+     ponytail: un listener de scroll y no un IntersectionObserver. Hace lo
+     mismo con menos piezas —hay un solo punto que vigilar, el fondo de un
+     contenedor propio— y sobre todo se puede comprobar: el observer depende de
+     que el navegador esté componiendo la página, y en un entorno sin pintado
+     no dispara nunca, ni siquiera para avisar que algo NO se ve. */
+  const MARGEN = 400;
+
+  const cerca = () =>
+    cuerpo.scrollTop + cuerpo.clientHeight >= cuerpo.scrollHeight - MARGEN;
+
+  function vigilar() {
+    if (cerca()) traerMas();
+  }
 
   async function traerMas() {
     if (cargando || (traidos && traidos >= total)) return;
@@ -77,11 +87,18 @@ if (panel) {
     } finally {
       cargando = false;
     }
+
+    /* Si la tanda que acaba de entrar no llenó la pantalla, no va a haber
+       scroll que dispare la siguiente: se encadena acá. */
+    if (cerca()) traerMas();
   }
 
   function reiniciar() {
     pidiendo?.abort();
     rejilla.innerHTML = '';
+    // Al buscar de nuevo, volver arriba: si no, los resultados nuevos entran
+    // con la vista a mitad de camino de la lista anterior.
+    cuerpo.scrollTop = 0;
     traidos = 0;
     total = 0;
     cargando = false;
@@ -101,13 +118,13 @@ if (panel) {
     $('#categoria-cerrar').focus();
 
     reiniciar();
-    vigia.observe(centinela);
+    cuerpo.addEventListener('scroll', vigilar, { passive: true });
   }
 
   function cerrar() {
     panel.hidden = true;
     trabarFondo();
-    vigia.unobserve(centinela);
+    cuerpo.removeEventListener('scroll', vigilar);
     pidiendo?.abort();
   }
 

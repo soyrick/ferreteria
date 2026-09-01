@@ -79,7 +79,9 @@ function pintar(v) {
 
   $('#rejilla-estrellas').innerHTML = v.topventas.map((p, i) => tarjetaProducto(p, i + 1)).join('');
   $('#rejilla-ofertas').innerHTML = v.ofertas.map((p) => tarjetaProducto(p)).join('');
+  // Con una sola oferta el texto decía "1 productos".
   $('#cuenta-ofertas').textContent = v.ofertas.length;
+  $('#cuenta-ofertas-palabra').textContent = v.ofertas.length === 1 ? 'producto' : 'productos';
 
   /* Una vitrina sin nada no se deja como un hueco mudo: o el panel todavía no
      eligió, o la API no contestó. En ambos casos conviene decirlo. */
