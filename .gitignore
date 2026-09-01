@@ -20,10 +20,12 @@ desktop.ini
 *.log
 npm-debug.log*
 
-# Variables de entorno
-.env
-.env.local
-.env.production
-
-.vercel
+# Variables de entorno: ninguna sube al repo…
 .env*
+# …salvo la plantilla, que no lleva valores y es la que le dice a quien llegue
+# nuevo qué tiene que configurar.
+#
+# Esta línea va SIEMPRE al final del archivo: `vercel env pull` agrega su propio
+# `.env*` cuando corre, y si queda debajo de esta, la anula. Si algún día
+# .env.example deja de versionarse, mirar primero si apareció un `.env*` abajo.
+!.env.example

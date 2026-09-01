@@ -1,21 +1,32 @@
-/* Curaduría: qué producto va en qué vitrina de la página principal.
-   Esto es lo único que el panel edita. El nombre, el precio y la foto los va
-   a mandar la API de productos (F6); si el panel también los editara, habría
-   dos fuentes de verdad peleando por el mismo dato.
+/* Curaduría: qué sale en la página principal.
+
+   El catálogo real vive en la API del negocio (8.437 productos): nombre,
+   precio, disponibilidad y fotos los manda ella. Acá solo se guarda lo que
+   la API no sabe — qué mostrar primero y qué está rebajado.
+
+   El reparto es así, y viene impuesto por la escala:
+   - Categorías: se eligen las categorías, no los productos. Curar a mano una
+     categoría de 1.608 artículos con casillas no es trabajo de nadie.
+   - Lo más vendido y Ofertas: sí producto por producto, por código, porque
+     son pocos y son decisiones de la tienda.
 
    Se guarda en Vercel Blob, no en Global Config: escribir en Global Config
-   exige un token de la API REST de Vercel, con permisos sobre toda la cuenta.
-   Blob usa credenciales OIDC de corta duración acotadas al store, así que si
-   alguien entra al panel se lleva la curaduría y nada más. El documento pesa
-   1,4 KB — no necesita una base de datos, necesita dónde escribirse. */
+   exige un token de la API REST de Vercel con permisos sobre toda la cuenta.
+   Blob usa credenciales acotadas al store: si alguien entra al panel se lleva
+   la curaduría y nada más. El documento pesa menos de 2 KB — no necesita una
+   base de datos, necesita dónde escribirse. */
 
 import { put, get } from '@vercel/blob';
-import { CATEGORIAS, ESTRELLAS, POR_ID, idDe } from './catalogo.js';
+import { resumen, productos, producto, normalizar } from './api.js';
 
 const RUTA = 'curaduria.json';
 
 /** Cupos de la rejilla de "Lo más vendido". */
-export const CUPOS_SEMANA = 10;
+export const CUPOS_TOPVENTAS = 10;
+
+/** Cuántas categorías salen en la home, y cuántos productos trae cada fila. */
+export const CUPOS_CATEGORIAS = 8;
+const POR_FILA = 10;
 
 /* El token hay que buscarlo en los dos lados y pasarlo explícito.
    Astro carga el .env en import.meta.env, NO en process.env — y el SDK de Blob
@@ -38,28 +49,10 @@ const hayCredenciales = () => Boolean(TOKEN || STORE);
 /** true solo si hay credenciales Y no nos ha rebotado el almacén. */
 export const almacenListo = () => hayCredenciales() && !almacenFalla;
 
-/** Selección de arranque: la que la página muestra hoy. */
-function inicial() {
-  return {
-    destacados: Object.fromEntries(CATEGORIAS.map((c) => [c.id, c.productos.map(idDe)])),
-    semana: ESTRELLAS.slice(0, CUPOS_SEMANA).map(idDe),   // la semilla respeta el tope
-    /* Ofertas de arranque, explicitas y no deducidas del catalogo: el precio
-       de lista es del producto, la rebaja es una decision de la tienda.
-       Todas indefinidas hasta que el admin les ponga fecha. */
-    ofertas: [
-      { id: 'coleto-microfibra', precio: 6.90, vence: '' },
-      { id: 'carretilla-obra', precio: 62.00, vence: '' },
-      { id: 'taladro-percutor', precio: 58.00, vence: '' },
-      { id: 'griferia-lavamanos', precio: 28.00, vence: '' },
-      { id: 'cable-thw', precio: 48.00, vence: '' },
-      { id: 'set-destornilladores', precio: 16.90, vence: '' },
-      { id: 'llaves-combinadas', precio: 34.00, vence: '' },
-      { id: 'pintura-caucho', precio: 18.50, vence: '' },
-      { id: 'multimetro-digital', precio: 17.80, vence: '' },
-      { id: 'esmeril-angular', precio: 46.50, vence: '' },
-    ],
-  };
-}
+/* Documento vacío. No se siembra nada: sin categorías elegidas, la home usa
+   las más grandes de la API sola. Sembrar exigiría llamar a la API desde una
+   función síncrona, y encima quedaría viejo apenas cambie el catálogo. */
+const inicial = () => ({ categorias: [], topventas: [], ofertas: [] });
 
 /* Respaldo en memoria. Sirve en desarrollo; en Vercel cada invocación arranca
    limpia, así que sin Blob configurado el panel no guarda nada de verdad. */
@@ -106,24 +99,25 @@ export async function guardar(cambios) {
     almacenFalla = true;
     enMemoria = nuevo;   // no perder lo que la persona acaba de editar
     console.error('[curaduria] no se pudo guardar:', e.message);
-    return ['No se pudo guardar en el almacén; el cambio quedó solo en memoria. Revisá la configuración de Vercel Blob.'];
+    return ['No se pudo guardar en el almacén; el cambio quedó solo en memoria. Revisa la configuración de Vercel Blob.'];
   }
 }
 
+/* Validación de forma, no de existencia: comprobar que cada código exista
+   costaría una llamada a la API por producto, y ya se comprueba al agregarlo
+   desde el panel. Un código que desaparezca del catálogo se descarta al pintar. */
 function validar(doc) {
   const errores = [];
-  const existe = (id) => POR_ID.has(id);
 
-  for (const [cat, ids] of Object.entries(doc.destacados ?? {})) {
-    if (!CATEGORIAS.some((c) => c.id === cat)) errores.push(`Categoría desconocida: ${cat}`);
-    ids.filter((id) => !existe(id)).forEach((id) => errores.push(`Producto desconocido: ${id}`));
+  if ((doc.categorias ?? []).length > CUPOS_CATEGORIAS) {
+    errores.push(`No entran más de ${CUPOS_CATEGORIAS} categorías en la página principal.`);
   }
-  (doc.semana ?? []).filter((id) => !existe(id)).forEach((id) => errores.push(`Producto desconocido: ${id}`));
+  if ((doc.topventas ?? []).length > CUPOS_TOPVENTAS) {
+    errores.push(`Lo más vendido admite ${CUPOS_TOPVENTAS} productos como máximo.`);
+  }
   for (const o of doc.ofertas ?? []) {
-    if (!existe(o.id)) { errores.push(`Producto desconocido: ${o.id}`); continue; }
-    const base = POR_ID.get(o.id);
-    if (!(o.precio > 0)) errores.push(`Precio inválido en ${base.n}`);
-    else if (o.precio >= base.p) errores.push(`La oferta de ${base.n} (lista $${base.p.toFixed(2)}) no baja el precio`);
+    if (!o.codigo) { errores.push('Hay una oferta sin producto.'); continue; }
+    if (!(o.precio > 0)) errores.push(`Precio inválido en la oferta de ${o.codigo}.`);
   }
   return errores;
 }
@@ -139,66 +133,155 @@ export function ofertaVigente(oferta, ahora = new Date()) {
 
 /* Acciones de un solo producto, las del menú "⋯".
    Devuelven un texto para mostrarle a la persona, o null si no hubo cambio. */
-export async function accionProducto(accion, id) {
-  const p = POR_ID.get(id);
-  if (!p) return { error: 'Ese producto no existe.' };
+export async function accionProducto(accion, codigo) {
+  const p = await producto(codigo);
+  if (!p) return { error: 'Ese producto ya no está en el catálogo.' };
   const s = await leer();
 
-  if (accion === 'a-estrella') {
-    if (s.semana.includes(id)) return { aviso: `${p.n} ya estaba en Productos estrella.` };
-    if (s.semana.length >= CUPOS_SEMANA) {
-      return { error: `Productos estrella está lleno (${CUPOS_SEMANA}). Quitá uno antes de agregar otro.` };
+  if (accion === 'a-topventas') {
+    if (s.topventas.includes(codigo)) return { aviso: `${p.nombre} ya estaba en Lo más vendido.` };
+    if (s.topventas.length >= CUPOS_TOPVENTAS) {
+      return { error: `Lo más vendido está lleno (${CUPOS_TOPVENTAS}). Quita uno antes de agregar otro.` };
     }
-    const errores = await guardar({ semana: [...s.semana, id] });
-    return errores.length ? { error: errores[0] } : { ok: `${p.n} pasó a Productos estrella.` };
+    const errores = await guardar({ topventas: [...s.topventas, codigo] });
+    return errores.length ? { error: errores[0] } : { ok: `${p.nombre} pasó a Lo más vendido.` };
   }
 
   if (accion === 'a-oferta') {
-    if (s.ofertas.some((o) => o.id === id)) return { aviso: `${p.n} ya estaba en oferta.` };
+    if (s.ofertas.some((o) => o.codigo === codigo)) return { aviso: `${p.nombre} ya estaba en oferta.` };
+    if (!(p.precio > 0)) return { error: `${p.nombre} no tiene precio publicado: no se le puede poner oferta.` };
     // Precio inicial: 10 % menos que el de lista. Se ajusta en la pantalla de Ofertas.
-    const precio = Math.round(p.p * 0.9 * 100) / 100;
-    const errores = await guardar({ ofertas: [...s.ofertas, { id, precio, vence: '' }] });
-    return errores.length ? { error: errores[0] } : { ok: `${p.n} pasó a Ofertas con 10 % de descuento. Ajustá el precio si hace falta.` };
+    const precio = Math.round(p.precio * 0.9 * 100) / 100;
+    const errores = await guardar({ ofertas: [...s.ofertas, { codigo, precio, vence: '' }] });
+    return errores.length ? { error: errores[0] } : { ok: `${p.nombre} pasó a Ofertas con 10 % de descuento. Ajusta el precio si hace falta.` };
   }
 
-  if (accion === 'quitar-estrella') {
-    const errores = await guardar({ semana: s.semana.filter((x) => x !== id) });
-    return errores.length ? { error: errores[0] } : { ok: `${p.n} salió de Productos estrella.` };
+  if (accion === 'quitar-topventas') {
+    const errores = await guardar({ topventas: s.topventas.filter((x) => x !== codigo) });
+    return errores.length ? { error: errores[0] } : { ok: `${p.nombre} salió de Lo más vendido.` };
   }
 
   if (accion === 'quitar-oferta') {
-    const errores = await guardar({ ofertas: s.ofertas.filter((o) => o.id !== id) });
-    return errores.length ? { error: errores[0] } : { ok: `${p.n} salió de Ofertas.` };
+    const errores = await guardar({ ofertas: s.ofertas.filter((o) => o.codigo !== codigo) });
+    return errores.length ? { error: errores[0] } : { ok: `${p.nombre} salió de Ofertas.` };
   }
 
   return { error: 'Acción desconocida.' };
 }
 
+/** Aplica la rebaja: el precio de oferta pisa al de lista, que queda como "antes". */
+const conRebaja = (p, precio) =>
+  precio ? { ...p, p: precio, pa: p.p, et: 'oferta' } : p;
+
 /** Las vitrinas ya resueltas a productos completos, listas para pintar. */
 export async function vitrinas() {
   const s = await leer();
+  const info = await resumen();
+
+  /* Sin categorías elegidas se usan las que más productos tienen. La API ya
+     las devuelve ordenadas por total, así que alcanza con cortar. */
+  const elegidas = s.categorias.length
+    ? info.categorias.filter((c) => s.categorias.includes(c.nombre))
+    : info.categorias.slice(0, CUPOS_CATEGORIAS);
+
   // Las vencidas quedan guardadas —el panel las muestra para poder revivirlas—
   // pero desaparecen de la tienda: ni sello, ni precio tachado, ni vitrina.
   const vigentes = s.ofertas.filter((o) => ofertaVigente(o));
-  const conOferta = new Map(vigentes.map((o) => [o.id, o]));
+  const rebaja = new Map(vigentes.map((o) => [o.codigo, o.precio]));
 
-  const resolver = (id) => {
-    const p = POR_ID.get(id);
-    if (!p) return null;
-    const o = conOferta.get(id);
-    if (o) {
-      // El precio de oferta pisa al de lista, y el de lista pasa a ser "antes".
-      return { ...p, p: o.precio, pa: p.p, et: 'oferta' };
-    }
-    // Sin oferta vigente queda a precio de lista limpio: sin tachado ni sello.
-    // Hace falta porque los datos de ejemplo traen el descuento incrustado en
-    // `pa`; el estado de oferta lo decide la curaduría, no el catálogo.
-    return { ...p, p: p.p, pa: undefined, et: p.et === 'oferta' ? undefined : p.et };
-  };
+  /* Las peticiones de las ocho filas van aplanadas en una sola cola: si cada
+     categoría lanzara las suyas por su cuenta saldrían 24 a la vez, que es
+     justo lo que la API no aguanta. El caché de /api/vitrinas.json hace que
+     todo esto corra una vez por minuto, no una vez por visita. */
+  const trabajos = elegidas.flatMap(({ nombre, total }) =>
+    offsetsDe(total).map((offset) => () =>
+      productos({ categoria: nombre, limit: POR_TRAMO, offset })
+        .then((r) => ({ nombre, productos: r.productos }))),
+  );
+
+  const tandas = await enLotes(trabajos);
+
+  const filas = elegidas.map(({ nombre }) => {
+    const listos = tandas
+      .filter((t) => t.nombre === nombre)
+      .flatMap((t) => t.productos)
+      .map(normalizar)
+      .filter((p) => p.disponible && p.p > 0);
+    return {
+      id: ranura(nombre),
+      nombre,
+      productos: repartir(listos).map((p) => conRebaja(p, rebaja.get(p.id))),
+    };
+  });
+
+  const [top, ofertas] = await Promise.all([
+    traerPorCodigo(s.topventas.slice(0, CUPOS_TOPVENTAS), rebaja),
+    traerPorCodigo(vigentes.map((o) => o.codigo), rebaja),
+  ]);
 
   return {
-    categorias: CATEGORIAS.map((c) => ({ ...c, productos: (s.destacados[c.id] ?? []).map(resolver).filter(Boolean) })),
-    semana: s.semana.slice(0, CUPOS_SEMANA).map(resolver).filter(Boolean),
-    ofertas: vigentes.map((o) => resolver(o.id)).filter(Boolean),
+    categorias: filas,
+    topventas: top,
+    ofertas,
+    // Los 32 rubros del negocio, para el menú. Las filas de la home son ocho.
+    rubros: info.categorias.map((c) => ({ ...c, id: ranura(c.nombre) })),
   };
 }
+
+/* Una fila de categoría.
+
+   Dos cosas hay que arreglar sobre lo que devuelve la API:
+
+   1. El 44 % del catálogo no está disponible. Poner en la portada algo que no
+      se puede vender hoy termina en un cliente molesto, así que se filtra.
+   2. La API ordena alfabéticamente y no acepta otro orden. Pidiendo los diez
+      primeros, las ocho filas de la home empezarían todas en "ABRAZADERA".
+
+   Por eso se pide una muestra grande y se toman productos espaciados a lo
+   largo del abecedario. Es determinista: la misma fila sale igual en cada
+   carga, no baila entre recargas.
+   ponytail: si algún día la API acepta ordenar (por venta, por novedad), esto
+   se reemplaza por ese parámetro y la muestra grande deja de hacer falta. */
+const TRAMOS = 3;        // cuántos puntos del abecedario se visitan
+const POR_TRAMO = 20;    // cuántos se traen de cada punto
+const LOTE = 8;          // peticiones simultáneas
+
+/* La API se degrada con mucha concurrencia: medido, 8 peticiones a la vez
+   responden en 470 ms y 24 tardan 7,5 s (el cliente cortaba por tiempo).
+   Por eso se despacha de a lotes en vez de soltarlas todas juntas. */
+async function enLotes(tareas) {
+  const salida = [];
+  for (let i = 0; i < tareas.length; i += LOTE) {
+    salida.push(...await Promise.all(tareas.slice(i, i + LOTE).map((t) => t())));
+  }
+  return salida;
+}
+
+/** Puntos del catálogo de una categoría de donde sacar muestra. */
+const offsetsDe = (total) =>
+  total > TRAMOS * POR_TRAMO
+    ? Array.from({ length: TRAMOS }, (_, i) => Math.floor((total * i) / TRAMOS))
+    : [0];
+
+/** Elige POR_FILA productos repartidos parejo, en vez de los primeros. */
+function repartir(listos) {
+  if (listos.length <= POR_FILA) return listos;
+  const paso = listos.length / POR_FILA;
+  return Array.from({ length: POR_FILA }, (_, i) => listos[Math.floor(i * paso)]);
+}
+
+/** Trae varios productos por código. Los que ya no existan se descartan. */
+async function traerPorCodigo(codigos, rebaja) {
+  const traidos = await enLotes(codigos.map((c) => () => producto(c).catch(() => null)));
+  return traidos
+    .filter(Boolean)
+    .map(normalizar)
+    .map((p) => conRebaja(p, rebaja.get(p.id)));
+}
+
+/** Nombre de categoría → id usable en una URL y en un ancla de la página.
+    El rango de tildes va con \u escapado: el literal se corrompe al guardarse. */
+const TILDES = new RegExp('[\\u0300-\\u036f]', 'g');
+export const ranura = (nombre) =>
+  nombre.toLowerCase().normalize('NFD').replace(TILDES, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

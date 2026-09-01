@@ -3,7 +3,7 @@ export const prerender = false;
 
 import Admin from '../../layouts/Admin.astro';
 import MenuProducto from '../../components/MenuProducto.astro';
-import { POR_ID } from '../../datos/catalogo.js';
+import { producto } from '../../datos/api.js';
 import { leer, guardar, almacenListo, accionProducto, ofertaVigente } from '../../datos/curaduria.js';
 
 let errores = [];
@@ -14,15 +14,15 @@ if (Astro.request.method === 'POST') {
   const accion = f.get('accion');
 
   if (accion) {
-    const [que, id] = String(accion).split(':');
-    mensaje = await accionProducto(que, id);
+    const [que, codigo] = String(accion).split(':');
+    mensaje = await accionProducto(que, codigo);
   } else {
     // Guardado en bloque de precios y vencimientos.
-    const ofertas = f.getAll('oferta').map(String).map((id) => ({
-      id,
-      precio: Number(String(f.get(`precio:${id}`) ?? '').replace(',', '.')),
+    const ofertas = f.getAll('oferta').map(String).map((codigo) => ({
+      codigo,
+      precio: Number(String(f.get(`precio:${codigo}`) ?? '').replace(',', '.')),
       // Indefinida se guarda como fecha vacía: es lo que ya entiende ofertaVigente().
-      vence: f.get(`indef:${id}`) ? '' : String(f.get(`vence:${id}`) ?? ''),
+      vence: f.get(`indef:${codigo}`) ? '' : String(f.get(`vence:${codigo}`) ?? ''),
     }));
     errores = await guardar({ ofertas });
     if (!errores.length) mensaje = { ok: 'Listo. Las ofertas quedaron publicadas.' };
@@ -30,21 +30,28 @@ if (Astro.request.method === 'POST') {
 }
 
 const estado = await leer();
-const activas = estado.ofertas
-  .map((o) => ({ ...o, p: POR_ID.get(o.id), vigente: ofertaVigente(o) }))
-  .filter((o) => o.p);
+const enTop = new Set(estado.topventas);
+
+/* El precio de lista lo manda la API, no la curaduría: si el negocio sube el
+   precio, el descuento se recalcula solo la próxima vez que se abra esto. */
+const activas = await Promise.all(
+  estado.ofertas.map(async (o) => ({
+    ...o,
+    p: await producto(o.codigo).catch(() => null),
+    vigente: ofertaVigente(o),
+  })),
+);
 const vencidas = activas.filter((o) => !o.vigente).length;
-const enEstrella = new Set(estado.semana);
 ---
 <Admin titulo="Ofertas">
   <header class="admin-titulo">
     <div>
       <h1>Ofertas</h1>
       <p>
-        Ajustá el precio rebajado y hasta cuándo vale. Marcá <strong>Indefinida</strong>
-        para que dure hasta que vos la saques. Al pasar la fecha, el producto
-        desaparece solo de la tienda y queda acá para volver a activarlo.
-        Para agregar uno, buscalo en <a href="/admin/categorias">Productos</a> y usá su menú <strong>⋯</strong>.
+        Ajusta el precio rebajado y hasta cuándo vale. Marca <strong>Indefinida</strong>
+        para que dure hasta que la quites. Al pasar la fecha, el producto
+        desaparece solo de la tienda y queda aquí para volver a activarlo.
+        Para agregar uno, búscalo en <a href="/admin/categorias">Productos</a> y usa su menú <strong>⋯</strong>.
       </p>
     </div>
   </header>
@@ -73,29 +80,32 @@ const enEstrella = new Set(estado.semana);
     <section class="admin-seccion" data-grupo>
       {activas.length === 0 && (
         <p class="panel-sin">
-          No hay ofertas cargadas. Elegí productos desde <a href="/admin/categorias">Productos</a>.
+          No hay ofertas cargadas. Elige productos desde <a href="/admin/categorias">Productos</a>.
         </p>
       )}
 
       <div class="ofertas-lista">
-        {activas.map((o) => { const { id, precio, vence, p } = o; return (
-          <div class={`oferta-fila ${o.vigente ? '' : 'vencida'}`} data-busca={`${p.n} ${p.m}`}>
-            <input type="hidden" name="oferta" value={id}>
-            <img src={`/assets/img/${p.img}.jpg`} alt="" loading="lazy">
+        {activas.map((o) => { const { codigo, precio, vence, p } = o; return (
+          <div class={`oferta-fila ${o.vigente ? '' : 'vencida'}`} data-busca={p ? `${p.nombre} ${p.marca ?? ''}` : codigo}>
+            <input type="hidden" name="oferta" value={codigo}>
+            <span class="elegir-codigo">{codigo}</span>
             <div class="oferta-datos">
-              <strong>{p.n}</strong>
+              <strong>{p?.nombre ?? 'Producto fuera del catálogo'}</strong>
               <small>
-                {p.m} · lista ${p.p.toFixed(2)}
-                {enEstrella.has(id) && <em class="marca-estrella">estrella</em>}
+                {p
+                  ? <>{[p.marca, p.categoria].filter(Boolean).join(' · ')}{p.precio ? ` · lista $${p.precio.toFixed(2)}` : ''}</>
+                  : <em class="marca-vencida">ya no está en la API · quítalo</em>}
+                {enTop.has(codigo) && <em class="marca-estrella">top ventas</em>}
+                {p && !p.disponible && <em class="marca-vencida">agotado</em>}
                 {!o.vigente && <em class="marca-vencida">vencida · no se ve en la tienda</em>}
               </small>
             </div>
             <label class="oferta-campo">
               <span>Precio de oferta</span>
-              <input type="number" step="0.01" min="0.01" max={p.p - 0.01}
-                     name={`precio:${id}`} value={precio.toFixed(2)}
-                     data-lista={p.p}
-                     aria-label={`Precio de oferta de ${p.n}`}>
+              <input type="number" step="0.01" min="0.01" max={p?.precio ? p.precio - 0.01 : undefined}
+                     name={`precio:${codigo}`} value={precio.toFixed(2)}
+                     data-lista={p?.precio ?? ''}
+                     aria-label={`Precio de oferta de ${p?.nombre ?? codigo}`}>
             </label>
             <div class="oferta-descuento" data-descuento aria-live="polite">
               <span>Descuento</span>
@@ -103,16 +113,16 @@ const enEstrella = new Set(estado.semana);
             </div>
             <div class="oferta-campo oferta-vence">
               <span>Vence</span>
-              <input type="date" name={`vence:${id}`} value={vence} disabled={!vence}
-                     aria-label={`Vencimiento de la oferta de ${p.n}`}>
+              <input type="date" name={`vence:${codigo}`} value={vence} disabled={!vence}
+                     aria-label={`Vencimiento de la oferta de ${p?.nombre ?? codigo}`}>
               <label class="oferta-indef">
-                <input type="checkbox" name={`indef:${id}`} checked={!vence} data-indefinida>
+                <input type="checkbox" name={`indef:${codigo}`} checked={!vence} data-indefinida>
                 Indefinida
               </label>
             </div>
-            <MenuProducto id={id} acciones={[
+            <MenuProducto id={codigo} acciones={[
               { valor: 'quitar-oferta', texto: 'Quitar de Ofertas', peligro: true },
-              { valor: 'a-estrella', texto: 'Pasar también a Productos estrella' },
+              { valor: 'a-topventas', texto: 'Pasar también a Lo más vendido' },
             ]} />
           </div>
         ); })}

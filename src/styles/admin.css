@@ -399,3 +399,36 @@
   background: var(--gris-700); color: #fff;
   padding: 2px 7px; border-radius: 99px; margin-left: 6px;
 }
+
+/* ============ CATÁLOGO DE 8.437 PRODUCTOS ============
+   Las casillas por producto se fueron: con más de mil artículos por categoría
+   no hay quien las marque. Ahora se busca, se pagina, y se actúa de a uno con
+   el menú "⋯". */
+
+/* El código es el identificador real del negocio: se muestra porque es lo que
+   el encargado tiene a mano en su sistema para cotejar. */
+.elegir-codigo {
+  flex: none; min-width: 76px;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11px; font-weight: 600; color: var(--gris-500);
+  background: var(--gris-100); border-radius: 6px;
+  padding: 5px 7px; text-align: center;
+}
+
+.panel-buscador select {
+  padding: 9px 11px; border: 1px solid var(--gris-300);
+  border-radius: 9px; background: var(--gris-100);
+  font: inherit; font-size: 13px; max-width: 260px;
+}
+.panel-buscador select:focus { background: var(--blanco); border-color: var(--amarillo); }
+
+.panel-paginas {
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  padding: 22px 0 8px;
+  font-size: 13px; color: var(--gris-500);
+}
+.panel-paginas a {
+  padding: 8px 14px; border: 1px solid var(--gris-300); border-radius: 9px;
+  text-decoration: none; color: var(--negro); font-weight: 600;
+}
+.panel-paginas a:hover { border-color: var(--negro); background: var(--gris-100); }

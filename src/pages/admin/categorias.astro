@@ -3,44 +3,60 @@ export const prerender = false;
 
 import Admin from '../../layouts/Admin.astro';
 import MenuProducto from '../../components/MenuProducto.astro';
-import { CATEGORIAS, idDe } from '../../datos/catalogo.js';
-import { leer, guardar, almacenListo, accionProducto } from '../../datos/curaduria.js';
+import { resumen, productos, apiLista } from '../../datos/api.js';
+import { leer, almacenListo, accionProducto } from '../../datos/curaduria.js';
 
-let errores = [];
 let mensaje = null;
 
 if (Astro.request.method === 'POST') {
-  const f = await Astro.request.formData();
-  const accion = f.get('accion');
+  const accion = (await Astro.request.formData()).get('accion');
+  const [que, codigo] = String(accion ?? '').split(':');
+  if (que) mensaje = await accionProducto(que, codigo);
+}
 
-  if (accion) {
-    // Menú "⋯": una sola acción sobre un producto.
-    const [que, id] = String(accion).split(':');
-    mensaje = await accionProducto(que, id);
-  } else {
-    // Guardado en bloque de las casillas.
-    const destacados = Object.fromEntries(
-      CATEGORIAS.map((c) => [c.id, f.getAll(`cat:${c.id}`).map(String)])
-    );
-    errores = await guardar({ destacados });
-    if (!errores.length) mensaje = { ok: 'Listo. La página principal ya muestra esta selección.' };
+/* El catálogo tiene 8.437 productos: no se listan todos. Se busca y se pagina,
+   que es como funciona la API. */
+const POR_PAGINA = 24;
+const q = Astro.url.searchParams.get('q') ?? '';
+const categoria = Astro.url.searchParams.get('categoria') ?? '';
+const pagina = Math.max(Number(Astro.url.searchParams.get('pagina')) || 1, 1);
+
+let info = null;
+let lista = { productos: [], total: 0 };
+let fallo = '';
+
+if (apiLista()) {
+  try {
+    [info, lista] = await Promise.all([
+      resumen(),
+      productos({ q, categoria, limit: POR_PAGINA, offset: (pagina - 1) * POR_PAGINA }),
+    ]);
+  } catch (e) {
+    fallo = e.message;
   }
 }
 
 const estado = await leer();
-const actual = estado.destacados;
-const enEstrella = new Set(estado.semana);
-const enOferta = new Set(estado.ofertas.map((o) => o.id));
-const totalProductos = CATEGORIAS.reduce((n, c) => n + c.productos.length, 0);
+const enTop = new Set(estado.topventas);
+const enOferta = new Set(estado.ofertas.map((o) => o.codigo));
+
+const paginas = Math.ceil(lista.total / POR_PAGINA);
+const url = (p) => {
+  const s = new URLSearchParams();
+  if (q) s.set('q', q);
+  if (categoria) s.set('categoria', categoria);
+  if (p > 1) s.set('pagina', String(p));
+  return `/admin/categorias${s.toString() ? `?${s}` : ''}`;
+};
 ---
-<Admin titulo="Categorías">
+<Admin titulo="Productos">
   <header class="admin-titulo">
     <div>
       <h1>Productos</h1>
       <p>
-        Todo el catálogo, agrupado por categoría. La casilla decide si el producto
-        sale en la fila de su categoría en la página principal. El menú <strong>⋯</strong>
-        lo manda a Productos estrella o a Ofertas.
+        El catálogo completo del negocio, tal como llega de la API. Aquí no se
+        editan nombres ni precios —eso vive en el sistema de la tienda—: el menú
+        <strong>⋯</strong> manda un producto a Lo más vendido o a Ofertas.
       </p>
     </div>
   </header>
@@ -48,8 +64,18 @@ const totalProductos = CATEGORIAS.reduce((n, c) => n + c.productos.length, 0);
   {mensaje?.ok && <p class="admin-ok" role="status">{mensaje.ok}</p>}
   {mensaje?.aviso && <p class="admin-aviso" role="status">{mensaje.aviso}</p>}
   {mensaje?.error && <p class="admin-errores" role="alert">{mensaje.error}</p>}
-  {errores.length > 0 && (
-    <ul class="admin-errores" role="alert">{errores.map((e) => <li>{e}</li>)}</ul>
+
+  {!apiLista() && (
+    <div class="admin-aviso">
+      <strong>Falta configurar el catálogo.</strong>
+      No encuentro <code>CATALOGO_URL</code> en el entorno.
+    </div>
+  )}
+
+  {fallo && (
+    <div class="admin-errores" role="alert">
+      <strong>No pude consultar el catálogo.</strong> {fallo}
+    </div>
   )}
 
   {!almacenListo() && (
@@ -59,55 +85,60 @@ const totalProductos = CATEGORIAS.reduce((n, c) => n + c.productos.length, 0);
     </div>
   )}
 
-  <div class="panel-buscador">
-    <label for="buscar-producto">Buscar</label>
-    <input type="search" id="buscar-producto" placeholder="Nombre o marca…" autocomplete="off">
-    <span class="panel-cuenta">{totalProductos} productos</span>
-  </div>
-
-  <form method="POST" id="form-categorias" class="admin-form">
-    {CATEGORIAS.map((c) => {
-      const elegidos = actual[c.id] ?? [];
-      return (
-        <section class="admin-seccion" data-grupo>
-          <h2>{c.nombre} <span class="admin-cuenta">{elegidos.length} en la página</span></h2>
-          <div class="elegir">
-            {c.productos.map((p) => {
-              const id = idDe(p);
-              return (
-                <div class="elegir-fila" data-busca={`${p.n} ${p.m}`}>
-                  <label class="elegir-item">
-                    <input type="checkbox" name={`cat:${c.id}`} value={id} checked={elegidos.includes(id)}>
-                    <img src={`/assets/img/${p.img}.jpg`} alt="" loading="lazy">
-                    <span class="elegir-datos">
-                      <strong>{p.n}</strong>
-                      <small>
-                        {p.m} · ${p.p.toFixed(2)}
-                        {enEstrella.has(id) && <em class="marca-estrella">estrella</em>}
-                        {enOferta.has(id) && <em class="marca-oferta">en oferta</em>}
-                      </small>
-                    </span>
-                  </label>
-                  <MenuProducto id={id} acciones={[
-                    { valor: 'a-estrella', texto: 'Pasar a Productos estrella' },
-                    { valor: 'a-oferta', texto: 'Poner en oferta' },
-                  ]} />
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      );
-    })}
-
-    <p class="panel-sin" id="sin-coincidencias" hidden>
-      No hay productos que coincidan con “<span data-termino></span>”.
-    </p>
-
-    <div class="admin-pie-form">
-      <button type="submit" class="btn btn-amarillo">Guardar cambios</button>
-    </div>
+  <form method="GET" class="panel-buscador">
+    <label for="q">Buscar</label>
+    <input type="search" id="q" name="q" value={q} placeholder="Nombre, código o marca…" autocomplete="off">
+    <select name="categoria" aria-label="Categoría">
+      <option value="">Todas las categorías</option>
+      {info?.categorias.map((c) => (
+        <option value={c.nombre} selected={c.nombre === categoria}>{c.nombre} ({c.total})</option>
+      ))}
+    </select>
+    <button type="submit" class="btn btn-negro">Buscar</button>
+    <span class="panel-cuenta">{lista.total.toLocaleString('es-VE')} productos</span>
   </form>
+
+  <form method="POST" class="admin-form">
+    <section class="admin-seccion">
+      {lista.productos.length === 0 && !fallo && (
+        <p class="panel-sin">
+          {q || categoria ? 'No hay productos que coincidan con esa búsqueda.' : 'El catálogo está vacío.'}
+        </p>
+      )}
+
+      <div class="elegir">
+        {lista.productos.map((p) => (
+          <div class="elegir-fila">
+            <div class="elegir-item sin-casilla">
+              <span class="elegir-codigo">{p.codigo}</span>
+              <span class="elegir-datos">
+                <strong>{p.nombre}</strong>
+                <small>
+                  {[p.marca, p.categoria].filter(Boolean).join(' · ')}
+                  {p.precio ? ` · $${p.precio.toFixed(2)}` : ' · sin precio'}
+                  {!p.disponible && <em class="marca-vencida">agotado</em>}
+                  {enTop.has(p.codigo) && <em class="marca-estrella">top ventas</em>}
+                  {enOferta.has(p.codigo) && <em class="marca-oferta">en oferta</em>}
+                </small>
+              </span>
+            </div>
+            <MenuProducto id={p.codigo} acciones={[
+              { valor: 'a-topventas', texto: 'Pasar a Lo más vendido' },
+              { valor: 'a-oferta', texto: 'Poner en oferta' },
+            ]} />
+          </div>
+        ))}
+      </div>
+    </section>
+  </form>
+
+  {paginas > 1 && (
+    <nav class="panel-paginas" aria-label="Páginas">
+      {pagina > 1 && <a href={url(pagina - 1)}>← Anterior</a>}
+      <span>Página {pagina} de {paginas.toLocaleString('es-VE')}</span>
+      {pagina < paginas && <a href={url(pagina + 1)}>Siguiente →</a>}
+    </nav>
+  )}
 
   <script>
     import '../../scripts/panel.js';

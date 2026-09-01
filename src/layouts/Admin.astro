@@ -8,8 +8,8 @@ const actual = Astro.url.pathname.replace(/\/$/, '') || '/admin';
 
 const SECCIONES = [
   { ruta: '/admin',            nombre: 'Estadísticas',   icono: 'i-etiqueta' },
-  { ruta: '/admin/categorias', nombre: 'Categorías',     icono: 'i-tienda' },
-  { ruta: '/admin/semana',     nombre: 'Productos estrella', icono: 'i-estrella' },
+  { ruta: '/admin/categorias', nombre: 'Productos',      icono: 'i-tienda' },
+  { ruta: '/admin/topventas',  nombre: 'Lo más vendido', icono: 'i-estrella' },
   { ruta: '/admin/ofertas',    nombre: 'Ofertas',        icono: 'i-etiqueta' },
 ];
 ---

@@ -133,54 +133,9 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
           <svg class="ico flechita"><use href="#i-abajo"/></svg>
         </button>
 
+        <!-- Las 32 categorías reales las pinta app.js desde el catálogo. -->
         <div class="megamenu" id="megamenu" hidden>
-          <div class="contenedor megamenu-int">
-            <div class="megamenu-col">
-              <h3><svg class="ico"><use href="#i-tienda"/></svg> Hogar</h3>
-              <a href="#hogar">Limpieza y aseo</a>
-              <a href="#hogar">Cerraduras y candados</a>
-              <a href="#hogar">Organización</a>
-              <a href="#hogar">Escaleras</a>
-              <a href="#hogar">Herrajes y bisagras</a>
-            </div>
-            <div class="megamenu-col">
-              <h3><svg class="ico"><use href="#i-escudo"/></svg> Construcción</h3>
-              <a href="#construccion">Cemento y agregados</a>
-              <a href="#construccion">Cabillas y mallas</a>
-              <a href="#construccion">Herramienta de albañil</a>
-              <a href="#construccion">Carretillas</a>
-              <a href="#construccion">Medición y nivelación</a>
-            </div>
-            <div class="megamenu-col">
-              <h3><svg class="ico"><use href="#i-herramienta"/></svg> Herramientas eléctricas</h3>
-              <a href="#electricas">Taladros y rotomartillos</a>
-              <a href="#electricas">Esmeriles y pulidoras</a>
-              <a href="#electricas">Sierras</a>
-              <a href="#electricas">Lijadoras</a>
-              <a href="#electricas">Inalámbricas 20V</a>
-            </div>
-            <div class="megamenu-col">
-              <h3><svg class="ico"><use href="#i-camion"/></svg> Plomería</h3>
-              <a href="#plomeria">Tuberías y conexiones</a>
-              <a href="#plomeria">Grifería</a>
-              <a href="#plomeria">Piezas sanitarias</a>
-              <a href="#plomeria">Bombas y tanques</a>
-              <a href="#plomeria">Mangueras</a>
-            </div>
-            <div class="megamenu-col">
-              <h3><svg class="ico"><use href="#i-tarjeta"/></svg> Electricidad</h3>
-              <a href="#electricidad">Iluminación LED</a>
-              <a href="#electricidad">Cables y conductores</a>
-              <a href="#electricidad">Breakers y tableros</a>
-              <a href="#electricidad">Tomacorrientes</a>
-              <a href="#electricidad">Instrumentos de medición</a>
-            </div>
-            <div class="megamenu-destacado">
-              <span class="mini-etiqueta">Esta semana</span>
-              <p>Hasta <strong>25% de descuento</strong> en herramientas eléctricas de marcas seleccionadas.</p>
-              <a class="btn btn-negro" href="#ofertas">Ver ofertas</a>
-            </div>
-          </div>
+          <div class="contenedor megamenu-int" id="megamenu-lista"></div>
         </div>
       </div>
 
@@ -295,8 +250,8 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
     <div class="contenedor">
       <header class="seccion-cabeza estrellas-cabeza">
         <div>
-          <span class="mini-etiqueta">Lo más vendido</span>
-          <h2>Productos estrella</h2>
+          <span class="mini-etiqueta">Top ventas</span>
+          <h2>Lo más vendido</h2>
           <p>Lo que más sale de los anaqueles. Precios de esta semana, hasta agotar existencia.</p>
         </div>
       </header>
@@ -306,6 +261,18 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 
   <!-- ============ CATEGORÍAS (se pintan desde app.js) ============ -->
   <div id="categorias"></div>
+
+  <!-- Solo se muestra si el catálogo no responde. -->
+  <section class="contenedor catalogo-caido" id="catalogo-caido" hidden>
+    <h2>No pudimos cargar el catálogo</h2>
+    <p>
+      Estamos teniendo un problema para mostrar los productos. Escríbenos por
+      WhatsApp y te atendemos igual, o vuelve a intentar en unos minutos.
+    </p>
+    <a class="btn btn-amarillo" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">
+      <svg class="ico"><use href="#i-chat"/></svg> Escribir por WhatsApp
+    </a>
+  </section>
 
   <!-- ============ MARCAS ============ -->
   <section class="marcas">
@@ -455,7 +422,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
     </header>
 
     <p class="carrito-sin" id="carrito-vacio">
-      Todavía no agregaste nada. Buscá lo que necesitás y tocá <strong>Agregar</strong>.
+      Todavía no has agregado nada. Busca lo que necesitas y toca <strong>Agregar</strong>.
     </p>
 
     <ul class="carrito-lista" id="carrito-items"></ul>
@@ -466,7 +433,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
         <strong id="carrito-total">$0,00</strong>
       </div>
       <a class="btn btn-amarillo btn-ancho" id="carrito-enviar" href="#" target="_blank" rel="noopener">
-        <svg class="ico"><use href="#i-chat"/></svg> Enviar el pedido por WhatsApp
+        <svg class="ico"><use href="#i-chat"/></svg> Hacer el pedido
       </a>
       <p class="carrito-nota">Se abre WhatsApp con la lista lista para mandar. El precio final te lo confirmamos ahí.</p>
       <button class="carrito-vaciar" id="carrito-vaciar">Vaciar el pedido</button>
@@ -498,8 +465,8 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
   <div class="chat-mensajes" id="chat-mensajes" role="log" aria-live="polite" aria-atomic="false"></div>
 
   <form class="chat-barra" id="chat-form" autocomplete="off">
-    <label class="visualmente-oculto" for="chat-entrada">Escribí tu mensaje</label>
-    <input type="text" id="chat-entrada" placeholder="Escribí tu consulta…" maxlength="500" required>
+    <label class="visualmente-oculto" for="chat-entrada">Escribe tu mensaje</label>
+    <input type="text" id="chat-entrada" placeholder="Escribe tu consulta…" maxlength="500" required>
     <button type="submit" class="chat-enviar" aria-label="Enviar mensaje">
       <svg class="ico"><use href="#i-der"/></svg>
     </button>

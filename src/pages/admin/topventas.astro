@@ -1,0 +1,100 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import MenuProducto from '../../components/MenuProducto.astro';
+import { producto } from '../../datos/api.js';
+import { leer, almacenListo, accionProducto, CUPOS_TOPVENTAS } from '../../datos/curaduria.js';
+
+let mensaje = null;
+
+if (Astro.request.method === 'POST') {
+  const accion = (await Astro.request.formData()).get('accion');
+  const [que, codigo] = String(accion ?? '').split(':');
+  if (que) mensaje = await accionProducto(que, codigo);
+}
+
+const estado = await leer();
+const enOferta = new Set(estado.ofertas.map((o) => o.codigo));
+
+/* Los elegidos se piden a la API por código: el nombre y el precio son de ella.
+   Uno que ya no exista devuelve null y se marca, en vez de desaparecer callado. */
+const elegidos = await Promise.all(
+  estado.topventas.map(async (codigo) => ({
+    codigo,
+    p: await producto(codigo).catch(() => null),
+  })),
+);
+---
+<Admin titulo="Lo más vendido">
+  <header class="admin-titulo">
+    <div>
+      <h1>Lo más vendido</h1>
+      <p>
+        Los que salen en la rejilla de la página principal. Entran {CUPOS_TOPVENTAS}.
+        Para agregar uno, búscalo en <a href="/admin/categorias">Productos</a> y usa su menú <strong>⋯</strong>.
+      </p>
+    </div>
+  </header>
+
+  {mensaje?.ok && <p class="admin-ok" role="status">{mensaje.ok}</p>}
+  {mensaje?.aviso && <p class="admin-aviso" role="status">{mensaje.aviso}</p>}
+  {mensaje?.error && <p class="admin-errores" role="alert">{mensaje.error}</p>}
+
+  {!almacenListo() && (
+    <div class="admin-aviso">
+      <strong>Guardando solo en memoria.</strong>
+      No encuentro <code>BLOB_READ_WRITE_TOKEN</code>. Los cambios se pierden al reiniciar.
+    </div>
+  )}
+
+  <div class="panel-buscador">
+    <label for="buscar-producto">Buscar</label>
+    <input type="search" id="buscar-producto" placeholder="Nombre o marca…" autocomplete="off">
+    <span class="panel-cuenta">{elegidos.length} de {CUPOS_TOPVENTAS} cupos</span>
+  </div>
+
+  <form method="POST" class="admin-form">
+    <section class="admin-seccion" data-grupo>
+      {elegidos.length === 0 && (
+        <p class="panel-sin">
+          Todavía no hay ninguno. Elígelos desde <a href="/admin/categorias">Productos</a>.
+        </p>
+      )}
+      <div class="elegir">
+        {elegidos.map(({ codigo, p }) => (
+          <div class="elegir-fila" data-busca={p ? `${p.nombre} ${p.marca ?? ''}` : codigo}>
+            <div class="elegir-item sin-casilla">
+              <span class="elegir-codigo">{codigo}</span>
+              <span class="elegir-datos">
+                <strong>{p?.nombre ?? 'Producto fuera del catálogo'}</strong>
+                <small>
+                  {p
+                    ? <>
+                        {[p.marca, p.categoria].filter(Boolean).join(' · ')}
+                        {p.precio ? ` · $${p.precio.toFixed(2)}` : ' · sin precio'}
+                        {!p.disponible && <em class="marca-vencida">agotado</em>}
+                        {enOferta.has(codigo) && <em class="marca-oferta">en oferta</em>}
+                      </>
+                    : <em class="marca-vencida">ya no está en la API · quítalo</em>}
+                </small>
+              </span>
+            </div>
+            <MenuProducto id={codigo} acciones={[
+              { valor: 'quitar-topventas', texto: 'Quitar de Lo más vendido', peligro: true },
+              { valor: 'a-oferta', texto: 'Poner también en oferta' },
+            ]} />
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <p class="panel-sin" id="sin-coincidencias" hidden>
+      No hay productos que coincidan con “<span data-termino></span>”.
+    </p>
+  </form>
+
+  <script>
+    import '../../scripts/panel.js';
+  </script>
+</Admin>

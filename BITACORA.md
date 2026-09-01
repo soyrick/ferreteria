@@ -4,7 +4,7 @@ Documento de recuperación de contexto. Si empezás una sesión nueva o se vaci�
 contexto, leé **esto primero** y después [PLAN.md](PLAN.md). Con esos dos
 archivos alcanza para retomar sin preguntar nada.
 
-Última actualización: 2026-08-27
+Última actualización: 2026-08-31
 
 ---
 
@@ -18,8 +18,12 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-08-27:** todo commiteado y pusheado, árbol limpio. Lo desplegado y lo
-local coinciden. Para ver dónde quedó: `git log --oneline -5`.
+**Al 2026-08-31:** la API del catálogo llegó, está integrada y **verificada en
+local con el servidor corriendo: los 8.437 productos se ven en la tienda**.
+Todavía **sin commitear**. Para ver dónde quedó: `git log --oneline -5` y
+`git status`.
+
+Lo desplegado sigue con los 46 productos de ejemplo hasta que se pushee.
 
 ## Cómo trabajar con Ricardo
 
@@ -49,15 +53,16 @@ src/
   pages/admin/
     entrar.astro             login
     index.astro              estadísticas + gráfica de visitas por mes
-    categorias.astro         PRODUCTOS: todo el catálogo, buscador y menú ⋯
-    semana.astro             Productos estrella
+    categorias.astro         PRODUCTOS: busca en los 8.437, filtra y pagina
+    topventas.astro          Lo más vendido (10 cupos)
     ofertas.astro            Ofertas con precio, descuento y vencimiento
     salir.astro
-  pages/api/vitrinas.json.js sirve la curaduría a la tienda
+  pages/api/vitrinas.json.js sirve las vitrinas ya armadas a la tienda
+  pages/api/catalogo.json.js PROXY del catálogo · impide que el token se filtre
   layouts/Admin.astro        cabecera + barra lateral
   components/MenuProducto.astro   el menú ⋯ (usa <details>, sin JS)
-  datos/catalogo.js          46 productos de ejemplo · fuente única
-  datos/curaduria.js         qué producto va en cada vitrina · Vercel Blob
+  datos/api.js               cliente del catálogo de kafe · SOLO SERVIDOR
+  datos/curaduria.js         qué se muestra en la home · Vercel Blob
   lib/sesion.js              cookie firmada con HMAC (Web Crypto)
   middleware.js              puerta única de /admin
   scripts/app.js             interacción de la tienda
@@ -67,49 +72,93 @@ src/
   scripts/panel.js           buscador, menús ⋯ y descuento en vivo
   styles/styles.css          tienda
   styles/admin.css           panel
-public/assets/img/           50 imágenes + CREDITOS.txt
+public/assets/img/           imágenes del hero + CREDITOS.txt
 ```
+
+`datos/catalogo.js` (los 46 productos de ejemplo) **se borró el 2026-08-31**:
+lo reemplazó la API.
+
+## El catálogo: de dónde salen los productos
+
+**8.437 productos reales**, servidos por la API de kafe.agency. El negocio los
+mantiene en su propio sistema; la API solo los publica.
+
+**La regla que no se puede romper: el token va dentro de la URL.** Por eso
+`datos/api.js` es **solo servidor** y la tienda pide por `/api/catalogo.json`.
+Si ese módulo llegara al navegador, cualquiera abriría el código fuente y se
+llevaría la lista de precios completa. Un token en la URL además deja rastro en
+logs, historial y extensiones, donde una cabecera no llegaría.
+
+Para comprobarlo después de tocar algo:
+
+```bash
+rg -l "kafe_cat_" dist/client/     # no debe encontrar nada
+```
+
+- La API se degrada con concurrencia: **8 peticiones a la vez responden en
+  470 ms; 24 tardan 7,5 s.** Por eso `enLotes()` despacha de a ocho.
+- Límite de 120 peticiones por minuto **por IP**. Detrás del proxy todas las
+  visitas comparten la IP de Vercel, así que el caché no es un lujo: es lo que
+  evita el 429. `/api/catalogo.json` cachea 120 s y `/api/vitrinas.json`, 60 s.
+- El 44 % del catálogo está agotado y se descarta al pintar.
+- La API ordena alfabéticamente y no acepta otro orden. Sin muestrear por
+  tramos, las ocho filas de la home empezarían todas en "ABRAZADERA".
 
 ## Cómo funciona la curaduría
 
-El panel **no edita productos**: elige cuáles se muestran y dónde. Nombre,
-precio de lista y foto van a venir de la API del cliente (F6).
+El panel **no edita productos**: el nombre y el precio los manda la API. Elige
+qué se muestra y qué está rebajado.
 
-Documento guardado en Blob (`curaduria.json`, ~1,4 KB):
+Documento guardado en Blob (`curaduria.json`):
 
 ```json
 {
-  "destacados": { "hogar": ["tobo-industrial", "..."] },
-  "semana": ["martillo-una", "..."],
-  "ofertas": [{ "id": "taladro-percutor", "precio": 58, "vence": "" }]
+  "categorias": ["HERRAMIENTAS MANUALES", "..."],
+  "topventas": ["C011132", "..."],
+  "ofertas": [{ "codigo": "H01107", "precio": 9.9, "vence": "" }]
 }
 ```
 
-- `CUPOS_SEMANA = 10` en `curaduria.js`. Lo respetan la tienda y el panel.
-- `accionProducto(accion, id)` resuelve el menú ⋯: `a-estrella`, `a-oferta`,
-  `quitar-estrella`, `quitar-oferta`.
+- **Categorías: se eligen categorías, no productos.** Curar a mano una categoría
+  de 1.608 artículos con casillas no es trabajo de nadie. Si la lista está
+  vacía, la home usa las 8 más grandes de la API sola.
+- **Lo más vendido y Ofertas: sí producto por producto**, por código, porque son
+  pocos y son decisiones de la tienda.
+- `CUPOS_TOPVENTAS = 10`, `CUPOS_CATEGORIAS = 8`.
+- `accionProducto(accion, codigo)` resuelve el menú ⋯: `a-topventas`,
+  `a-oferta`, `quitar-topventas`, `quitar-oferta`.
 - Poner algo en oferta desde el menú le pone **10 % de descuento** inicial; el
   precio fino se ajusta en la pantalla de Ofertas.
-- `vitrinas()` resuelve todo a productos completos y aplica el precio de oferta:
-  el rebajado pasa a ser el precio y el de lista queda tachado.
+- El precio de lista sale de la API en cada carga: si el negocio lo sube, el
+  descuento se recalcula solo.
 - **Vencimiento:** `ofertaVigente(oferta)` decide si sigue viva. Sin fecha =
   indefinida. Con fecha, vale todo ese día y se apaga sola al siguiente. Las
   vencidas **no se borran**: salen de la tienda pero quedan en el panel marcadas
   para poder reactivarlas cambiándoles la fecha.
-- Cuando no hay oferta vigente, `resolver()` limpia `pa` y la etiqueta: el producto
-  vuelve a su precio de lista sin sello ni tachado.
-- Las 10 ofertas de arranque están escritas explícitas en `inicial()`, no deducidas
-  del catálogo.
+- Un código que ya no esté en la API no rompe nada: se descarta al pintar y el
+  panel lo marca *«ya no está en la API · quítalo»*.
 
 ## Cómo pinta la tienda
 
 `index.astro` sirve el HTML estático con las secciones vacías. `app.js` pide
-`/api/vitrinas.json` y pinta las tres vitrinas: En oferta, Productos estrella y
-las filas de categoría. Si esa ruta falla usa `RESPALDO`, que es el catálogo
-empaquetado, así que **la tienda nunca queda vacía**.
+`/api/vitrinas.json` y pinta: En oferta, Lo más vendido, las ocho filas de
+categoría y el menú con los 32 rubros.
 
-Orden de la home: hero → franja → En oferta → Productos estrella → categorías →
+**Ya no hay catálogo de respaldo.** Antes `app.js` traía 46 productos dentro
+del bundle; 8.437 con precios que cambian durante el día no se pueden
+empaquetar. Si la API no responde aparece `#catalogo-caido`, que avisa y deriva
+a WhatsApp — mostrar precios de ayer sería peor que no mostrar nada.
+
+Las secciones **En oferta** y **Lo más vendido** se ocultan si están vacías, así
+que en un despliegue nuevo no se ven hasta curar productos en el panel.
+
+Orden de la home: hero → franja → En oferta → Lo más vendido → categorías →
 marcas → nosotros → pie.
+
+**Las fotos.** La API devuelve `imagenes: []` en todo el catálogo. La tarjeta
+reserva el hueco (`.producto-foto.vacia`) con el icono de la casa, del tamaño
+exacto que tendrá la foto real. `normalizar()` ya lee `imagenes[0].url`, así que
+el día que el negocio las cargue aparecen solas.
 
 ## Decisiones que no hay que volver a discutir
 
@@ -122,16 +171,51 @@ marcas → nosotros → pie.
 | **`<details>` para el menú ⋯** | El navegador ya sabe abrirlo, cerrarlo y manejarlo con teclado. Cero JS. |
 | **La tienda lee `/api/vitrinas.json`** | Lo que edita el panel se ve sin reconstruir. Caché de 60 s. |
 | **Chart.js solo en el panel** | Se importan nada más las piezas que se usan. La tienda no lo carga. |
-| **El catálogo solo tiene precios de lista** | Ningún producto trae `pa` ni etiqueta de oferta. La rebaja vive únicamente en la curaduría, que es como va a funcionar con la API. |
+| **El catálogo solo tiene precios de lista** | La rebaja vive únicamente en la curaduría; la API manda el precio de lista. |
+| **`api.js` nunca se importa desde el navegador** | La URL lleva el token adentro. La tienda pide por `/api/catalogo.json`, que corre en servidor. |
+| **La home elige categorías, no productos** | 1.608 artículos en una sola categoría no se curan con casillas. |
+| **No se buscan fotos por título automáticamente** | Ya se probó con 50 imágenes y salieron mal (un candado ilustrado con una pareja en la playa). Con 8.437 nadie las audita, y una foto equivocada genera un reclamo. |
 
 ## Trampas conocidas
 
 - **Astro carga `.env` en `import.meta.env`, NO en `process.env`.** El SDK de Blob
-  lee `process.env`. Por eso `curaduria.js` busca en los dos y pasa el token explícito.
+  lee `process.env`. Por eso `curaduria.js`, `api.js` y `middleware.js` buscan en
+  los dos; además así se los puede ejecutar desde Node suelto para probarlos.
+- **La API se degrada con concurrencia.** Medido: 8 peticiones simultáneas → 470 ms;
+  24 → 7,5 s. Si algo empieza a dar timeout, revisar si se soltaron demasiadas
+  juntas en vez de pasar por `enLotes()`.
+- **`referencia` en la API NO es el código de fábrica: es el anaquel.** Trae
+  cosas como `EXHIBICION TABLERO` y `A2-ARRIBA`, y el mismo `04CH` aparece en
+  STANLEY, TRUPER y TOLSEN a la vez. No sirve para buscar fotos.
 - **En local Blob no funciona.** El token vive en Production/Preview y
   `vercel env pull` baja Development. El panel usa el respaldo en memoria y lo
   avisa en pantalla; es lo esperado. Para bajarlo igual:
   `npx vercel env pull --environment=preview .env.local --yes`
+
+### Las tres del entorno en Windows
+
+Las tres costaron tiempo el 2026-08-31 y se repiten solas si no se saben.
+
+- **Nunca escribir un `.env` con `echo >>` en Windows.** PowerShell guarda en
+  **UTF-16**: la clave queda con un byte nulo entre cada letra
+  (`C A T A L O G O _ U R L`) y el valor mide el doble de lo que debería. Se ve
+  perfecto en el editor y no funciona. Usar `vercel env pull` o pegar la línea
+  a mano en el editor.
+- **Vite lee los `.env` una sola vez, al arrancar.** Después de tocar cualquier
+  variable hay que reiniciar el servidor. Un `apiLista(): false` con el archivo
+  correcto casi siempre es esto.
+- **`vercel env pull` agrega su propio `.env*` al final del `.gitignore`.** Si
+  queda debajo de `!.env.example`, la anula y la plantilla deja de versionarse.
+  Por eso esa negación va siempre en la última línea del archivo.
+
+Para saber si el problema es la variable o el servidor, sin adivinar:
+
+```bash
+curl -s "http://localhost:4321/api/catalogo.json?q=taladro&limit=2"
+```
+
+`{"error":"catálogo no configurado"}` significa que `CATALOGO_URL` no llegó al
+proceso: o falta en el archivo, o el servidor arrancó antes de que existiera.
 - **`[hidden]` no funciona solo.** Cualquier regla de autor con `display` le gana a
   la hoja del navegador. Por eso está `[hidden] { display: none !important; }`.
 - **`wa.me/message/CÓDIGO` no admite texto pre-cargado.** Hace falta el número
@@ -148,9 +232,10 @@ Buscar `DATO PLACEHOLDER` en el repo.
 
 - Número de WhatsApp del carrito: `584120000000` en `src/scripts/carrito.js`
 - Teléfono, correo y horarios en `index.astro`
-- Los 46 productos de `datos/catalogo.js`
 - Las métricas y la serie de visitas del panel (`pages/admin/index.astro`)
-- Las 50 imágenes: licencias variadas de Wikimedia Commons, ver `CREDITOS.txt`
+- Las imágenes del hero: licencias variadas de Wikimedia Commons, ver `CREDITOS.txt`
+
+Los productos ya **no** son de ejemplo: salen de la API.
 
 ## Variables de entorno
 
@@ -163,6 +248,7 @@ En Vercel están cargadas en **Production y Preview** (no en Development).
 | `PUBLIC_GA_ID` | `G-EENVGHWLEV`, Google Analytics |
 | `PUBLIC_GSC_VERIFICACION` | vacía; Search Console espera el dominio |
 | `BLOB_READ_WRITE_TOKEN`, `BLOB_STORE_ID` | los pone el store de Blob |
+| `CATALOGO_URL` | URL completa del catálogo de kafe, token incluido. **Sin `PUBLIC_`**: ese prefijo la mandaría al navegador. Marcada como sensible y cargada en los tres entornos; en local llega por `npx vercel env pull .env.local`. |
 
 Store de Blob: `ferreteria-blob` (`store_venOEHu33aAQbWxD`), privado, región `iad1`.
 
@@ -186,6 +272,18 @@ console.log((await cur.vitrinas()).ofertas.length);
 `curaduria.js` sin credenciales de Blob cae al respaldo en memoria, así que se
 puede probar `guardar()` y `vitrinas()` sin tocar producción.
 
+Los handlers de API se llaman directo, sin levantar nada. Es lo que verificó la
+integración del 2026-08-31:
+
+```js
+process.env.CATALOGO_URL = '...';
+const cat = await import('./src/pages/api/catalogo.json.js');
+const r = await cat.GET({ url: new URL('https://x/api/catalogo.json?q=taladro') });
+console.log(r.status, (await r.text()).includes('kafe_cat_'));  // 200 false
+```
+
+El `false` es la prueba que importa: la respuesta no lleva el token.
+
 ## Comandos
 
 ```bash
@@ -199,17 +297,24 @@ npx vercel env ls production
 Ver la tabla de fases en [PLAN.md](PLAN.md).
 
 **Hecho:** F1 base técnica · F2 carrito · F3 ventana de chat · F5 analítica
-(verificada midiendo) · panel de administración con acceso, curaduría en Blob,
-buscador, menús ⋯, sello de oferta y gráfica con histórico por mes.
+(verificada midiendo) · **F6 catálogo real integrado** · panel de administración
+con acceso, curaduría en Blob, buscador, menús ⋯, sello de oferta y gráfica con
+histórico por mes.
 
-**Bloqueado esperando al cliente:** F6 catálogo real, F7 conexión del bot,
-F8 cifras reales de GA4 y Search Console en el panel.
+**Bloqueado esperando al cliente:** las fotos del catálogo (D2 en el plan),
+F7 conexión del bot, F8 cifras reales de GA4 y Search Console en el panel.
 
 **Pendiente sin bloqueo:** F4 SEO, F9 accesibilidad, F10 seguridad, F11 producción.
 
 ## Deuda conocida
 
+- **Ningún producto tiene foto.** Ver «El problema de las fotos» en
+  [PLAN.md](PLAN.md): está medido y con la pregunta que hay que hacerle al
+  encargado.
+- **Faltan las páginas de producto.** Ahora que hay `codigo` estable se pueden
+  hacer, junto con el dato estructurado `Product` que quedó pendiente de F4.
+  Hoy un resultado del buscador agrega al pedido, porque no hay adónde llevarlo.
 - El login no tiene límite de intentos (va en F10; en serverless un contador en
   memoria no sirve).
 - Las métricas del panel son de muestra hasta F8.
-- `grep -rn "ponytail:" src/` lista los atajos deliberados.
+- `rg -n "ponytail:" src/` lista los atajos deliberados.

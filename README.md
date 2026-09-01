@@ -27,17 +27,25 @@ Hay que cargar las variables de entorno en Vercel — ver [.env.example](.env.ex
 src/
   pages/
     index.astro         la tienda (estática)
-    admin/              panel: entrar, estadísticas, categorías, semana, ofertas
+    admin/              panel: entrar, estadísticas, productos, topventas, ofertas
+    api/
+      catalogo.json.js  proxy del catálogo — evita que el token llegue al cliente
+      vitrinas.json.js  lo que se pinta en la home, ya resuelto
   layouts/Admin.astro   marco común del panel
   datos/
-    catalogo.js         catálogo de ejemplo — lo comparten tienda y panel
-    curaduria.js        qué producto va en cada vitrina (se guarda en Blob)
+    api.js              cliente del catálogo de kafe — SOLO SERVIDOR
+    curaduria.js        qué se muestra en la home (se guarda en Blob)
   lib/sesion.js         cookie de sesión firmada con HMAC
   middleware.js         puerta única de /admin
   scripts/              app.js (tienda) y analitica.js (GA4 + consentimiento)
   styles/               styles.css (tienda) y admin.css (panel)
-public/assets/          logo, 50 imágenes y CREDITOS.txt
+public/assets/          logo, imágenes del hero y CREDITOS.txt
 ```
+
+Los productos son los **8.437 reales** del negocio, servidos por la API de
+kafe.agency. `CATALOGO_URL` lleva el token dentro de la URL: por eso `api.js`
+no puede importarse desde nada que llegue al navegador, y la tienda consulta
+por `/api/catalogo.json`.
 
 El amarillo de la marca (`--amarillo: #FFDD00`) está muestreado del propio `logo.png`.
 No cambiarlo sin volver a muestrear el archivo: de ahí depende que el fondo de la
@@ -64,11 +72,14 @@ credenciales acotadas al store.
 
 ## Pendientes antes de producción
 
-- **Licencias de las imágenes.** Las 50 vienen de Wikimedia Commons con licencias
+- **Fotos de los productos.** La API devuelve `imagenes: []` en todo el catálogo:
+  ningún producto tiene foto. La tarjeta reserva el hueco con un icono mientras
+  tanto. Ver «El problema de las fotos» en [PLAN.md](PLAN.md).
+- **Licencias de las imágenes del hero.** Vienen de Wikimedia Commons con licencias
   variadas (CC BY, CC BY-SA, dominio público). Hay que revisarlas una por una y dar
-  la atribución que cada una exija, o —mejor— reemplazarlas por fotos reales de la
-  mercancía. Ver [CREDITOS.txt](public/assets/img/CREDITOS.txt).
-- **Datos de contacto.** Teléfono, correo, horarios y dos de las tres sucursales son
-  de ejemplo. Están marcados en el HTML con `<!-- DATO PLACEHOLDER -->`.
-- **Precios e inventario.** El catálogo de `app.js` es de muestra.
+  la atribución que cada una exija, o —mejor— reemplazarlas por fotos reales del
+  local. Ver [CREDITOS.txt](public/assets/img/CREDITOS.txt).
+- **Datos de contacto.** Teléfono, correo y horarios son de ejemplo. Están marcados
+  en el HTML con `<!-- DATO PLACEHOLDER -->`.
+- **Número de WhatsApp del carrito.** `584120000000` en `src/scripts/carrito.js`.
 - **Inicio de sesión.** El modal es solo la interfaz; no hay backend detrás.

@@ -356,6 +356,12 @@ h1, h2, h3, h4 {
 }
 .resultado:hover, .resultado:focus-visible { background: var(--gris-100); }
 .resultado img { width: 44px; height: 44px; object-fit: cover; border-radius: var(--radio-sm); }
+.resultado[disabled] { opacity: .55; cursor: not-allowed; }
+.resultado-mas {
+  padding: 8px 14px 10px; margin: 0;
+  font-size: 11.5px; color: var(--gris-500); text-align: center;
+  border-top: 1px solid var(--gris-200, #eee);
+}
 .resultado-datos { flex: 1; min-width: 0; }
 .resultado-datos strong { display: block; font-size: 13.5px; font-weight: 600; color: var(--negro); }
 .resultado-datos span { font-size: 11.5px; color: var(--gris-500); }
@@ -414,10 +420,28 @@ h1, h2, h3, h4 {
 @keyframes bajar { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
 .megamenu-int {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0,1fr)) 260px;
-  gap: 28px;
-  padding-block: 30px 34px;
+  /* auto-fill: las 32 categorías se acomodan solas al ancho disponible, sin
+     tener que fijar el número de columnas por cada punto de quiebre. */
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 2px 18px;
+  padding-block: 22px 26px;
+  max-height: min(66vh, 560px);
+  overflow-y: auto;
 }
+/* Las 32 categorías reales del negocio, en rejilla: son demasiadas para las
+   cinco columnas temáticas que tenía el demo. */
+.megamenu-rubro {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding: 9px 11px; border-radius: var(--radio-sm);
+  text-decoration: none; transition: background .15s var(--curva);
+}
+.megamenu-rubro:hover { background: var(--gris-100); }
+.megamenu-rubro strong {
+  font-size: 12.5px; font-weight: 600; color: var(--negro);
+  text-transform: capitalize;
+}
+.megamenu-rubro span { font-size: 11px; color: var(--gris-500); flex: none; }
+
 .megamenu-col { display: flex; flex-direction: column; gap: 3px; }
 .megamenu-col h3 {
   display: flex; align-items: center; gap: 8px;
@@ -661,6 +685,21 @@ h1, h2, h3, h4 {
 }
 .producto:hover .producto-foto img { transform: scale(1.07); }
 
+/* El negocio todavía no cargó fotos al catálogo. El hueco se reserva igual —
+   mismo aspect-ratio— así el día que lleguen entran sin recolocar nada. */
+.producto-foto.vacia {
+  background:
+    repeating-linear-gradient(45deg,
+      var(--gris-100) 0 10px, transparent 10px 20px),
+    var(--gris-200, #eee);
+}
+.producto-sinfoto { display: grid; place-items: center; width: 100%; height: 100%; }
+.producto-sinfoto .ico {
+  width: 34%; height: 34%;
+  color: var(--gris-300, #d4d4d4);
+  stroke-width: 1.2;
+}
+
 .producto-etiqueta {
   position: absolute; top: 10px; left: 10px; z-index: 2;
   font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
@@ -684,8 +723,6 @@ h1, h2, h3, h4 {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   min-height: 2.7em;
 }
-.producto-estrellas { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--gris-500); }
-.producto-estrellas .ico { width: 13px; height: 13px; fill: var(--amarillo); stroke: var(--amarillo); }
 
 .producto-precios { display: flex; align-items: baseline; gap: 8px; margin-top: auto; padding-top: 6px; }
 .producto-precio { font-family: var(--display); font-size: 27px; font-weight: 800; color: var(--negro); line-height: 1; }
@@ -1299,4 +1336,21 @@ h1, h2, h3, h4 {
 @media (max-width: 560px) {
   .sello-oferta { width: 60px; height: 60px; left: 6px; top: 6px; }
   .sello-oferta b { font-size: 18px; }
+}
+
+/* ============ CATÁLOGO NO DISPONIBLE ============
+   Solo aparece si /api/vitrinas.json no contestó. Antes había un catálogo de
+   respaldo dentro del JavaScript, pero con 8.437 productos y precios que
+   cambian durante el día eso ya no se puede empaquetar: mostrar precios viejos
+   sería peor que avisar. */
+.catalogo-caido {
+  padding-block: 70px;
+  text-align: center;
+}
+.catalogo-caido h2 {
+  font-family: var(--display); font-size: 26px; margin: 0 0 10px;
+}
+.catalogo-caido p {
+  max-width: 46ch; margin: 0 auto 22px;
+  color: var(--gris-500); line-height: 1.6;
 }

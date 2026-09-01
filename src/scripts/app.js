@@ -8,11 +8,11 @@ import { agregar, iniciar as iniciarCarrito } from './carrito.js';
 
 /* ---------------------------------------------------------
    1. CATÁLOGO
-   Los datos viven en src/datos/catalogo.js: los comparten la tienda y el
-   panel. Una sola fuente, o el admin curaría un catálogo distinto al que
-   la página muestra.
+   Ya no hay datos en el código: los 8.437 productos vienen de la API del
+   negocio, que se consulta a través de /api/catalogo.json y
+   /api/vitrinas.json. Esas rutas corren en nuestro servidor porque la URL
+   de la API lleva el token adentro y no puede llegar al navegador.
    --------------------------------------------------------- */
-import { CATEGORIAS, ESTRELLAS, TODOS } from '../datos/catalogo.js';
 
 
 /* ---------------------------------------------------------
@@ -32,31 +32,35 @@ const precio = (n) =>
 const limpio = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-const ETIQUETAS = { oferta: 'Oferta', nuevo: 'Nuevo', top: 'Top ventas' };
+/* El negocio todavía no cargó fotos: la API devuelve `imagenes: []` en todo el
+   catálogo. En vez de dejar el hueco vacío o poner una imagen inventada, se
+   dibuja un marcador con el icono de la casa. Ocupa exactamente el mismo
+   espacio que tendrá la foto, así el día que lleguen entran sin mover nada. */
+const foto = (p) =>
+  p.img
+    ? `<img src="${limpio(p.img)}" alt="${limpio(p.n)}" loading="lazy">`
+    : `<span class="producto-sinfoto" aria-hidden="true">
+         <svg class="ico"><use href="#i-herramienta"/></svg>
+       </span>`;
 
 function tarjetaProducto(p, rango) {
   const baja = p.pa ? Math.round((1 - p.p / p.pa) * 100) : 0;
   return `
   <article class="producto">
-    <div class="producto-foto">
-      ${p.et && p.et !== 'oferta' ? `<span class="producto-etiqueta ${p.et}">${ETIQUETAS[p.et]}</span>` : ''}
+    <div class="producto-foto${p.img ? '' : ' vacia'}">
       ${baja ? `<span class="sello-oferta" aria-label="${baja}% de descuento"><b>−${baja}%</b></span>` : ''}
       ${rango ? `<span class="producto-rango">${rango}</span>` : ''}
-      <img src="/assets/img/${p.img}.jpg" alt="${limpio(p.n)}" loading="lazy">
+      ${foto(p)}
     </div>
     <div class="producto-cuerpo">
-      <span class="producto-marca">${limpio(p.m)}</span>
+      <span class="producto-marca">${limpio(p.m || p.cat || '')}</span>
       <h3 class="producto-nombre">${limpio(p.n)}</h3>
-      <div class="producto-estrellas">
-        <svg class="ico"><use href="#i-estrella"/></svg>
-        <strong>${p.v.toFixed(1)}</strong><span>· En existencia</span>
-      </div>
       <div class="producto-precios">
         <span class="producto-precio">${precio(p.p)}</span>
         ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span>` : ''}
       </div>
       <button class="producto-agregar" data-agregar
-              data-id="${p.img}" data-nombre="${limpio(p.n)}"
+              data-id="${limpio(p.id)}" data-nombre="${limpio(p.n)}"
               data-marca="${limpio(p.m)}" data-precio="${p.p}">
         <svg class="ico"><use href="#i-carrito"/></svg> Agregar
       </button>
@@ -66,15 +70,14 @@ function tarjetaProducto(p, rango) {
 
 /* ---------------------------------------------------------
    3. PINTAR LAS VITRINAS
-   Los datos vienen de /api/vitrinas.json, que devuelve lo que el panel
-   guardó. Si esa ruta falla, se pinta el catálogo empaquetado: la tienda
-   nunca queda vacía por un problema del almacén.
+   Los datos vienen de /api/vitrinas.json: el catálogo real del negocio, con
+   la selección que el panel haya guardado encima.
    --------------------------------------------------------- */
-const RESPALDO = {
-  categorias: CATEGORIAS,
-  semana: ESTRELLAS,
-  ofertas: TODOS.filter((p) => p.pa),
-};
+/* Ya no hay catálogo de respaldo dentro del JavaScript: son 8.437 productos con
+   precios que cambian durante el día, no se pueden empaquetar. Si la API no
+   contesta, la página lo dice; mostrar precios viejos sería peor que no
+   mostrar nada. */
+const VACIO = { categorias: [], topventas: [], ofertas: [] };
 
 async function traerVitrinas() {
   try {
@@ -84,8 +87,8 @@ async function traerVitrinas() {
     if (!Array.isArray(v.categorias)) throw new Error('respuesta inesperada');
     return v;
   } catch (e) {
-    console.warn('[vitrinas] usando el catálogo empaquetado:', e.message);
-    return RESPALDO;
+    console.warn('[vitrinas] catálogo no disponible:', e.message);
+    return VACIO;
   }
 }
 
@@ -98,7 +101,6 @@ function pintar(v) {
         <div>
           <span class="mini-etiqueta">Categoría</span>
           <h2>${limpio(c.nombre)}</h2>
-          <p>${limpio(c.lema)}</p>
         </div>
         <div class="seccion-acciones">
           <a class="enlace-todo" href="#${c.id}">Ver todo <svg class="ico"><use href="#i-der"/></svg></a>
@@ -115,9 +117,24 @@ function pintar(v) {
   </section>`
   ).join('');
 
-  $('#rejilla-estrellas').innerHTML = v.semana.map((p, i) => tarjetaProducto(p, i + 1)).join('');
+  $('#rejilla-estrellas').innerHTML = v.topventas.map((p, i) => tarjetaProducto(p, i + 1)).join('');
   $('#rejilla-ofertas').innerHTML = v.ofertas.map((p) => tarjetaProducto(p)).join('');
   $('#cuenta-ofertas').textContent = v.ofertas.length;
+
+  /* Una vitrina sin nada no se deja como un hueco mudo: o el panel todavía no
+     eligió, o la API no contestó. En ambos casos conviene decirlo. */
+  const sinNada = !v.categorias.length && !v.topventas.length && !v.ofertas.length;
+  $('#catalogo-caido').hidden = !sinNada;
+  $('#estrellas').hidden = !v.topventas.length;
+  $('#ofertas').hidden = !v.ofertas.length;
+
+  /* El menú lista las categorías completas del negocio, no solo las ocho que
+     salen en la portada: son los 32 rubros reales que maneja la tienda. */
+  $('#megamenu-lista').innerHTML = (v.rubros ?? []).map((r) => `
+    <a class="megamenu-rubro" href="#${limpio(r.id)}">
+      <strong>${limpio(r.nombre)}</strong>
+      <span>${r.total}</span>
+    </a>`).join('');
 
   // Estos dos dependen de que las grillas ya existan en el DOM.
   prepararCarruseles();
@@ -243,33 +260,49 @@ function prepararCarruseles() {
     boton.setAttribute('aria-expanded', 'false');
   }
 
-  /* Sin acentos ni mayúsculas: "plomeria" consigue "Plomería". */
-  const TILDES = new RegExp('[\\u0300-\\u036f]', 'g');
-  const normalizar = (s) =>
-    s.toLowerCase().normalize('NFD').replace(TILDES, '');
+  /* La búsqueda va al servidor: son 8.437 productos, no se pueden traer todos
+     al navegador para filtrarlos acá. Se espera a que la persona deje de
+     escribir y se cancela la consulta anterior, así tipear rápido no dispara
+     una petición por tecla ni deja que una respuesta vieja pise a la nueva. */
+  const ESPERA_TECLA = 300;
+  let relojBusca;
+  let enCurso;
 
-  function pintar(termino) {
-    const t = normalizar(termino.trim());
+  async function pintar(termino) {
+    const t = termino.trim();
     if (t.length < 2) { cerrar(); return; }
 
-    const hallados = TODOS.filter((p) =>
-      normalizar(`${p.n} ${p.m} ${p.cat}`).includes(t)
-    ).slice(0, 8);
+    enCurso?.abort();
+    enCurso = new AbortController();
 
-    caja.innerHTML = hallados.length
-      ? hallados.map((p) => `
-          <button class="resultado" data-ir-cat="${p.catId}">
-            <img src="/assets/img/${p.img}.jpg" alt="" loading="lazy">
-            <span class="resultado-datos">
-              <strong>${limpio(p.n)}</strong>
-              <span>${limpio(p.m)} · ${limpio(p.cat)}</span>
-            </span>
-            <span class="resultado-precio">${precio(p.p)}</span>
-          </button>`).join('')
-      : `<p class="sin-resultados">No conseguimos nada con “${limpio(termino)}”.<br>Escríbenos por WhatsApp y te lo buscamos.</p>`;
+    try {
+      const r = await fetch(`/api/catalogo.json?q=${encodeURIComponent(t)}&limit=8`,
+                            { signal: enCurso.signal });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const { productos: hallados = [], total = 0 } = await r.json();
 
-    caja.hidden = false;
-    entrada.setAttribute('aria-expanded', 'true');
+      caja.innerHTML = hallados.length
+        ? hallados.map((p) => `
+            <button class="resultado" data-codigo="${limpio(p.codigo)}"
+                    data-nombre="${limpio(p.nombre)}" data-marca="${limpio(p.marca ?? '')}"
+                    data-precio="${p.precio ?? 0}" ${p.disponible && p.precio ? '' : 'disabled'}>
+              <span class="resultado-datos">
+                <strong>${limpio(p.nombre)}</strong>
+                <span>${limpio(p.marca || p.categoria)}${p.disponible ? '' : ' · agotado'}</span>
+              </span>
+              <span class="resultado-precio">${p.precio ? precio(p.precio) : 'Consultar'}</span>
+            </button>`).join('')
+          + (total > hallados.length
+              ? `<p class="resultado-mas">y ${total - hallados.length} más</p>` : '')
+        : `<p class="sin-resultados">No conseguimos nada con “${limpio(t)}”.<br>Escríbenos por WhatsApp y te lo buscamos.</p>`;
+
+      caja.hidden = false;
+      entrada.setAttribute('aria-expanded', 'true');
+    } catch (e) {
+      if (e.name === 'AbortError') return;   // la reemplazó una búsqueda nueva
+      caja.innerHTML = '<p class="sin-resultados">No pudimos buscar ahora mismo. Intenta de nuevo en un momento.</p>';
+      caja.hidden = false;
+    }
   }
 
   function cerrar() {
@@ -279,7 +312,8 @@ function prepararCarruseles() {
 
   entrada.addEventListener('input', () => {
     limpiar.hidden = !entrada.value;
-    pintar(entrada.value);
+    clearTimeout(relojBusca);
+    relojBusca = setTimeout(() => pintar(entrada.value), ESPERA_TECLA);
   });
   entrada.addEventListener('focus', () => entrada.value && pintar(entrada.value));
 
@@ -290,11 +324,20 @@ function prepararCarruseles() {
     entrada.focus();
   });
 
+  /* Sin páginas de producto todavía (eso llega con las fichas), lo útil que
+     puede hacer un resultado es entrar al pedido. */
   caja.addEventListener('click', (e) => {
-    const r = e.target.closest('[data-ir-cat]');
-    if (!r) return;
+    const r = e.target.closest('[data-codigo]');
+    if (!r || r.disabled) return;
+    agregar({
+      id: r.dataset.codigo,
+      n: r.dataset.nombre,
+      m: r.dataset.marca,
+      p: Number(r.dataset.precio),
+    });
+    avisar(`Agregado: ${r.dataset.nombre}`);
+    evento('add_to_cart', { item_name: r.dataset.nombre });
     cerrar();
-    $(`#${r.dataset.irCat}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   $('#form-buscar').addEventListener('submit', (e) => {
@@ -472,7 +515,7 @@ $('[data-inicio]').addEventListener('click', (e) => {
     boton.setAttribute('aria-expanded', 'true');
     evento('abrir_chat');
     if (!lista.children.length) {
-      burbuja('¡Hola! Soy el asistente de Casa Herramientas. Decime qué estás buscando y te ayudo a encontrarlo.', 'bot');
+      burbuja('¡Hola! Soy el asistente de Casa Herramientas. Dime qué estás buscando y te ayudo a encontrarlo.', 'bot');
     }
     entrada.focus();
   }

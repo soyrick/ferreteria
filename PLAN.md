@@ -13,11 +13,23 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
-1. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
+1. **Commitear y desplegar la integración del catálogo.** Está hecha y
+   verificada en local, pero el sitio publicado sigue mostrando los 46
+   productos de ejemplo.
+2. **Volver a curar las vitrinas.** Al cambiar los productos de ejemplo por los
+   reales, los identificadores cambiaron (`taladro-percutor` → `C011132`) y la
+   selección guardada quedó inservible. *Lo más vendido* y *En oferta* arrancan
+   vacías —esas secciones ni se muestran— hasta elegir productos en el panel.
+   Las ocho filas de categoría salen solas.
+3. **Preguntarle al encargado por el código de fábrica.** Es lo que decide si
+   se pueden buscar las fotos de forma automática. La pregunta exacta:
+   *¿el sistema guarda el código del fabricante en algún campo, y se puede
+   agregar a la API?* Ver «El problema de las fotos», más abajo.
+4. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
    `src/scripts/carrito.js`) por el real, cuando el cliente lo tenga.
-2. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
+5. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
    registran; falta ver que aparezcan `add_to_cart`, `search` y `abrir_chat`.
-3. **Seguir con F4 — SEO base**, que no depende de ninguna API.
+6. **Seguir con F4 — SEO base**, la única fase sin bloqueo.
 
 ---
 
@@ -56,6 +68,7 @@ diff. No son buenas intenciones.
 | R7 | **No romper lo que ya anda.** Antes de dar por cerrada una fase, se revalida lo de las fases previas. | Checklist de regresión por fase. |
 | R8 | **Nunca simplificar de menos**: validación en los bordes de confianza, manejo de errores que evita pérdida de datos, seguridad y accesibilidad básica. | Auditorías de F9 y F10. |
 | R9 | **Idioma consistente.** El proyecto está en español (comentarios, identificadores, textos). Se mantiene así; no se mezcla. | Revisión de diff. |
+| R17 | **Español latinoamericano neutro en todo lo que lee el usuario.** Tuteo, nunca voseo: "busca", no "buscá"; "dime", no "decime"; "aquí", no "acá". Vale para la tienda, el panel, el bot y los mensajes de error. | `rg "á</\|ás\b\|és\b"` sobre los textos visibles no debe dar imperativos con acento final. |
 | R10 | **Datos de ejemplo siempre marcados** con `<!-- DATO PLACEHOLDER -->` o equivalente. | `grep` los encuentra todos. |
 | R11 | **Cero secretos en el repo.** Claves y tokens solo en variables de entorno de Vercel. | Escaneo antes de cada push. |
 | R12 | **Commits por unidad de trabajo**, no por tipo de archivo. Mensaje en conventional commits, sin atribución de IA. | `git log` cuenta una historia legible. |
@@ -90,6 +103,9 @@ mover solo ese sector sin tocar la tienda.
 > entregadas. En vez de esperar, adelantamos todo lo que no depende de ellas y
 > dejamos los tramos bloqueados para cuando lleguen. El chat se parte en dos:
 > la ventana (no necesita API) y la conexión con el bot (sí).
+>
+> **La API de productos llegó el 2026-08-31 y F6 está integrada.** Sigue
+> faltando la del chatbot (F7).
 
 | Fase | Estado | Bloqueada por |
 |------|--------|---------------|
@@ -98,7 +114,7 @@ mover solo ese sector sin tocar la tienda.
 | F3 Ventana de chat | ✅ interfaz hecha | — |
 | F4 SEO base y rendimiento | ⬜ pendiente | — |
 | F5 Analítica | ✅ hecha y verificada midiendo | — |
-| F6 API de productos y catálogo real | ⛔ bloqueada | API de productos |
+| F6 API de productos y catálogo real | ✅ integrada · faltan las fotos | el negocio no cargó fotos |
 | F7 Conexión del chatbot | ⛔ bloqueada | API del chatbot |
 | F8 Panel de administración | 🟡 completo salvo las cifras reales | APIs de Google |
 | F9 Auditoría de accesibilidad y UI | ⬜ pendiente | — |
@@ -120,7 +136,8 @@ Verificado el 2026-08-24 en el sitio desplegado.
 - **Curaduría guardada en Vercel Blob.** Probado en producción: se guarda, persiste,
   y la tienda lo refleja. Si el almacén no responde, cae a memoria y lo avisa en pantalla.
 - **`/api/vitrinas.json`** sirve las vitrinas, así lo que se edita se ve sin reconstruir
-  (caché de 60 s). Si falla, la tienda pinta el catálogo empaquetado y nunca queda vacía.
+  (caché de 60 s). Si falla, la tienda avisa y deriva a WhatsApp: con 8.437 productos y
+  precios que cambian durante el día ya no hay catálogo de respaldo que empaquetar.
 - **Sección de Ofertas propia.** Antes cuatro enlaces llevaban a "lo más vendido".
 - **Ventana de chat** con el botón flotante amarillo. Sin bot todavía: responde una
   plantilla que deriva a WhatsApp.
@@ -131,7 +148,7 @@ Verificado el 2026-08-24 en el sitio desplegado.
   el hero para móvil.
 - **Carrito** en panel lateral, con persistencia y pedido armado hacia WhatsApp.
 - **Panel con barra lateral** y cuatro pantallas: estadísticas (gráfica de visitas
-  con Chart.js e histórico por mes), Productos, Productos estrella y Ofertas.
+  con Chart.js e histórico por mes), Productos, Lo más vendido y Ofertas.
 - **Buscador y menú ⋯** en las tres pantallas de curaduría, para mover un producto
   entre vitrinas sin recargar la selección entera.
 - **Ofertas con vencimiento:** al pasar la fecha el producto sale solo de la tienda
@@ -182,13 +199,28 @@ escritorio y en móvil.
 
 ---
 
-### F4 — SEO base y rendimiento
+### F4 — SEO base y rendimiento · **la que sigue**
+
+Se saltó en su momento y quedó como la única fase sin bloqueo. **Ahora rinde más
+que entonces:** con la API integrada hay `codigo` estable y datos reales, así que
+el `Product` estructurado que estaba vetado ya se puede hacer sin mentirle a
+Google.
+
 - Metadatos por página, canónicas, Open Graph.
-- `sitemap.xml` y `robots.txt` generados, no escritos a mano.
-- Datos estructurados: `LocalBusiness` para la ficha del negocio. El `Product`
-  queda pendiente hasta F6: marcar productos de ejemplo como reales sería
-  mentirle a Google.
+- `sitemap.xml` y `robots.txt` generados, no escritos a mano. Hoy el `robots.txt`
+  está a mano y no apunta a ningún sitemap.
+- Datos estructurados: `LocalBusiness` para la ficha del negocio.
+- **Páginas de producto** (`/producto/[codigo]`). Es la deuda que dejó F6 y sin
+  ella el SEO de catálogo no existe: 8.437 productos sin URL propia son 8.437
+  páginas que Google no puede indexar. Hoy un resultado del buscador agrega al
+  pedido porque no hay adónde llevarlo.
+- Páginas de categoría (`/categoria/[ranura]`), que además le dan destino al
+  menú de 32 rubros.
 - Core Web Vitals medidos, no estimados.
+
+**Ojo con el volumen:** 8.437 páginas no se prerenderizan en cada build, y los
+precios cambian durante el día. Van renderizadas en servidor con caché corto,
+como el resto del catálogo.
 
 **Cierre:** Lighthouse con números concretos y los datos estructurados validados.
 
@@ -205,17 +237,57 @@ escritorio y en móvil.
 
 ---
 
-### F6 — API de productos y catálogo real · **bloqueada**
-Reemplazar el catálogo de ejemplo de 46 productos por datos reales.
+### F6 — API de productos y catálogo real · **integrada el 2026-08-31**
 
-- Definir el **contrato**: `nombre`, `categoria`, `precio`, `fotos`.
-- Adaptador de Vercel y ruta de API que consulta la BD y normaliza la respuesta.
-- Manejo de imágenes: optimización, tamaños, `alt`, y qué se ve si una foto falta.
-- Caché y revalidación: cada cuánto se refresca el precio.
-- Páginas de categoría y de producto, más el `Product` estructurado que quedó de F4.
+Los 46 productos de ejemplo se reemplazaron por los **8.437 reales** que sirve
+la API de kafe.agency. `src/datos/catalogo.js` ya no existe.
 
-**Cierre:** el catálogo sale de la BD. Si la API se cae, la página no se rompe:
-muestra el último estado bueno o un mensaje claro.
+- ✅ Cliente en `src/datos/api.js` y proxy en `/api/catalogo.json`.
+- ✅ La home arma ocho filas con las categorías más grandes (74 % del catálogo).
+  Las 32 completas van en el menú Productos.
+- ✅ Se descartan los agotados (44 % del catálogo) y los que no tienen precio.
+- ✅ El buscador consulta el servidor, con espera de 300 ms y cancelación de la
+  consulta anterior. Antes filtraba 46 productos en memoria.
+- ✅ El panel pasó de casillas a búsqueda con filtro por categoría y paginación.
+- ✅ Si la API no responde, la tienda lo dice y ofrece WhatsApp.
+- ⏳ Falta: las fotos (ver abajo) y las páginas de producto con su `Product`
+  estructurado, que se pueden hacer ahora que hay `codigo` estable.
+
+**Verificado el 2026-08-31:** las dos rutas responden 200, ninguna filtra el
+token, ocho categorías con ochenta productos, todos disponibles y con precio, y
+las cuatro pantallas del panel siguen redirigiendo sin sesión. Comprobado
+también en el navegador con el servidor local: los productos se ven.
+
+#### El problema de las fotos
+
+**Ningún producto tiene foto.** Medido sobre 700 productos en siete tramos del
+catálogo: `imagenes` viene `[]` en todos. Tampoco hay destacados.
+
+El encargado dijo que el código es el de fábrica y que se podrían buscar las
+fotos en las páginas de las marcas. **Se verificó y no es así:**
+
+| Campo | Qué es en realidad |
+|-------|--------------------|
+| `codigo` | Interno del negocio: `C011132`, `H01107`, `ACEROBILL`. Ocho formatos distintos conviviendo, cargados a mano por años. |
+| `referencia` | La ubicación física: `EXHIBICION TABLERO`, `A2-ARRIBA`, `04CH`. |
+| `modelo` | Medidas: `6 A 15mm`, `5/16"Banda8mm`. |
+| `ficha` | `null` en todos los consultados. |
+
+La prueba concluyente: **`04CH` aparece en productos STANLEY, TRUPER y TOLSEN a
+la vez.** Un código de fábrica no se repite entre marcas competidoras; un
+anaquel sí. Además el 18 % de los productos no tiene ni marca.
+
+Mientras tanto la tarjeta reserva el hueco de la foto con el icono de la casa,
+del tamaño exacto que tendrá la imagen real.
+
+**Decidido: no se buscan imágenes por título automáticamente.** Ya se probó en
+este proyecto con 50 imágenes y salieron mal (un candado ilustrado con una
+pareja en la playa). Con 8.437 productos nadie las audita, y una foto
+equivocada genera un reclamo. Suma que serían fotos de terceros con fin
+comercial.
+
+**Cierre:** el catálogo sale de la API. Si se cae, la página no se rompe: avisa
+y deriva a WhatsApp.
 
 ---
 
@@ -296,15 +368,16 @@ Ninguna bloquea el arranque. Cada una tiene que estar resuelta al empezar su fas
 
 | # | Pregunta | Se necesita en |
 |---|----------|----------------|
-| D1 | ¿La BD de productos ya existe? ¿Qué motor, y quién la administra? | F6 |
-| D2 | Las fotos: ¿la API devuelve URLs o binarios? ¿Dónde están hospedadas? | F6 |
+| ~~D1~~ | ✅ **Resuelto.** API REST de solo lectura de kafe.agency, sincronizada desde el sistema del negocio. 8.437 productos. | hecho |
+| **D2** | **Las fotos: la API devuelve `imagenes: []` en todo el catálogo.** ¿El sistema del negocio guarda el código del fabricante en algún campo que se pueda agregar a la API? Es lo único que haría viable buscarlas de forma automática. | F6 |
 | D3 | ¿A qué número de WhatsApp llega el pedido? ¿Es el mismo del enlace actual? | F2 |
 | D4 | ¿Qué chatbot? ¿Responde sobre el catálogo o es de propósito general? | F7 |
 | D5 | ¿Cuántas personas entran al panel admin? ¿Hace falta más de un rol? | F8 |
-| D6 | ¿El panel admin solo muestra métricas, o también administra productos? | F8 |
+| ~~D6~~ | ✅ **Resuelto: solo cura, no administra.** El nombre y el precio los manda la API; el panel elige qué se muestra y qué está rebajado. | hecho |
 | D7 | ¿Hay dominio comprado? | F11 |
-| ~~D8~~ | ✅ **Resuelto: Vercel Blob.** "Vercel KV" ya no existe como producto. Se descartó Global Config porque escribir exige un token de la API REST con permisos sobre toda la cuenta. Falta que crees el store. | hecho |
-| D9 | La tienda es estática: los cambios del panel no se ven hasta reconstruir. ¿Reconstrucción automática al guardar, o la home pasa a servidor? | junto con D8 |
+| ~~D8~~ | ✅ **Resuelto: Vercel Blob.** "Vercel KV" ya no existe como producto. Se descartó Global Config porque escribir exige un token de la API REST con permisos sobre toda la cuenta. | hecho |
+| ~~D9~~ | ✅ **Resuelto: la home lee `/api/vitrinas.json`.** El HTML sigue estático y las vitrinas se piden al cargar, con caché de 60 s. No hace falta reconstruir al guardar. | hecho |
+| **D10** | ¿Mostramos productos agotados marcados como tales, o se ocultan? **Hoy se ocultan** — son el 44 % del catálogo. | F6 |
 
 ---
 
@@ -322,5 +395,10 @@ Si alguno hace falta, se agrega como fase nueva y se estima aparte.
 
 ## Próximo paso
 
-Los dos puntos de **Para mañana**, arriba de este documento. Después, **F2 —
-Carrito de compras**, que no depende de ninguna API.
+La lista de **Para mañana**, arriba de este documento. Lo que desbloquea más
+trabajo es la respuesta del encargado sobre el código de fábrica (D2): decide
+si la tienda va a tener fotos o se queda con el hueco reservado.
+
+Sin depender de nadie se puede seguir con **F4 — SEO base**, que ahora vale
+más que antes: con `codigo` estable ya se pueden hacer las páginas de producto
+y su dato estructurado.
