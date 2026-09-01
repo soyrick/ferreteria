@@ -13,23 +13,19 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
-0. **Mergear `products` a `main` y desplegar.** La rama trae las fichas de
-   producto y el sitemap, verificados. El sitio publicado sigue mostrando los
-   46 productos de ejemplo hasta que esto llegue a producción.
-2. **Volver a curar las vitrinas.** Al cambiar los productos de ejemplo por los
-   reales, los identificadores cambiaron (`taladro-percutor` → `C011132`) y la
-   selección guardada quedó inservible. *Lo más vendido* y *En oferta* arrancan
-   vacías —esas secciones ni se muestran— hasta elegir productos en el panel.
-   Las ocho filas de categoría salen solas.
-3. **Preguntarle al encargado por el código de fábrica.** Es lo que decide si
-   se pueden buscar las fotos de forma automática. La pregunta exacta:
-   *¿el sistema guarda el código del fabricante en algún campo, y se puede
-   agregar a la API?* Ver «El problema de las fotos», más abajo.
-4. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
-   `src/scripts/carrito.js`) por el real, cuando el cliente lo tenga.
-5. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
+1. **Pedir las imágenes oficiales a los distribuidores.** INGCO, Truper y
+   Stanley se las dan a sus clientes, y el negocio lo es. Cubren el 14 % del
+   catálogo, que es lo máximo alcanzable hoy. Cargarlas **en la API**, no por
+   un lado paralelo. Ver «El problema de las fotos», más abajo.
+2. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
+   `src/scripts/whatsapp.js`) por el real. Lo esperan el carrito y las
+   consultas de producto agotado: esos dos botones no funcionan hasta entonces.
+3. **Terminar de curar las vitrinas.** *Lo más vendido* y *En oferta* tienen un
+   producto cada una; las secciones se ocultan solas si quedan vacías.
+4. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
    registran; falta ver que aparezcan `add_to_cart`, `search` y `abrir_chat`.
-6. **Seguir con F4 — SEO base**, la única fase sin bloqueo.
+5. **Cerrar F4:** metadatos y `LocalBusiness` en la home, páginas de categoría,
+   y medir Core Web Vitals.
 
 ---
 
@@ -205,7 +201,7 @@ Se saltó en su momento y quedó como la única fase sin bloqueo. Rindió más q
 entonces: con la API integrada hay `codigo` estable, así que el `Product`
 estructurado que estaba vetado se pudo hacer sin mentirle a Google.
 
-Hecho y verificado el 2026-08-31:
+Hecho y verificado entre el 2026-08-31 y el 2026-09-01:
 
 - ✅ **Páginas de producto** en `/producto/nombre-del-producto/CODIGO`,
   renderizadas en servidor. Era la deuda que dejó F6: sin ellas, 8.437
@@ -220,6 +216,12 @@ Hecho y verificado el 2026-08-31:
 - ✅ **`robots.txt`** apuntando al sitemap y cerrando `/api/`.
 - ✅ **Datos estructurados `Product`**, declarando solo lo que la API garantiza.
 - ✅ Canónicas y Open Graph en la ficha.
+- ✅ **Rejilla de categoría completa** al tocar «Ver todo», con buscador propio
+  y carga por tandas de 24. También la abren los 32 rubros del menú, que antes
+  eran anclas y en 24 casos no llevaban a ningún lado.
+- ✅ **Sello de agotado** en los productos sin existencia, con consulta por
+  WhatsApp en vez del botón de agregar.
+- ✅ Un solo `<h1>` en la home. Había cuatro, uno por lámina del hero.
 
 Falta:
 
@@ -280,28 +282,45 @@ también en el navegador con el servidor local: los productos se ven.
 **Ningún producto tiene foto.** Medido sobre 700 productos en siete tramos del
 catálogo: `imagenes` viene `[]` en todos. Tampoco hay destacados.
 
-El encargado dijo que el código es el de fábrica y que se podrían buscar las
-fotos en las páginas de las marcas. **Se verificó y no es así:**
+**Los códigos SÍ son de fábrica** — corregido el 2026-09-01. La primera
+revisión miró el campo `referencia` y los códigos de productos sin marca, y
+concluyó mal. Mirando los productos con marca:
 
-| Campo | Qué es en realidad |
-|-------|--------------------|
-| `codigo` | Interno del negocio: `C011132`, `H01107`, `ACEROBILL`. Ocho formatos distintos conviviendo, cargados a mano por años. |
-| `referencia` | La ubicación física: `EXHIBICION TABLERO`, `A2-ARRIBA`, `04CH`. |
-| `modelo` | Medidas: `6 A 15mm`, `5/16"Banda8mm`. |
-| `ficha` | `null` en todos los consultados. |
+| Marca | Códigos en el catálogo | Formato del fabricante |
+|-------|------------------------|------------------------|
+| INGCO | `AKMG5031`, `HPP28258` | letras + números ✅ |
+| STANLEY | `88558`, `84055` | cinco dígitos ✅ |
+| TRUPER | `13426`, `17351` | cinco dígitos ✅ |
+| TOLSEN | `TLV38138`, `V38138` | `V38138` ✅ |
 
-La prueba concluyente: **`04CH` aparece en productos STANLEY, TRUPER y TOLSEN a
-la vez.** Un código de fábrica no se repite entre marcas competidoras; un
-anaquel sí. Además el 18 % de los productos no tiene ni marca.
+Lo que **no** sirve: `referencia` es la ubicación en la tienda
+(`EXHIBICION TABLERO`, `A2-ARRIBA`, y el mismo `04CH` en STANLEY, TRUPER y
+TOLSEN a la vez); `modelo` son medidas; `ficha` viene `null`.
 
-Mientras tanto la tarjeta reserva el hueco de la foto con el icono de la casa,
-del tamaño exacto que tendrá la imagen real.
+**Pero el código de fábrica no alcanza.** Solo el **14 %** del catálogo es de
+marcas con catálogo web público:
 
-**Decidido: no se buscan imágenes por título automáticamente.** Ya se probó en
-este proyecto con 50 imágenes y salieron mal (un candado ilustrado con una
-pareja en la playa). Con 8.437 productos nadie las audita, y una foto
-equivocada genera un reclamo. Suma que serían fotos de terceros con fin
-comercial.
+```
+INGCO 325 · STANLEY 278 · TRUPER 221 · WADFOW 194
+TOLSEN 129 · BOSCH 40 · TOTAL 39 · DEWALT 25   →  1.251 de 8.437
+```
+
+El resto son marcas locales que no publican fotos, más un **18 % sin marca**,
+donde no hay ni dónde buscar.
+
+**Camino recomendado:** pedirle los paquetes de imágenes oficiales a los
+distribuidores. INGCO, Truper y Stanley se los dan a sus clientes, y el negocio
+lo es. Cubre los mismos productos que un robot, sin discusión legal y con
+mejor calidad. **Esas fotos van cargadas en la API**, no por un lado paralelo:
+el campo `imagenes` ya existe en el contrato y la ficha ya lo lee.
+
+**Descartado: buscar imágenes por título automáticamente.** Ya se probó en este
+proyecto con 50 imágenes y salieron mal (un candado ilustrado con una pareja en
+la playa). Con 8.437 productos nadie las audita y una foto equivocada genera un
+reclamo.
+
+Mientras tanto la tarjeta reserva el hueco con el icono de la casa, del tamaño
+exacto que tendrá la imagen real.
 
 **Cierre:** el catálogo sale de la API. Si se cae, la página no se rompe: avisa
 y deriva a WhatsApp.
@@ -386,8 +405,8 @@ Ninguna bloquea el arranque. Cada una tiene que estar resuelta al empezar su fas
 | # | Pregunta | Se necesita en |
 |---|----------|----------------|
 | ~~D1~~ | ✅ **Resuelto.** API REST de solo lectura de kafe.agency, sincronizada desde el sistema del negocio. 8.437 productos. | hecho |
-| **D2** | **Las fotos: la API devuelve `imagenes: []` en todo el catálogo.** ¿El sistema del negocio guarda el código del fabricante en algún campo que se pueda agregar a la API? Es lo único que haría viable buscarlas de forma automática. | F6 |
-| D3 | ¿A qué número de WhatsApp llega el pedido? ¿Es el mismo del enlace actual? | F2 |
+| **D2** | **Las fotos: la API devuelve `imagenes: []` en todo el catálogo.** El código sí es el de fábrica, pero solo el 14 % es de marcas con catálogo web. Resuelto el camino —pedir las imágenes oficiales a los distribuidores—, falta hacerlo y que kafe las cargue. | F6 |
+| **D3** | **¿A qué número de WhatsApp llega el pedido?** Sin él no funcionan el carrito ni las consultas de producto agotado. El enlace de invitación que hay sirve para abrir el chat, pero no admite texto pre-cargado. | F2 |
 | D4 | ¿Qué chatbot? ¿Responde sobre el catálogo o es de propósito general? | F7 |
 | D5 | ¿Cuántas personas entran al panel admin? ¿Hace falta más de un rol? | F8 |
 | ~~D6~~ | ✅ **Resuelto: solo cura, no administra.** El nombre y el precio los manda la API; el panel elige qué se muestra y qué está rebajado. | hecho |

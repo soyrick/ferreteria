@@ -4,7 +4,7 @@ Documento de recuperación de contexto. Si empezás una sesión nueva o se vaci�
 contexto, leé **esto primero** y después [PLAN.md](PLAN.md). Con esos dos
 archivos alcanza para retomar sin preguntar nada.
 
-Última actualización: 2026-08-31
+Última actualización: 2026-09-01
 
 ---
 
@@ -18,12 +18,9 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-08-31:** la API del catálogo llegó y está integrada. `main` tiene esa
-integración; la rama **`products`** suma las fichas de producto y el sitemap,
-todo verificado en local. Falta mergear y desplegar: **lo publicado sigue
-mostrando los 46 productos de ejemplo.**
-
-Para ver dónde quedó: `git log --oneline -5` y `git branch`.
+**Al 2026-09-01:** la API del catálogo está integrada, con fichas de producto,
+sitemap, rejilla de categoría y sello de agotado. Todo verificado en el
+navegador. Para ver dónde quedó: `git log --oneline -8`.
 
 ## Cómo trabajar con Ricardo
 
@@ -71,8 +68,11 @@ src/
   lib/sitemap.js             tamaños, caché y tandas de los sitemaps
   middleware.js              puerta única de /admin
   scripts/app.js             interacción de la tienda
+  scripts/tarjeta.js         la tarjeta de producto · la usan home y rejilla
   scripts/vistaproducto.js   el panel de la ficha, sin recargar
+  scripts/vistacategoria.js  la rejilla completa que abre "Ver todo"
   scripts/ficha.js           la página de producto (solo agregar al pedido)
+  scripts/whatsapp.js        el número y los mensajes pre-armados
   scripts/carrito.js         carrito → WhatsApp
   scripts/analitica.js       GA4 + consentimiento
   scripts/grafica.js         gráfica del panel (Chart.js) + selector de mes
@@ -131,6 +131,31 @@ rg -l "kafe_cat_" dist/client/     # no debe encontrar nada
 - El **panel lateral** (`scripts/vistaproducto.js`) va montado encima de un
   enlace real. Si el JavaScript falla, el enlace navega y se ve la misma ficha.
   Google sigue el `href` y nunca pasa por el panel.
+
+### Las capas: rejilla, ficha y carrito
+
+Tres paneles que se enciman, en este orden: la **rejilla de categoría**
+(z-index 145), la **ficha** (150) y el **carrito** (140).
+
+- `trabarFondo()` en `tarjeta.js` decide si el fondo scrollea **mirando qué
+  capas hay abiertas**. Cada panel llamándolo al abrir y al cerrar alcanza: sin
+  eso, cerrar la ficha soltaba el fondo con la rejilla todavía abierta.
+- Escape cierra **la capa de arriba**, no las dos.
+- La rejilla carga de a 24 productos con un **listener de scroll**, no un
+  IntersectionObserver. Ver «Los observadores no se pueden probar acá».
+- Si una tanda no llena la pantalla, se encadena la siguiente sola; si no, no
+  habría scroll que disparara nada.
+
+### El sello de agotado
+
+El 44 % del catálogo no tiene existencia. La tarjeta se muestra igual, con un
+sello redondo gris —el de oferta es una estrella roja, y la estrella dentada es
+lenguaje de promoción—, la foto atenuada y **sin botón de agregar**: en su lugar
+abre WhatsApp con la consulta escrita. Si un producto está agotado y en oferta
+a la vez, gana agotado.
+
+`disponible` puede no venir; en ese caso el producto se ofrece. Es peor
+esconder algo que sí hay por un campo ausente.
 
 ### El sitemap, y por qué está partido
 
@@ -290,16 +315,48 @@ proceso: o falta en el archivo, o el servidor arrancó antes de que existiera.
   congeladas si el panel no está compositando. Medir con la Web Animations API
   (`pause()` + `currentTime`) o recargar limpio antes de sacar conclusiones.
 
+### Los observadores no se pueden probar acá
+
+**`IntersectionObserver` no dispara nunca en este entorno**, ni siquiera la
+primera vez, que normalmente ocurre siempre. Costó una hora el 2026-09-01
+creyendo que era un bug del scroll infinito. El diagnóstico que lo zanja:
+
+```js
+requestAnimationFrame(() => {/* … */});   // no corre → no se está pintando
+```
+
+Si `requestAnimationFrame` no corre, el navegador no está componiendo la página
+y **todo lo que dependa del renderizado queda mudo**: observers de intersección
+y de redimensionado, animaciones, transiciones. `document.visibilityState` dice
+`visible` igual, así que no sirve para detectarlo.
+
+Por eso la rejilla usa un listener de `scroll`: hace lo mismo y sí se puede
+comprobar. Antes de escribir algo apoyado en un observer, pensar cómo se va a
+verificar.
+
+### Cuánto cuesta pintar la home
+
+Armar las vitrinas son **unas 30 peticiones** a la API (el resumen, 8 categorías
+por 3 tramos, y los productos curados uno por uno). Con el caché de 60 s en
+`/api/vitrinas.json` eso es una vez por minuto y sobra margen sobre el límite
+de 120. **Pero recargando a mano varias veces seguidas se llega al tope**, y la
+home empieza a devolver `503`. No es un bug: es esperar un minuto.
+
 ## Datos de ejemplo que hay que reemplazar
 
 Buscar `DATO PLACEHOLDER` en el repo.
 
-- Número de WhatsApp del carrito: `584120000000` en `src/scripts/carrito.js`
-- Teléfono, correo y horarios en `index.astro`
+- **Número de WhatsApp: `584120000000` en `src/scripts/whatsapp.js`.** Es el
+  único placeholder que queda. Lo esperan el carrito y las consultas de
+  producto agotado: hasta que llegue el real, esos dos botones no funcionan.
+  Los enlaces genéricos usan `wa.me/message/N5EYYCMCKHH2M1`, que sí funciona
+  pero no admite texto pre-cargado.
 - Las métricas y la serie de visitas del panel (`pages/admin/index.astro`)
 - Las imágenes del hero: licencias variadas de Wikimedia Commons, ver `CREDITOS.txt`
 
-Los productos ya **no** son de ejemplo: salen de la API.
+**Datos reales al 2026-09-01:** correo `casaherramienta@gmail.com`, horario de
+lunes a sábado de 8:00 a 4:50, sin teléfono de llamadas. Los productos y las
+marcas salen de la API.
 
 ## Variables de entorno
 
