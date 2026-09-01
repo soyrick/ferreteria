@@ -5,14 +5,10 @@
    en el chat. Si algún día hace falta historial de pedidos, ahí sí entra una
    tabla — hoy sería una tabla que nadie lee. */
 
-// DATO PLACEHOLDER — el cliente todavía no tiene número fijo para la ferretería.
-// Formato internacional sin signos: código de país + número.
-const WHATSAPP = '584120000000';
-
 import { trabarFondo, precio, limpio } from './tarjeta.js';
+import { enlace, recortar } from './whatsapp.js';
 
 const CLAVE = 'ch_carrito';
-const TOPE_URL = 1800;   // wa.me se rompe con URLs muy largas
 
 const $ = (s, c = document) => c.querySelector(s);
 
@@ -65,21 +61,13 @@ function vaciar() {
 /** Arma el texto del pedido. Recorta si se pasa del largo que aguanta wa.me. */
 export function mensaje() {
   const lineas = items.map((i) => `• ${i.cant} × ${i.n} — ${precio(i.p * i.cant)}`);
-  const armar = (ls, cortadas = 0) =>
+  return recortar(lineas, (ls, cortadas = 0) =>
     ['¡Hola! Quiero hacer este pedido:', '', ...ls,
       ...(cortadas ? [`…y ${cortadas} producto${cortadas > 1 ? 's' : ''} más.`] : []),
-      '', `Total: ${precio(total())}`].join('\n');
-
-  let texto = armar(lineas);
-  // Se van sacando renglones del final hasta que la URL entre.
-  for (let corte = lineas.length; encodeURIComponent(texto).length > TOPE_URL && corte > 1; corte--) {
-    texto = armar(lineas.slice(0, corte - 1), lineas.length - (corte - 1));
-  }
-  return texto;
+      '', `Total: ${precio(total())}`].join('\n'));
 }
 
-export const enlaceWhatsapp = () =>
-  `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensaje())}`;
+export const enlaceWhatsapp = () => enlace(mensaje());
 
 /* ---------- Interfaz ---------- */
 

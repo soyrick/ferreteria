@@ -11,6 +11,7 @@
 export const prerender = false;
 
 import { producto, apiLista, ranura, urlProducto } from '../../datos/api.js';
+import { consultarAgotado, consultarProducto } from '../../scripts/whatsapp.js';
 import '../../styles/styles.css';
 
 /* La dirección es /producto/nombre-del-producto/CODIGO, pero también entra
@@ -158,8 +159,9 @@ const datosProducto = {
           <svg class="ico"><use href="#i-carrito"/></svg> Agregar al pedido
         </button>
       ) : (
-        <a class="btn btn-negro btn-ancho" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">
-          <svg class="ico"><use href="#i-chat"/></svg> Preguntar por este producto
+        <a class="btn btn-negro btn-ancho" target="_blank" rel="noopener"
+           href={consultarAgotado({ nombre: p.nombre, marca: p.marca, codigo: p.codigo })}>
+          <svg class="ico"><use href="#i-chat"/></svg> Consultar disponibilidad
         </a>
       )}
 

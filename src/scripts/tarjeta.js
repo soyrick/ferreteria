@@ -4,6 +4,8 @@
    rejilla de categoría completa y lo que venga después. Si cada una armara la
    suya, cambiar el precio de lugar significaría acordarse de todas. */
 
+import { consultarAgotado } from './whatsapp.js';
+
 /** Formato venezolano: $1.234,56 */
 export const precio = (n) =>
   '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
@@ -60,8 +62,10 @@ export function tarjetaProducto(p, rango) {
     </a>
     ${agotado
       // Sin botón de agregar: dejar armar un pedido de algo que no hay termina
-      // en una conversación incómoda por WhatsApp. Se ofrece preguntar.
-      ? `<a class="producto-agregar preguntar" href="${limpio(url)}" data-ficha="${limpio(p.id)}">
+      // en una conversación incómoda por WhatsApp. En su lugar se abre el chat
+      // con la pregunta ya escrita, que es lo que la persona iba a preguntar.
+      ? `<a class="producto-agregar preguntar" target="_blank" rel="noopener"
+            href="${limpio(consultarAgotado({ nombre: p.n, marca: p.m, codigo: p.id }))}">
            <svg class="ico"><use href="#i-chat"/></svg> Consultar
          </a>`
       : `<button class="producto-agregar" data-agregar

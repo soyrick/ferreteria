@@ -10,7 +10,8 @@
    compartir el enlace o volver con el botón "atrás" hacen lo esperado. */
 
 import { agregar } from './carrito.js';
-import { trabarFondo } from './tarjeta.js';
+import { trabarFondo, limpio, precio } from './tarjeta.js';
+import { consultarAgotado } from './whatsapp.js';
 
 const $ = (s, c = document) => c.querySelector(s);
 
@@ -21,12 +22,6 @@ if (panel) {
   let urlPrevia = location.pathname + location.search;
   let ultimoFoco = null;
   let pidiendo;
-
-  const limpio = (s) =>
-    String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  const precio = (n) =>
-    '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
 
   function pintar(p) {
     const vendible = p.disponible && p.precio > 0;
@@ -58,8 +53,9 @@ if (panel) {
                    data-marca="${limpio(p.marca ?? '')}" data-precio="${p.precio}">
              <svg class="ico"><use href="#i-carrito"/></svg> Agregar al pedido
            </button>`
-        : `<a class="btn btn-negro btn-ancho" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">
-             <svg class="ico"><use href="#i-chat"/></svg> Preguntar por este producto
+        : `<a class="btn btn-negro btn-ancho" target="_blank" rel="noopener"
+               href="${limpio(consultarAgotado({ nombre: p.nombre, marca: p.marca, codigo: p.codigo }))}">
+             <svg class="ico"><use href="#i-chat"/></svg> Consultar disponibilidad
            </a>`}
       <table class="ficha-tabla"><tbody>
         ${ficha.map(([k, v]) => `<tr><th>${limpio(k)}</th><td>${limpio(v)}</td></tr>`).join('')}
