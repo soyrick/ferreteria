@@ -18,9 +18,15 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-09-01:** la API del catálogo está integrada, con fichas de producto,
-sitemap, rejilla de categoría y sello de agotado. Todo verificado en el
-navegador. Para ver dónde quedó: `git log --oneline -8`.
+**Al 2026-09-01, cierre de jornada:** todo mergeado a `main` y pusheado, árbol
+limpio. La rama `products` queda apuntando al mismo commit que `main`.
+
+La sesión dejó: catálogo real integrado, fichas de producto con su URL,
+sitemap, rejilla de categoría, sello de agotado, consultas de WhatsApp con el
+mensaje escrito, y el chatbot eliminado. Para ver dónde quedó:
+`git log --oneline -12`.
+
+**Lo primero al retomar:** la lista de «Para mañana» en [PLAN.md](PLAN.md).
 
 ## Cómo trabajar con Ricardo
 

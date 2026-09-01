@@ -13,6 +13,10 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
+**Lo que bloquea, y depende de terceros:** los puntos 1 y 2. Sin ellos la
+tienda funciona, pero le falta lo que más se nota —las fotos— y dos botones no
+llevan a ningún lado.
+
 1. **Pedir las imágenes oficiales a los distribuidores.** INGCO, Truper y
    Stanley se las dan a sus clientes, y el negocio lo es. Cubren el 14 % del
    catálogo, que es lo máximo alcanzable hoy. Cargarlas **en la API**, no por
