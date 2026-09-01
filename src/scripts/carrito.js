@@ -89,6 +89,10 @@ export const enlaceWhatsapp = () =>
 
 function pintar() {
   const contador = $('#contador-carrito');
+  // La ficha de producto reusa agregar() pero no monta el panel: sin contador
+  // no hay nada que repintar, y el pedido igual quedó guardado.
+  if (!contador) return;
+
   const n = unidades();
   contador.textContent = n;
   contador.hidden = n === 0;

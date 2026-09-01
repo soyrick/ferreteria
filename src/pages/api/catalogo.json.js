@@ -10,7 +10,7 @@
    en esta lista no viaja. */
 export const prerender = false;
 
-import { productos, apiLista } from '../../datos/api.js';
+import { productos, producto, apiLista } from '../../datos/api.js';
 
 const json = (cuerpo, status, cache) =>
   new Response(JSON.stringify(cuerpo), {
@@ -29,6 +29,16 @@ export async function GET({ url }) {
   const q = url.searchParams;
 
   try {
+    /* Un solo producto por código: lo usa el panel de la ficha, que abre sin
+       recargar. Va acá y no en una ruta aparte porque es la misma fuente, el
+       mismo caché y la misma razón de existir: que el token no salga de acá. */
+    const codigo = q.get('codigo');
+    if (codigo) {
+      const p = await producto(codigo);
+      if (!p) return json({ error: 'no existe' }, 404, 'no-store');
+      return json({ producto: p }, 200, 'public, max-age=0, s-maxage=120, stale-while-revalidate=600');
+    }
+
     const datos = await productos({
       q: q.get('q'),
       categoria: q.get('categoria'),

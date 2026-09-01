@@ -441,6 +441,23 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
   </aside>
 </div>
 
+<!-- ============ FICHA RÁPIDA ============
+     El contenido lo pinta vistaproducto.js. La página real de cada producto
+     vive en /producto/[codigo]: esto es un atajo para no perder el scroll,
+     no un reemplazo. -->
+<div class="vista" id="vista-producto" hidden>
+  <div class="vista-fondo" id="vista-fondo"></div>
+  <aside class="vista-panel" role="dialog" aria-modal="true" aria-labelledby="vista-titulo">
+    <header class="vista-cabecera">
+      <a class="vista-completa" id="vista-completa" href="#">Ver la página completa</a>
+      <button class="carrito-cerrar" id="vista-cerrar" aria-label="Cerrar la ficha">
+        <svg class="ico"><use href="#i-cerrar"/></svg>
+      </button>
+    </header>
+    <div class="vista-cuerpo" id="vista-cuerpo"></div>
+  </aside>
+</div>
+
 <!-- ============ FLOTANTES ============ -->
 <button class="flotante-chat" id="btn-chat" aria-expanded="false" aria-controls="panel-chat">
   <svg class="ico"><use href="#i-chat"/></svg>

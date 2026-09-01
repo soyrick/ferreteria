@@ -5,6 +5,7 @@
 
 import { iniciarConsentimiento, evento } from './analitica.js';
 import { agregar, iniciar as iniciarCarrito } from './carrito.js';
+import './vistaproducto.js';
 
 /* ---------------------------------------------------------
    1. CATÁLOGO
@@ -43,28 +44,35 @@ const foto = (p) =>
          <svg class="ico"><use href="#i-herramienta"/></svg>
        </span>`;
 
+/* La tarjeta lleva un enlace de verdad a la ficha. No es decorativo: sin él,
+   Google no tendría cómo llegar a los productos, el clic medio y el "abrir en
+   pestaña nueva" no funcionarían, y con el JavaScript caído la tienda quedaría
+   muerta. El panel que abre sin recargar se monta encima de este enlace. */
 function tarjetaProducto(p, rango) {
   const baja = p.pa ? Math.round((1 - p.p / p.pa) * 100) : 0;
+  const url = `/producto/${encodeURIComponent(p.id)}`;
   return `
   <article class="producto">
-    <div class="producto-foto${p.img ? '' : ' vacia'}">
-      ${baja ? `<span class="sello-oferta" aria-label="${baja}% de descuento"><b>−${baja}%</b></span>` : ''}
-      ${rango ? `<span class="producto-rango">${rango}</span>` : ''}
-      ${foto(p)}
-    </div>
-    <div class="producto-cuerpo">
-      <span class="producto-marca">${limpio(p.m || p.cat || '')}</span>
-      <h3 class="producto-nombre">${limpio(p.n)}</h3>
-      <div class="producto-precios">
-        <span class="producto-precio">${precio(p.p)}</span>
-        ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span>` : ''}
+    <a class="producto-enlace" href="${url}" data-ficha="${limpio(p.id)}">
+      <div class="producto-foto${p.img ? '' : ' vacia'}">
+        ${baja ? `<span class="sello-oferta" aria-label="${baja}% de descuento"><b>−${baja}%</b></span>` : ''}
+        ${rango ? `<span class="producto-rango">${rango}</span>` : ''}
+        ${foto(p)}
       </div>
-      <button class="producto-agregar" data-agregar
-              data-id="${limpio(p.id)}" data-nombre="${limpio(p.n)}"
-              data-marca="${limpio(p.m)}" data-precio="${p.p}">
-        <svg class="ico"><use href="#i-carrito"/></svg> Agregar
-      </button>
-    </div>
+      <div class="producto-cuerpo">
+        <span class="producto-marca">${limpio(p.m || p.cat || '')}</span>
+        <h3 class="producto-nombre">${limpio(p.n)}</h3>
+        <div class="producto-precios">
+          <span class="producto-precio">${precio(p.p)}</span>
+          ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span>` : ''}
+        </div>
+      </div>
+    </a>
+    <button class="producto-agregar" data-agregar
+            data-id="${limpio(p.id)}" data-nombre="${limpio(p.n)}"
+            data-marca="${limpio(p.m)}" data-precio="${p.p}">
+      <svg class="ico"><use href="#i-carrito"/></svg> Agregar
+    </button>
   </article>`;
 }
 
@@ -283,15 +291,14 @@ function prepararCarruseles() {
 
       caja.innerHTML = hallados.length
         ? hallados.map((p) => `
-            <button class="resultado" data-codigo="${limpio(p.codigo)}"
-                    data-nombre="${limpio(p.nombre)}" data-marca="${limpio(p.marca ?? '')}"
-                    data-precio="${p.precio ?? 0}" ${p.disponible && p.precio ? '' : 'disabled'}>
+            <a class="resultado" href="/producto/${encodeURIComponent(p.codigo)}"
+               data-ficha="${limpio(p.codigo)}">
               <span class="resultado-datos">
                 <strong>${limpio(p.nombre)}</strong>
                 <span>${limpio(p.marca || p.categoria)}${p.disponible ? '' : ' · agotado'}</span>
               </span>
               <span class="resultado-precio">${p.precio ? precio(p.precio) : 'Consultar'}</span>
-            </button>`).join('')
+            </a>`).join('')
           + (total > hallados.length
               ? `<p class="resultado-mas">y ${total - hallados.length} más</p>` : '')
         : `<p class="sin-resultados">No conseguimos nada con “${limpio(t)}”.<br>Escríbenos por WhatsApp y te lo buscamos.</p>`;
@@ -324,20 +331,10 @@ function prepararCarruseles() {
     entrada.focus();
   });
 
-  /* Sin páginas de producto todavía (eso llega con las fichas), lo útil que
-     puede hacer un resultado es entrar al pedido. */
+  /* El resultado es un enlace a la ficha; vistaproducto.js lo intercepta para
+     abrir el panel. Acá solo hay que cerrar la lista. */
   caja.addEventListener('click', (e) => {
-    const r = e.target.closest('[data-codigo]');
-    if (!r || r.disabled) return;
-    agregar({
-      id: r.dataset.codigo,
-      n: r.dataset.nombre,
-      m: r.dataset.marca,
-      p: Number(r.dataset.precio),
-    });
-    avisar(`Agregado: ${r.dataset.nombre}`);
-    evento('add_to_cart', { item_name: r.dataset.nombre });
-    cerrar();
+    if (e.target.closest('[data-ficha]')) cerrar();
   });
 
   $('#form-buscar').addEventListener('submit', (e) => {
