@@ -18,12 +18,12 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-08-31:** la API del catálogo llegó, está integrada y **verificada en
-local con el servidor corriendo: los 8.437 productos se ven en la tienda**.
-Todavía **sin commitear**. Para ver dónde quedó: `git log --oneline -5` y
-`git status`.
+**Al 2026-08-31:** la API del catálogo llegó y está integrada. `main` tiene esa
+integración; la rama **`products`** suma las fichas de producto y el sitemap,
+todo verificado en local. Falta mergear y desplegar: **lo publicado sigue
+mostrando los 46 productos de ejemplo.**
 
-Lo desplegado sigue con los 46 productos de ejemplo hasta que se pushee.
+Para ver dónde quedó: `git log --oneline -5` y `git branch`.
 
 ## Cómo trabajar con Ricardo
 
@@ -57,15 +57,22 @@ src/
     topventas.astro          Lo más vendido (10 cupos)
     ofertas.astro            Ofertas con precio, descuento y vencimiento
     salir.astro
+  pages/producto/[...ruta].astro  la ficha · /producto/nombre/CODIGO
   pages/api/vitrinas.json.js sirve las vitrinas ya armadas a la tienda
   pages/api/catalogo.json.js PROXY del catálogo · impide que el token se filtre
+  pages/sitemap.xml.js       índice de sitemaps
+  pages/sitemap-paginas.xml.js       home y rubros
+  pages/sitemap-productos-[tramo].xml.js  1.000 productos por tramo
   layouts/Admin.astro        cabecera + barra lateral
   components/MenuProducto.astro   el menú ⋯ (usa <details>, sin JS)
   datos/api.js               cliente del catálogo de kafe · SOLO SERVIDOR
   datos/curaduria.js         qué se muestra en la home · Vercel Blob
   lib/sesion.js              cookie firmada con HMAC (Web Crypto)
+  lib/sitemap.js             tamaños, caché y tandas de los sitemaps
   middleware.js              puerta única de /admin
   scripts/app.js             interacción de la tienda
+  scripts/vistaproducto.js   el panel de la ficha, sin recargar
+  scripts/ficha.js           la página de producto (solo agregar al pedido)
   scripts/carrito.js         carrito → WhatsApp
   scripts/analitica.js       GA4 + consentimiento
   scripts/grafica.js         gráfica del panel (Chart.js) + selector de mes
@@ -103,6 +110,47 @@ rg -l "kafe_cat_" dist/client/     # no debe encontrar nada
 - El 44 % del catálogo está agotado y se descarta al pintar.
 - La API ordena alfabéticamente y no acepta otro orden. Sin muestrear por
   tramos, las ocho filas de la home empezarían todas en "ABRAZADERA".
+
+## Las fichas de producto y el SEO
+
+**Cada producto tiene su dirección:** `/producto/nombre-del-producto/CODIGO`.
+
+- La arma **`urlProducto()` en `datos/api.js`, y solo ella**. La usan las
+  tarjetas, el buscador, el panel, la canónica y el sitemap. Si cada uno
+  escribiera la suya, Google vería el mismo producto en varias direcciones
+  repartiéndose el posicionamiento.
+- El **código va al final y es el que manda**. La ruta es `[...ruta]`: toma el
+  último tramo como código e ignora el resto. Así `/producto/CODIGO` a secas
+  también entra, y si el negocio renombra un producto el enlace viejo no se
+  rompe: **redirige con 301** al nombre nuevo.
+- El nombre se recorta a 60 caracteres. URLs más largas no aportan nada.
+- **La página se renderiza en servidor**, no se prerenderiza: son 8.437 fichas
+  con precios que se mueven durante el día.
+- Un producto **agotado o sin precio se muestra** —alguien puede llegar por un
+  enlace viejo— pero lleva `noindex, follow`.
+- El **panel lateral** (`scripts/vistaproducto.js`) va montado encima de un
+  enlace real. Si el JavaScript falla, el enlace navega y se ve la misma ficha.
+  Google sigue el `href` y nunca pasa por el panel.
+
+### El sitemap, y por qué está partido
+
+`/sitemap.xml` es un índice: apunta a `sitemap-paginas.xml` y a nueve
+`sitemap-productos-N.xml` de 1.000 productos cada uno.
+
+**No es una elección estética.** Recorrer el catálogo entero son 85 peticiones
+y la API admite 120 por minuto por IP; hacerlas de una sola vez nos bloqueó
+durante una tarde. Repartido, Google pide un tramo por vez, cada uno cuesta 10
+peticiones en tandas de cuatro —medido: 794 ms— y se cachea 24 horas.
+
+Ese caché largo no contradice el «no guardes precios más de unos minutos» del
+proveedor: el sitemap lleva direcciones, no precios.
+
+Solo entran los productos vendibles, unas 5.000 direcciones. Miles de fichas
+agotadas y sin foto son contenido pobre para Google y arrastran al resto.
+
+Hace falta porque **en el HTML de la home no hay un solo enlace a un producto**:
+las tarjetas las pinta el JavaScript. Sin el sitemap, indexar quedaría a merced
+de que el robot ejecute scripts, que lo hace tarde y sin garantías.
 
 ## Cómo funciona la curaduría
 
@@ -175,6 +223,9 @@ el día que el negocio las cargue aparecen solas.
 | **`api.js` nunca se importa desde el navegador** | La URL lleva el token adentro. La tienda pide por `/api/catalogo.json`, que corre en servidor. |
 | **La home elige categorías, no productos** | 1.608 artículos en una sola categoría no se curan con casillas. |
 | **No se buscan fotos por título automáticamente** | Ya se probó con 50 imágenes y salieron mal (un candado ilustrado con una pareja en la playa). Con 8.437 nadie las audita, y una foto equivocada genera un reclamo. |
+| **La ficha es una página, no un modal** | Un panel que abre con JavaScript es invisible para Google: sin URL no hay nada que indexar. El panel va encima de un enlace real, no en su lugar. |
+| **La URL lleva nombre y código** | El nombre gana clics —acá los enlaces se pegan en WhatsApp—; el código mantiene el enlace vivo si el producto se renombra. |
+| **El sitemap no incluye todo el catálogo** | Miles de fichas agotadas y sin foto son contenido pobre y arrastran al resto del sitio. |
 
 ## Trampas conocidas
 
@@ -184,6 +235,19 @@ el día que el negocio las cargue aparecen solas.
 - **La API se degrada con concurrencia.** Medido: 8 peticiones simultáneas → 470 ms;
   24 → 7,5 s. Si algo empieza a dar timeout, revisar si se soltaron demasiadas
   juntas en vez de pasar por `enLotes()`.
+- **Pasarse del límite bloquea la IP, y no avisa con un 429.** El 2026-08-31,
+  midiendo el comportamiento de la API, se hicieron más de cien peticiones en
+  ráfagas y el host dejó de aceptar conexiones: ni handshake TLS, solo
+  `Connection timed out` a los 20 segundos. Duró horas y se resolvió cambiando
+  de IP. Para distinguirlo de una caída del servicio:
+
+  ```bash
+  curl -sv --max-time 15 "https://auto.kafe.agency/" 2>&1 | rg -i "trying|connected|timed out"
+  curl -s https://api.ipify.org        # por qué IP estás saliendo
+  ```
+
+  Si el DNS resuelve pero el TCP no conecta, es bloqueo o caída; si otros
+  sitios cargan bien, es bloqueo. **Al probar contra la API, ir de a pocas.**
 - **`referencia` en la API NO es el código de fábrica: es el anaquel.** Trae
   cosas como `EXHIBICION TABLERO` y `A2-ARRIBA`, y el mismo `04CH` aparece en
   STANLEY, TRUPER y TOLSEN a la vez. No sirve para buscar fotos.
@@ -284,6 +348,16 @@ console.log(r.status, (await r.text()).includes('kafe_cat_'));  // 200 false
 
 El `false` es la prueba que importa: la respuesta no lleva el token.
 
+**Si la API te bloqueó pero el servidor de Ricardo sigue andando**, se verifica
+a través de él, que sale por otra IP:
+
+```bash
+curl -s -o /dev/null -w "%{http_code} → %{redirect_url}\n" "http://localhost:4321/producto/CN28"
+curl -s "http://localhost:4321/sitemap-productos-1.xml" | rg -c "<loc>"
+```
+
+Cada llamada así consume peticiones de **su** IP: pocas y bien elegidas.
+
 ## Comandos
 
 ```bash
@@ -311,9 +385,10 @@ F7 conexión del bot, F8 cifras reales de GA4 y Search Console en el panel.
 - **Ningún producto tiene foto.** Ver «El problema de las fotos» en
   [PLAN.md](PLAN.md): está medido y con la pregunta que hay que hacerle al
   encargado.
-- **Faltan las páginas de producto.** Ahora que hay `codigo` estable se pueden
-  hacer, junto con el dato estructurado `Product` que quedó pendiente de F4.
-  Hoy un resultado del buscador agrega al pedido, porque no hay adónde llevarlo.
+- **Faltan las páginas de categoría** (`/categoria/[ranura]`). Hoy los 32 rubros
+  del menú son anclas de la home, no páginas propias.
+- **La home no tiene metadatos propios** más allá del título y la descripción:
+  falta canónica, Open Graph y el `LocalBusiness`.
 - El login no tiene límite de intentos (va en F10; en serverless un contador en
   memoria no sirve).
 - Las métricas del panel son de muestra hasta F8.

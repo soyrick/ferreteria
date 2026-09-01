@@ -13,9 +13,9 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
-1. **Commitear y desplegar la integración del catálogo.** Está hecha y
-   verificada en local, pero el sitio publicado sigue mostrando los 46
-   productos de ejemplo.
+0. **Mergear `products` a `main` y desplegar.** La rama trae las fichas de
+   producto y el sitemap, verificados. El sitio publicado sigue mostrando los
+   46 productos de ejemplo hasta que esto llegue a producción.
 2. **Volver a curar las vitrinas.** Al cambiar los productos de ejemplo por los
    reales, los identificadores cambiaron (`taladro-percutor` → `C011132`) y la
    selección guardada quedó inservible. *Lo más vendido* y *En oferta* arrancan
@@ -112,7 +112,7 @@ mover solo ese sector sin tocar la tienda.
 | F1 Base técnica | ✅ hecha | — |
 | F2 Carrito de compras | ✅ hecha (número de WhatsApp de ejemplo) | — |
 | F3 Ventana de chat | ✅ interfaz hecha | — |
-| F4 SEO base y rendimiento | ⬜ pendiente | — |
+| F4 SEO base y rendimiento | 🟡 fichas y sitemap hechos, en rama `products` | — |
 | F5 Analítica | ✅ hecha y verificada midiendo | — |
 | F6 API de productos y catálogo real | ✅ integrada · faltan las fotos | el negocio no cargó fotos |
 | F7 Conexión del chatbot | ⛔ bloqueada | API del chatbot |
@@ -199,28 +199,45 @@ escritorio y en móvil.
 
 ---
 
-### F4 — SEO base y rendimiento · **la que sigue**
+### F4 — SEO base y rendimiento · **en curso, rama `products`**
 
-Se saltó en su momento y quedó como la única fase sin bloqueo. **Ahora rinde más
-que entonces:** con la API integrada hay `codigo` estable y datos reales, así que
-el `Product` estructurado que estaba vetado ya se puede hacer sin mentirle a
-Google.
+Se saltó en su momento y quedó como la única fase sin bloqueo. Rindió más que
+entonces: con la API integrada hay `codigo` estable, así que el `Product`
+estructurado que estaba vetado se pudo hacer sin mentirle a Google.
 
-- Metadatos por página, canónicas, Open Graph.
-- `sitemap.xml` y `robots.txt` generados, no escritos a mano. Hoy el `robots.txt`
-  está a mano y no apunta a ningún sitemap.
-- Datos estructurados: `LocalBusiness` para la ficha del negocio.
-- **Páginas de producto** (`/producto/[codigo]`). Es la deuda que dejó F6 y sin
-  ella el SEO de catálogo no existe: 8.437 productos sin URL propia son 8.437
-  páginas que Google no puede indexar. Hoy un resultado del buscador agrega al
-  pedido porque no hay adónde llevarlo.
-- Páginas de categoría (`/categoria/[ranura]`), que además le dan destino al
-  menú de 32 rubros.
-- Core Web Vitals medidos, no estimados.
+Hecho y verificado el 2026-08-31:
 
-**Ojo con el volumen:** 8.437 páginas no se prerenderizan en cada build, y los
-precios cambian durante el día. Van renderizadas en servidor con caché corto,
-como el resto del catálogo.
+- ✅ **Páginas de producto** en `/producto/nombre-del-producto/CODIGO`,
+  renderizadas en servidor. Era la deuda que dejó F6: sin ellas, 8.437
+  productos no tenían una sola URL que Google pudiera indexar.
+- ✅ **Redirección 301** de `/producto/CODIGO` al nombre completo, para que los
+  enlaces viejos y los que alguien escriba a mano no se rompan ni repartan el
+  posicionamiento entre varias direcciones.
+- ✅ **Panel lateral** que abre la ficha sin recargar, montado encima de un
+  enlace que funciona igual sin JavaScript.
+- ✅ **Sitemap** partido en índice y nueve tramos. Ronda las 5.000 direcciones:
+  solo entran los productos vendibles.
+- ✅ **`robots.txt`** apuntando al sitemap y cerrando `/api/`.
+- ✅ **Datos estructurados `Product`**, declarando solo lo que la API garantiza.
+- ✅ Canónicas y Open Graph en la ficha.
+
+Falta:
+
+- ⏳ Metadatos y canónica de la home.
+- ⏳ `LocalBusiness` para la ficha del negocio.
+- ⏳ Páginas de categoría (`/categoria/[ranura]`), que además le darían destino
+  propio al menú de 32 rubros; hoy son anclas de la home.
+- ⏳ Core Web Vitals medidos, no estimados.
+
+**Por qué el sitemap va partido.** Recorrer el catálogo entero son 85
+peticiones y la API admite 120 por minuto por IP. Hacerlas de una sola vez nos
+bloqueó durante una tarde. Repartido en tramos de 1.000, Google pide uno por
+vez, cada uno cuesta 10 peticiones —medido: 794 ms— y se cachea 24 horas.
+
+**Y por qué no se indexa todo.** El 44 % del catálogo está agotado y ninguno
+tiene foto ni descripción. Miles de fichas así son contenido pobre para Google
+y arrastran al resto del sitio. Entran solo las vendibles; el resto existe con
+`noindex` y vuelve al sitemap solo cuando haya existencia.
 
 **Cierre:** Lighthouse con números concretos y los datos estructurados validados.
 
