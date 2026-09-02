@@ -110,13 +110,6 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
           <svg class="ico"><use href="#i-carrito"/></svg>
           <span class="contador" id="contador-carrito" hidden>0</span>
         </button>
-        <button class="btn btn-sesion" id="btn-sesion">
-          <svg class="ico"><use href="#i-usuario"/></svg>
-          <span>Iniciar sesión</span>
-        </button>
-        <button class="btn-icono solo-movil" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">
-          <svg class="ico"><use href="#i-menu"/></svg>
-        </button>
       </div>
 
     </div>
@@ -141,7 +134,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 
       <span class="nav-separador" aria-hidden="true"></span>
 
-      <a class="nav-enlace" href="#ofertas"><svg class="ico"><use href="#i-etiqueta"/></svg> Ofertas</a>
+      <a class="nav-enlace nav-destacada" href="#ofertas"><svg class="ico"><use href="#i-etiqueta"/></svg> Ofertas</a>
       <a class="nav-enlace" href="#ubicacion"><svg class="ico"><use href="#i-ubicacion"/></svg> Ubicación</a>
       <a class="nav-enlace" href="#horarios"><svg class="ico"><use href="#i-reloj"/></svg> Horarios</a>
       <a class="nav-enlace" href="#contacto"><svg class="ico"><use href="#i-telefono"/></svg> Contacto</a>
@@ -502,34 +495,6 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
     <button class="btn btn-amarillo" id="consent-si">Aceptar</button>
   </div>
 </aside>
-
-<!-- ============ MODAL DE SESIÓN ============ -->
-<div class="modal" id="modal-sesion" hidden>
-  <div class="modal-fondo" data-cerrar-modal></div>
-  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="titulo-sesion">
-    <button class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button>
-    <img src="/assets/logo.png" alt="" class="modal-logo">
-    <h2 id="titulo-sesion">Entra a tu cuenta</h2>
-    <p class="modal-sub">Lleva el historial de tus compras, tus cotizaciones y tus precios de contratista.</p>
-
-    <form id="form-sesion" class="modal-form">
-      <label>Correo o teléfono
-        <input type="text" name="usuario" placeholder="tucorreo@ejemplo.com" required>
-      </label>
-      <label>Contraseña
-        <input type="password" name="clave" placeholder="••••••••" required>
-      </label>
-      <div class="modal-fila">
-        <label class="modal-check"><input type="checkbox"> Mantener sesión abierta</label>
-        <a href="#" class="modal-enlace">¿Olvidaste la clave?</a>
-      </div>
-      <button class="btn btn-amarillo btn-ancho" type="submit">Entrar</button>
-    </form>
-
-    <p class="modal-pie">¿Todavía no tienes cuenta? <a href="#" class="modal-enlace">Regístrate aquí</a></p>
-    <p class="modal-demo">Módulo de demostración: no se envía ni se guarda ningún dato.</p>
-  </div>
-</div>
 
 <script>
   // Astro lo empaqueta y lo sirve como módulo diferido: mismo momento de

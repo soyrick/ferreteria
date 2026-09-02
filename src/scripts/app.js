@@ -210,7 +210,11 @@ function prepararCarruseles() {
   const zona = $('.buscador');
   const boton = $('#btn-buscar');
 
-  const desplegado = () => zona.classList.contains('abierto');
+  /* Se mide el campo en vez de mirar la clase: en el teléfono el CSS lo deja
+     desplegado sin que nadie toque nada, y ahí el primer envío tiene que
+     buscar, no "abrir" algo que ya está abierto. */
+  const desplegado = () =>
+    zona.classList.contains('abierto') || entrada.getBoundingClientRect().width > 0;
 
   function desplegar() {
     zona.classList.add('abierto');
@@ -340,42 +344,6 @@ function prepararCarruseles() {
   document.addEventListener('keydown', (e) => e.key === 'Escape' && abrir(false));
 })();
 
-/* Menú de secciones en móvil: solo enfoca la barra desplazable. */
-$('#btn-menu').addEventListener('click', () => {
-  $('#nav-secundaria').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  $('#btn-productos').click();
-});
-
-/* ---------------------------------------------------------
-   9. MODAL DE SESIÓN
-   --------------------------------------------------------- */
-(function sesion() {
-  const modal = $('#modal-sesion');
-  let ultimoFoco = null;
-
-  const abrir = () => {
-    ultimoFoco = document.activeElement;
-    modal.hidden = false;
-    document.body.classList.add('sin-scroll');
-    $('input', modal).focus();
-  };
-  const cerrar = () => {
-    modal.hidden = true;
-    document.body.classList.remove('sin-scroll');
-    ultimoFoco?.focus();
-  };
-
-  $('#btn-sesion').addEventListener('click', abrir);
-  modal.addEventListener('click', (e) => e.target.closest('[data-cerrar-modal]') && cerrar());
-  document.addEventListener('keydown', (e) => e.key === 'Escape' && !modal.hidden && cerrar());
-
-  $('#form-sesion').addEventListener('submit', (e) => {
-    e.preventDefault();
-    e.target.reset();
-    cerrar();
-    avisar('Este es un demo: el inicio de sesión todavía no está conectado.');
-  });
-})();
 
 /* ---------------------------------------------------------
    10. PRESUPUESTO (contador) Y TOSTADA
