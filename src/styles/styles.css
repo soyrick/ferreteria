@@ -995,6 +995,12 @@ h1, h2, h3, h4, .hero-titulo {
   }
   .buscador-campo { flex: 1 1 auto; width: auto; min-width: 0; visibility: visible; transition: none; }
   .buscador-campo input { min-width: 0; }
+
+  /* Sin el botón negro: acá el buscador ya está abierto, así que no tiene nada
+     que desplegar, y las sugerencias aparecen solas mientras se escribe. Queda
+     la lupa de la izquierda, que dice lo mismo ocupando la décima parte. */
+  .buscador-btn { display: none; }
+  .buscador-caja { padding-inline: 16px; }
   .marca { flex: 1 1 auto; min-width: 0; justify-self: auto; }
   .nav-acciones { flex: 0 0 auto; }
   .marca-logo { width: 40px; height: 40px; }
