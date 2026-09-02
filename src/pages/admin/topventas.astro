@@ -4,14 +4,18 @@ export const prerender = false;
 import Admin from '../../layouts/Admin.astro';
 import MenuProducto from '../../components/MenuProducto.astro';
 import { producto } from '../../datos/api.js';
-import { leer, almacenListo, accionProducto, CUPOS_TOPVENTAS } from '../../datos/curaduria.js';
+import { leer, almacenListo, accionProducto, limpiarHuerfanos, CUPOS_TOPVENTAS } from '../../datos/curaduria.js';
 
 let mensaje = null;
 
 if (Astro.request.method === 'POST') {
-  const accion = (await Astro.request.formData()).get('accion');
-  const [que, codigo] = String(accion ?? '').split(':');
-  if (que) mensaje = await accionProducto(que, codigo);
+  const accion = String((await Astro.request.formData()).get('accion') ?? '');
+  if (accion === 'limpiar-huerfanos') {
+    mensaje = await limpiarHuerfanos();
+  } else {
+    const [que, codigo] = accion.split(':');
+    if (que) mensaje = await accionProducto(que, codigo);
+  }
 }
 
 const estado = await leer();
@@ -25,6 +29,8 @@ const elegidos = await Promise.all(
     p: await producto(codigo).catch(() => null),
   })),
 );
+// Códigos que ya no responden en la API: basura de la migración.
+const huerfanos = elegidos.filter((e) => !e.p).length;
 ---
 <Admin titulo="Lo más vendido">
   <header class="admin-titulo">
@@ -46,6 +52,18 @@ const elegidos = await Promise.all(
       <strong>Guardando solo en memoria.</strong>
       No encuentro <code>BLOB_READ_WRITE_TOKEN</code>. Los cambios se pierden al reiniciar.
     </div>
+  )}
+
+  {huerfanos > 0 && (
+    <form method="POST" class="admin-aviso admin-aviso-accion">
+      <div>
+        <strong>Hay {huerfanos} producto{huerfanos > 1 ? 's' : ''} que ya no está{huerfanos > 1 ? 'n' : ''} en el catálogo.</strong>
+        Quedaron de cuando los productos eran de ejemplo. No se ven en la tienda.
+      </div>
+      <button type="submit" name="accion" value="limpiar-huerfanos" class="btn btn-negro">
+        Quitar {huerfanos > 1 ? 'todos' : ''}
+      </button>
+    </form>
   )}
 
   <div class="panel-buscador">

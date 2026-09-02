@@ -196,7 +196,11 @@
 
 @media (max-width: 860px) {
   .admin-pestanas { top: 62px; padding-inline: 16px; }
-  .elegir { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr) y no 1fr a secas: `1fr` equivale a `minmax(auto, 1fr)`, y
+     ese `auto` deja que la columna crezca hasta el contenido más ancho. Con
+     nombres de producto de 43 caracteres la fila se iba a 477px dentro de una
+     pantalla de 375 y arrastraba a toda la página. */
+  .elegir { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---------- Barra lateral ---------- */
@@ -245,8 +249,14 @@
 }
 
 @media (max-width: 860px) {
-  /* En pantalla angosta la barra vuelve a ser una fila arriba del contenido. */
-  .admin-marco { flex-direction: column; }
+  /* En pantalla angosta la barra vuelve a ser una fila arriba del contenido.
+
+     `align-items: stretch` es obligatorio acá: en el marco de escritorio vale
+     `flex-start`, que en fila alinea arriba, pero al girar a columna pasa a
+     controlar el eje horizontal y deja que los hijos midan lo que mide su
+     contenido. Así el cuerpo se estiraba a 509px dentro de un marco de 375 y
+     desbordaba la pantalla entera. */
+  .admin-marco { flex-direction: column; align-items: stretch; }
   .admin-lateral {
     position: static; width: 100%; min-height: 0;
     flex-direction: row; overflow-x: auto; scrollbar-width: none;
@@ -370,7 +380,8 @@
 .oferta-campo input:focus { border-color: var(--amarillo); }
 
 @media (max-width: 860px) {
-  .panel-buscador { flex-wrap: wrap; position: static; }
+  /* Lo del buscador en pantalla angosta está al final del archivo: sus reglas
+     base se escribieron después de este bloque y lo pisaban. */
   .panel-cuenta { width: 100%; }
   .oferta-fila { flex-wrap: wrap; }
   .oferta-datos { flex: 1 0 60%; }
@@ -432,3 +443,37 @@
   text-decoration: none; color: var(--negro); font-weight: 600;
 }
 .panel-paginas a:hover { border-color: var(--negro); background: var(--gris-100); }
+
+/* =========================================================
+   PANTALLA ANGOSTA — va al final a propósito
+   Las reglas base del buscador con filtro y de la paginación se escribieron
+   más abajo que el @media de arriba, así que lo pisaban. Con la misma
+   especificidad gana la última del archivo: por eso este bloque cierra.
+   ========================================================= */
+@media (max-width: 860px) {
+  /* Tres renglones: etiqueta, campo con su botón, y el filtro de categoría
+     entero abajo.
+
+     El detalle que lo rompía: el input es `flex: 1; min-width: 0`, así que
+     cedía todo su ancho —quedaba en 41px— antes de que el select saltara de
+     línea, y entre los dos empujaban la página a 513px sobre 375 disponibles.
+     Con una base de 170px, el que salta es el select. */
+  .panel-buscador { flex-wrap: wrap; position: static; row-gap: 9px; }
+  .panel-buscador label { flex: 1 0 100%; }
+  .panel-buscador input { flex: 1 1 170px; }
+  .panel-buscador select { flex: 1 0 100%; max-width: none; }
+  .panel-cuenta { flex: 1 0 100%; }
+
+  .panel-paginas { gap: 10px; font-size: 12px; }
+
+  /* El código del producto es dato de consulta, no de lectura: en angosto
+     cede ancho al nombre en vez de reservar 76px fijos. */
+  .elegir-codigo { min-width: 0; }
+}
+
+/* Aviso con su botón al lado: el de productos fuera del catálogo. */
+.admin-aviso-accion {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.admin-aviso-accion div { flex: 1 1 300px; }

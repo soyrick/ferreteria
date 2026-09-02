@@ -169,6 +169,36 @@ export async function accionProducto(accion, codigo) {
   return { error: 'Acción desconocida.' };
 }
 
+/* Saca de las vitrinas los códigos que ya no existen en el catálogo.
+
+   Quedan cuando el negocio da de baja un producto, y sobre todo quedaron los
+   de la migración: la curaduría vieja guardaba slugs propios y al pasar a los
+   códigos reales de la API ninguno resolvió. En pantalla se ven como
+   «ya no está en la API»; esto los quita todos de una en vez de uno por uno.
+
+   Solo borra lo que la API responde que no existe: si falla la consulta, el
+   producto se conserva. Un error de red no puede vaciarle las vitrinas. */
+export async function limpiarHuerfanos() {
+  const s = await leer();
+  const codigos = [...new Set([...s.topventas, ...s.ofertas.map((o) => o.codigo)])];
+  if (!codigos.length) return { aviso: 'No hay nada que revisar.' };
+
+  const traidos = await enLotes(codigos.map((c) => () => producto(c).catch(() => 'falló')));
+  const fuera = new Set(codigos.filter((_, i) => traidos[i] === null));
+
+  if (!fuera.size) return { aviso: 'Todos los productos siguen en el catálogo.' };
+
+  const errores = await guardar({
+    topventas: s.topventas.filter((c) => !fuera.has(c)),
+    ofertas: s.ofertas.filter((o) => !fuera.has(o.codigo)),
+  });
+
+  const n = fuera.size;
+  return errores.length
+    ? { error: errores[0] }
+    : { ok: `Se quitaron ${n} producto${n > 1 ? 's que ya no están' : ' que ya no está'} en el catálogo.` };
+}
+
 /** Aplica la rebaja: el precio de oferta pisa al de lista, que queda como "antes". */
 const conRebaja = (p, precio) =>
   precio ? { ...p, p: precio, pa: p.p, et: 'oferta' } : p;

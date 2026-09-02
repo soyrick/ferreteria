@@ -4,7 +4,7 @@ export const prerender = false;
 import Admin from '../../layouts/Admin.astro';
 import MenuProducto from '../../components/MenuProducto.astro';
 import { producto } from '../../datos/api.js';
-import { leer, guardar, almacenListo, accionProducto, ofertaVigente } from '../../datos/curaduria.js';
+import { leer, guardar, almacenListo, accionProducto, ofertaVigente, limpiarHuerfanos } from '../../datos/curaduria.js';
 
 let errores = [];
 let mensaje = null;
@@ -13,7 +13,9 @@ if (Astro.request.method === 'POST') {
   const f = await Astro.request.formData();
   const accion = f.get('accion');
 
-  if (accion) {
+  if (accion === 'limpiar-huerfanos') {
+    mensaje = await limpiarHuerfanos();
+  } else if (accion) {
     const [que, codigo] = String(accion).split(':');
     mensaje = await accionProducto(que, codigo);
   } else {
@@ -41,7 +43,9 @@ const activas = await Promise.all(
     vigente: ofertaVigente(o),
   })),
 );
-const vencidas = activas.filter((o) => !o.vigente).length;
+const vencidas = activas.filter((o) => o.p && !o.vigente).length;
+// Ofertas cuyo producto ya no responde en la API: basura de la migración.
+const huerfanas = activas.filter((o) => !o.p).length;
 ---
 <Admin titulo="Ofertas">
   <header class="admin-titulo">
@@ -70,10 +74,26 @@ const vencidas = activas.filter((o) => !o.vigente).length;
     </div>
   )}
 
+  {huerfanas > 0 && (
+    <form method="POST" class="admin-aviso admin-aviso-accion">
+      <div>
+        <strong>Hay {huerfanas} producto{huerfanas > 1 ? 's' : ''} que ya no está{huerfanas > 1 ? 'n' : ''} en el catálogo.</strong>
+        Quedaron de cuando los productos eran de ejemplo. No se ven en la tienda.
+      </div>
+      <button type="submit" name="accion" value="limpiar-huerfanos" class="btn btn-negro">
+        Quitar {huerfanas > 1 ? 'todos' : ''}
+      </button>
+    </form>
+  )}
+
   <div class="panel-buscador">
     <label for="buscar-producto">Buscar</label>
     <input type="search" id="buscar-producto" placeholder="Nombre o marca…" autocomplete="off">
-    <span class="panel-cuenta">{activas.length - vencidas} activas{vencidas > 0 && ` · ${vencidas} vencida${vencidas > 1 ? 's' : ''}`}</span>
+    <span class="panel-cuenta">
+      {activas.length - vencidas - huerfanas} activas
+      {vencidas > 0 && ` · ${vencidas} vencida${vencidas > 1 ? 's' : ''}`}
+      {huerfanas > 0 && ` · ${huerfanas} fuera del catálogo`}
+    </span>
   </div>
 
   <form method="POST" class="admin-form">
