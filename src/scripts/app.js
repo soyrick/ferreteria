@@ -367,24 +367,42 @@ document.addEventListener('click', (e) => {
   evento('add_to_cart', { item_name: btn.dataset.nombre });
 });
 
+/* El aviso dura tres segundos y después se desvanece, no desaparece de golpe:
+   un corte seco parece un parpadeo y deja dudando si de verdad decía algo. */
+const VISIBLE = 3000;
+const DESVANECIDO = 400;
+
 let relojTostada;
+let relojSalida;
+
 function avisar(texto) {
   const t = $('#tostada');
+  clearTimeout(relojTostada);
+  clearTimeout(relojSalida);
+
+  t.classList.remove('saliendo');
   t.innerHTML = `<svg class="ico"><use href="#i-check"/></svg> ${limpio(texto)}`;
   t.hidden = false;
-  clearTimeout(relojTostada);
-  relojTostada = setTimeout(() => (t.hidden = true), 3200);
+
+  relojTostada = setTimeout(() => {
+    t.classList.add('saliendo');
+    // Se esconde recién cuando terminó de desvanecerse; si no, el elemento
+    // desaparecería a mitad de la transición y el efecto no se vería.
+    relojSalida = setTimeout(() => {
+      t.hidden = true;
+      t.classList.remove('saliendo');
+    }, DESVANECIDO);
+  }, VISIBLE);
 }
 
-/* Los tres enlaces a "En oferta" —el del menú, el del hero y el del pie— sin
-   ofertas vigentes apuntan a una sección escondida: el navegador no saltaría a
-   ningún lado y el visitante creería que el sitio no responde. Se avisa qué
-   pasó y se ofrece dónde seguir mirando. */
+/* El botón Ofertas del menú, el que está al lado de Productos: es por donde
+   entra el cliente. Sin ofertas publicadas la sección está escondida, así que
+   el clic no llevaría a ningún lado y parecería que la página no responde. */
 document.addEventListener('click', (e) => {
-  const enlace = e.target.closest('a[href="#ofertas"]');
+  const enlace = e.target.closest('.nav-destacada');
   if (!enlace || hayOfertas) return;
   e.preventDefault();
-  avisar('Por ahora no hay ofertas activas. Mira Lo más vendido o escríbenos por WhatsApp.');
+  avisar('Por ahora no hay ofertas activas.');
 });
 
 /* ---------------------------------------------------------

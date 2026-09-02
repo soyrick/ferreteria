@@ -929,8 +929,18 @@ h1, h2, h3, h4, .hero-titulo {
   box-shadow: var(--sombra-2);
   border-left: 4px solid var(--amarillo);
   animation: entrar-tostada .3s var(--curva);
+  transition: opacity .4s ease, translate .4s var(--curva);
 }
 @keyframes entrar-tostada { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* Salida: se desvanece hundiéndose un poco. El -50% del translate hay que
+   repetirlo o la tostada se descentraría al animarse. */
+.tostada.saliendo { opacity: 0; translate: -50% 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tostada { transition: opacity .4s ease; }
+  .tostada.saliendo { translate: -50% 0; }
+}
 
 /* Los paneles que oscurecen el fondo —carrito, ficha, rejilla de categoría—
    comparten esta entrada. Vivía en el bloque del modal de sesión, que se
