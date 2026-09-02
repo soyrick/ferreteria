@@ -39,6 +39,11 @@ const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
    mostrar nada. */
 const VACIO = { categorias: [], topventas: [], ofertas: [] };
 
+/* La sección "En oferta" se esconde cuando no hay ninguna vigente, así que los
+   enlaces que apuntan a ella se quedarían sin destino: el clic no haría nada y
+   parecería que la página está rota. Cuando eso pasa, avisan en voz alta. */
+let hayOfertas = false;
+
 async function traerVitrinas() {
   try {
     const r = await fetch('/api/vitrinas.json');
@@ -89,6 +94,7 @@ function pintar(v) {
   $('#catalogo-caido').hidden = !sinNada;
   $('#estrellas').hidden = !v.topventas.length;
   $('#ofertas').hidden = !v.ofertas.length;
+  hayOfertas = v.ofertas.length > 0;
 
   /* El menú lista las categorías completas del negocio, no solo las ocho que
      salen en la portada: son los 32 rubros reales que maneja la tienda.
@@ -369,6 +375,17 @@ function avisar(texto) {
   clearTimeout(relojTostada);
   relojTostada = setTimeout(() => (t.hidden = true), 3200);
 }
+
+/* Los tres enlaces a "En oferta" —el del menú, el del hero y el del pie— sin
+   ofertas vigentes apuntan a una sección escondida: el navegador no saltaría a
+   ningún lado y el visitante creería que el sitio no responde. Se avisa qué
+   pasó y se ofrece dónde seguir mirando. */
+document.addEventListener('click', (e) => {
+  const enlace = e.target.closest('a[href="#ofertas"]');
+  if (!enlace || hayOfertas) return;
+  e.preventDefault();
+  avisar('Por ahora no hay ofertas activas. Mira Lo más vendido o escríbenos por WhatsApp.');
+});
 
 /* ---------------------------------------------------------
    11. BOLETÍN
