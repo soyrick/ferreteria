@@ -104,6 +104,37 @@ function pintar() {
 
   $('#carrito-total').textContent = precio(total());
   $('#carrito-enviar').href = enlaceWhatsapp();
+
+  pintarFlotante(n);
+}
+
+/* Atajo flotante abajo a la derecha. Aparece recién cuando hay algo en el
+   pedido: un carrito vacío ocupando la esquina no le sirve a nadie, y en un
+   teléfono esa zona es la más valiosa de la pantalla.
+
+   La clase en <body> la usa el botón de "volver arriba" para correrse: si no,
+   los dos pelean por el mismo lugar. */
+function pintarFlotante(n) {
+  const boton = $('#flotante-carrito');
+  if (!boton) return;
+
+  const hay = n > 0;
+  document.body.classList.toggle('con-carrito', hay);
+
+  if (!hay) { boton.hidden = true; return; }
+
+  $('#flotante-carrito-n').textContent = n;
+  $('#flotante-carrito-total').textContent = precio(total());
+  boton.setAttribute('aria-label', `Ver el pedido: ${n} ${n === 1 ? 'producto' : 'productos'}, ${precio(total())}`);
+
+  // Al aparecer no se anima; al cambiar el contenido, un pulso corto avisa que
+  // se sumó algo sin robar la atención.
+  if (boton.hidden) boton.hidden = false;
+  else {
+    boton.classList.remove('pulso');
+    void boton.offsetWidth;   // reinicia la animación
+    boton.classList.add('pulso');
+  }
 }
 
 export function abrir() {
@@ -123,6 +154,7 @@ export function iniciar() {
   pintar();
 
   $('#btn-carrito').addEventListener('click', abrir);
+  $('#flotante-carrito')?.addEventListener('click', abrir);
   $('#carrito-cerrar').addEventListener('click', cerrar);
   $('#carrito-fondo').addEventListener('click', cerrar);
   $('#carrito-vaciar').addEventListener('click', vaciar);

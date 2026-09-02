@@ -28,6 +28,15 @@ export function evento(nombre, datos = {}) {
   window.gtag?.('event', nombre, datos);
 }
 
+/* El banner se apoya abajo a la derecha, justo donde viven los botones
+   flotantes, y va por encima de ellos. Sin correrlos, tocar el carrito
+   terminaba pulsando "Aceptar" sin querer. Se publica su alto y el CSS los
+   levanta; al responder vuelve a cero y bajan solos. */
+function correrFlotantes(banner) {
+  const alto = banner && !banner.hidden ? banner.getBoundingClientRect().height + 12 : 0;
+  document.documentElement.style.setProperty('--sube-flotantes', `${Math.round(alto)}px`);
+}
+
 export function iniciarConsentimiento() {
   const banner = document.getElementById('consentimiento');
   if (!banner) return;
@@ -40,15 +49,17 @@ export function iniciarConsentimiento() {
   if (decision === 'no') return;
 
   banner.hidden = false;
+  correrFlotantes(banner);
+  // El banner cambia de alto al girar el teléfono o al cambiar el ancho.
+  addEventListener('resize', () => correrFlotantes(banner), { passive: true });
 
-  banner.querySelector('#consent-si').addEventListener('click', () => {
-    localStorage.setItem(CLAVE, 'si');
+  const responder = (valor, despues) => {
+    localStorage.setItem(CLAVE, valor);
     banner.hidden = true;
-    cargarGA();
-  });
+    correrFlotantes(banner);
+    despues?.();
+  };
 
-  banner.querySelector('#consent-no').addEventListener('click', () => {
-    localStorage.setItem(CLAVE, 'no');
-    banner.hidden = true;
-  });
+  banner.querySelector('#consent-si').addEventListener('click', () => responder('si', cargarGA));
+  banner.querySelector('#consent-no').addEventListener('click', () => responder('no'));
 }

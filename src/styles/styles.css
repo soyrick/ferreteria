@@ -907,8 +907,11 @@ h1, h2, h3, h4, .hero-titulo {
   clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 
+/* Abajo del todo cuando está solo; se corre a 86px si aparece el carrito
+   flotante, que tiene prioridad por ese lugar (ver body.con-carrito). */
 .flotante-arriba {
-  position: fixed; right: 22px; bottom: 86px; z-index: 80;
+  position: fixed; right: 22px; bottom: calc(22px + var(--sube-flotantes, 0px)); z-index: 80;
+  transition: bottom .22s var(--curva);
   display: grid; place-items: center;
   width: 44px; height: 44px;
   background: var(--negro); color: var(--amarillo);
@@ -1453,4 +1456,69 @@ h1, h2, h3, h4, .hero-titulo {
 
 @media (max-width: 560px) {
   .sello-agotado { width: 60px; height: 60px; font-size: 11.5px; left: 6px; top: 6px; }
+}
+
+/* ============ CARRITO FLOTANTE ============
+   Atajo al pedido, abajo a la derecha. Solo existe cuando hay algo dentro.
+   En un teléfono, la esquina inferior derecha es lo que el pulgar alcanza sin
+   reacomodar la mano: por eso va ahí y no arriba, junto al ícono de la barra. */
+/* `--sube-flotantes` lo pone analitica.js con el alto del banner de cookies.
+   Sin esto los flotantes quedan debajo de él —que tiene z-index 100— y tocar
+   el carrito aceptaba las cookies sin querer. */
+.flotante-carrito {
+  position: fixed; right: 22px; bottom: calc(22px + var(--sube-flotantes, 0px)); z-index: 90;
+  transition: bottom .22s var(--curva);
+  display: inline-flex; align-items: center; gap: 9px;
+  height: 52px; padding: 0 20px 0 17px;
+  border: 0; cursor: pointer;
+  background: var(--amarillo); color: var(--negro);
+  border-radius: 99px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  box-shadow: var(--sombra-amarilla);
+  animation: carrito-aparece .28s var(--curva);
+  transition: transform .2s var(--curva), box-shadow .2s, background .18s;
+}
+@keyframes carrito-aparece {
+  from { opacity: 0; transform: translateY(14px) scale(.9); }
+  to { opacity: 1; transform: none; }
+}
+.flotante-carrito .ico { width: 22px; height: 22px; }
+
+/* El contador va en un disco negro: es el dato que se busca de un vistazo. */
+.flotante-carrito-n {
+  display: grid; place-items: center;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  background: var(--negro); color: var(--amarillo);
+  border-radius: 99px; font-size: 12.5px; font-weight: 800;
+}
+.flotante-carrito-total { font-variant-numeric: tabular-nums; }
+
+@media (hover: hover) {
+  .flotante-carrito:hover {
+    background: var(--amarillo-vivo);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px rgba(255,221,0,.5);
+  }
+}
+
+/* Pulso corto al sumar algo: confirma sin robar la atención. */
+.flotante-carrito.pulso { animation: carrito-pulso .34s var(--curva); }
+@keyframes carrito-pulso {
+  0% { transform: none; }
+  45% { transform: scale(1.09); }
+  100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flotante-carrito, .flotante-carrito.pulso { animation: none; }
+}
+
+/* Con el carrito abajo, el botón de volver arriba se corre para no taparlo. */
+body.con-carrito .flotante-arriba { bottom: calc(86px + var(--sube-flotantes, 0px)); }
+
+@media (max-width: 560px) {
+  /* En pantalla chica se muestra la cantidad, no el total: el pill compite con
+     el contenido y el número de productos es lo que se necesita ver. */
+  .flotante-carrito { right: 14px; bottom: calc(14px + var(--sube-flotantes, 0px)); height: 48px; padding: 0 16px 0 14px; }
+  .flotante-carrito-total { display: none; }
+  body.con-carrito .flotante-arriba { bottom: calc(74px + var(--sube-flotantes, 0px)); }
 }

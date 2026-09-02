@@ -477,6 +477,14 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 </div>
 
 <!-- ============ FLOTANTES ============ -->
+<!-- El carrito solo aparece cuando hay algo dentro. Ocupa el lugar de abajo,
+     que es el más fácil de alcanzar con el pulgar en un teléfono. -->
+<button class="flotante-carrito" id="flotante-carrito" hidden aria-controls="panel-carrito">
+  <svg class="ico"><use href="#i-carrito"/></svg>
+  <span class="flotante-carrito-n" id="flotante-carrito-n">0</span>
+  <span class="flotante-carrito-total" id="flotante-carrito-total">$0,00</span>
+</button>
+
 <button class="flotante-arriba" id="btn-arriba" aria-label="Volver arriba" hidden>
   <svg class="ico"><use href="#i-arriba"/></svg>
 </button>
