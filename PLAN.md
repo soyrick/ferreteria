@@ -151,7 +151,8 @@ Verificado el 2026-08-24 en el sitio desplegado.
 - **Sitio público** en https://casaherramientas.vercel.app
 - **Buscador replegable**, hero por tramos responsive, franjas de toque invisibles en
   el hero para móvil.
-- **Carrito** en panel lateral, con persistencia y pedido armado hacia WhatsApp.
+- **Carrito** en panel lateral, con persistencia y pedido armado hacia WhatsApp,
+  más un atajo flotante que aparece cuando hay algo dentro.
 - **Panel con barra lateral** y cuatro pantallas: estadísticas (gráfica de visitas
   con Chart.js e histórico por mes), Productos, Lo más vendido y Ofertas.
 - **Buscador y menú ⋯** en las tres pantallas de curaduría, para mover un producto
@@ -230,6 +231,12 @@ Hecho y verificado entre el 2026-08-31 y el 2026-09-01:
 - ✅ **Sello de agotado** en los productos sin existencia, con consulta por
   WhatsApp en vez del botón de agregar.
 - ✅ Un solo `<h1>` en la home. Había cuatro, uno por lámina del hero.
+- ✅ **Carrito flotante** abajo a la derecha, solo cuando hay algo en el pedido.
+- ✅ **Fuera el inicio de sesión y el menú hamburguesa.** No va a haber cuentas,
+  y el hamburguesa no abría nada: hacía scroll a una barra ya visible.
+- ✅ **Buscador desplegado en el teléfono**, de extremo a extremo y sin el botón
+  negro; queda la lupa. Se busca escribiendo o con Enter.
+- ✅ **Ofertas en dorado** en el menú, y avisa cuando no hay ninguna publicada.
 
 Falta:
 

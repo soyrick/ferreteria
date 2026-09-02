@@ -18,13 +18,13 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-09-01, cierre de jornada:** todo mergeado a `main` y pusheado, árbol
-limpio. La rama `products` queda apuntando al mismo commit que `main`.
+**Al 2026-09-01:** todo mergeado a `main` y pusheado, árbol limpio. La rama
+`products` queda apuntando al mismo commit que `main`.
 
-La sesión dejó: catálogo real integrado, fichas de producto con su URL,
+La jornada dejó: catálogo real integrado, fichas de producto con su URL,
 sitemap, rejilla de categoría, sello de agotado, consultas de WhatsApp con el
-mensaje escrito, y el chatbot eliminado. Para ver dónde quedó:
-`git log --oneline -12`.
+mensaje escrito, carrito flotante, y fuera el chatbot y el inicio de sesión.
+Para ver dónde quedó: `git log --oneline -18`.
 
 **Lo primero al retomar:** la lista de «Para mañana» en [PLAN.md](PLAN.md).
 
@@ -217,6 +217,43 @@ Documento guardado en Blob (`curaduria.json`):
 - Un código que ya no esté en la API no rompe nada: se descarta al pintar y el
   panel lo marca *«ya no está en la API · quítalo»*.
 
+## La barra de arriba y los flotantes
+
+**No hay inicio de sesión.** Se quitó entero el 2026-09-01 —botón, modal,
+formulario, JavaScript y CSS— porque no va a haber cuentas de usuario. Tampoco
+hay menú hamburguesa: no abría nada, hacía scroll hasta la barra de secciones,
+que ya está a la vista y se desliza sola.
+
+**El buscador en el teléfono nace desplegado**, de extremo a extremo y sin el
+botón negro: solo la lupa de la izquierda. Replegado pedía dos gestos donde
+alcanzaba uno. Dos cosas que no se ven pero sostienen eso:
+
+- `min-width: 0` en toda la cadena del buscador. Un `<input>` trae un ancho
+  mínimo propio de unos 20 caracteres y sin eso ningún contenedor cede: la caja
+  se salía 11 px de la pantalla.
+- El JS decide entre «abrir» y «buscar» **midiendo el ancho del campo**, no
+  mirando la clase `.abierto`. En móvil el CSS lo deja abierto sin que nadie lo
+  toque, y ahí el primer envío tiene que buscar.
+
+Enviar funciona con Enter, por la regla de envío implícito: con un único campo
+de texto no hace falta un botón visible.
+
+**El botón Ofertas del menú es dorado** y no amarillo. Sobre el nav negro el
+dorado resalta sin competir con el amarillo de la marca, que ya es el color del
+botón de agregar en cada tarjeta.
+
+### Los flotantes de la esquina
+
+Abajo a la derecha conviven dos, y esa esquina resultó tener dueño:
+
+- **Carrito**, solo cuando hay algo en el pedido. En el teléfono muestra la
+  cantidad; el total se esconde para no competir con el contenido.
+- **Volver arriba**, que se corre a 86 px cuando el carrito aparece.
+- **El banner de cookies se apoya ahí con `z-index: 100`**, o sea encima de los
+  dos. Tocar el carrito pulsaba «Aceptar» sin querer. `analitica.js` publica el
+  alto del banner en `--sube-flotantes` y el CSS levanta los botones mientras
+  esté visible.
+
 ## Cómo pinta la tienda
 
 `index.astro` sirve el HTML estático con las secciones vacías. `app.js` pide
@@ -230,6 +267,14 @@ a WhatsApp — mostrar precios de ayer sería peor que no mostrar nada.
 
 Las secciones **En oferta** y **Lo más vendido** se ocultan si están vacías, así
 que en un despliegue nuevo no se ven hasta curar productos en el panel.
+
+Cuando *En oferta* está escondida, el **botón Ofertas del menú** —el de al lado
+de Productos, por donde entra el cliente— avisa que no hay ninguna en vez de no
+hacer nada. La condición sale de los datos, no de si la sección se ve. Los otros
+dos enlaces a ofertas (hero y pie) siguen sin respuesta: decisión de Ricardo.
+
+Los avisos duran 3 segundos y se desvanecen hundiéndose un poco. La tostada se
+esconde recién al terminar la transición: ocultarla antes se comía el efecto.
 
 Orden de la home: hero → franja → En oferta → Lo más vendido → categorías →
 marcas → nosotros → pie.
@@ -257,6 +302,9 @@ el día que el negocio las cargue aparecen solas.
 | **La ficha es una página, no un modal** | Un panel que abre con JavaScript es invisible para Google: sin URL no hay nada que indexar. El panel va encima de un enlace real, no en su lugar. |
 | **La URL lleva nombre y código** | El nombre gana clics —acá los enlaces se pegan en WhatsApp—; el código mantiene el enlace vivo si el producto se renombra. |
 | **El sitemap no incluye todo el catálogo** | Miles de fichas agotadas y sin foto son contenido pobre y arrastran al resto del sitio. |
+| **Sin cuentas de usuario** | No va a haber inicio de sesión. Un formulario que avisaba «esto es un demo» solo generaba expectativas. |
+| **El carrito flotante aparece solo con algo dentro** | Vacío ocupa la esquina más valiosa del teléfono sin dar nada a cambio. |
+| **El buscador va abierto en móvil** | Replegado pedía dos gestos —tocar y después escribir— donde alcanzaba uno. |
 
 ## Trampas conocidas
 

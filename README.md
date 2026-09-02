@@ -82,4 +82,5 @@ credenciales acotadas al store.
 - **Datos de contacto.** Teléfono, correo y horarios son de ejemplo. Están marcados
   en el HTML con `<!-- DATO PLACEHOLDER -->`.
 - **Número de WhatsApp del carrito.** `584120000000` en `src/scripts/carrito.js`.
-- **Inicio de sesión.** El modal es solo la interfaz; no hay backend detrás.
+- **Política de privacidad.** Google Analytics está corriendo y no hay documento
+  que explique qué se mide ni cómo negarse. El banner de consentimiento ya está.
