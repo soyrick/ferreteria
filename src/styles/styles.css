@@ -1,6 +1,6 @@
 /* =========================================================
    Casa Herramientas, C.A. — Ferretería y Construcción C.H
-   Demo de interfaz principal. Paleta tomada del logo: amarillo + negro.
+   Estilos de la tienda. Paleta tomada del logo: amarillo + negro.
    ========================================================= */
 
 /* ---------- Tokens ---------- */
@@ -888,15 +888,13 @@ h1, h2, h3, h4, .hero-titulo {
 .pie-mini { font-size: 11.5px !important; color: var(--gris-700) !important; }
 
 .pie-barra { border-top: 1px solid rgba(255,255,255,.1); padding-block: 18px; }
+/* Quedó solo el aviso de derechos: se centra en vez de repartirse a los lados,
+   que con un único elemento dejaba todo pegado a la izquierda. */
 .pie-barra-int {
-  display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;
-  font-size: 12.5px; color: var(--gris-500);
+  display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap;
+  font-size: 12.5px; color: var(--gris-500); text-align: center;
 }
 .pie-barra p { margin: 0; }
-.pie-aviso { color: var(--gris-700); }
-.pie-barra ul { list-style: none; display: flex; gap: 20px; margin: 0; padding: 0; }
-.pie-barra a { transition: color .16s; }
-.pie-barra a:hover { color: var(--amarillo); }
 
 /* =========================================================
    FLOTANTES

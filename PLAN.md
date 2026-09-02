@@ -28,19 +28,11 @@ llevan a ningún lado.
    producto cada una; las secciones se ocultan solas si quedan vacías.
 4. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
    registran; falta ver que aparezcan `add_to_cart` y `search`.
-5. **Limpiar la barra del pie.** Quitar las tres cosas que no corresponden, en
-   `src/pages/index.astro` alrededor de la línea 398:
-
-   - «Demo de interfaz. Precios e inventario de ejemplo.» — ya no es un demo:
-     los productos y los precios son los reales de la API.
-   - Los enlaces de **Términos y condiciones** y **Política de privacidad**:
-     apuntan a `#nosotros`, que no dice nada de eso. Prometen documentos que no
-     existen, y con Analytics corriendo la de privacidad conviene escribirla de
-     verdad en algún momento.
-   - **Reclamos**, que lleva a `#contacto`. O se le da su propio destino, o
-     sobra teniendo la tarjeta de contacto ahí mismo.
-
-   Queda por decidir: si esos tres se borran o si se escriben las páginas.
+5. **Escribir la política de privacidad.** Su enlace se quitó del pie el
+   2026-09-01 junto con los de términos y reclamos, que llevaban a `#nosotros`
+   y no prometían nada real. Pero **Google Analytics sigue corriendo**, y eso
+   pide una política de verdad: qué se mide, para qué y cómo negarse. El
+   banner de consentimiento ya está; falta el documento al que debería apuntar.
 6. **Cerrar F4:** metadatos y `LocalBusiness` en la home, páginas de categoría,
    y medir Core Web Vitals.
 
