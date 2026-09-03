@@ -872,17 +872,24 @@ h1, h2, h3, h4, .hero-titulo {
 .pie-dato { display: flex; gap: 10px; margin: 0; font-size: 13px; color: var(--gris-300); }
 .pie-dato .ico { width: 16px; height: 16px; color: var(--amarillo); margin-top: 3px; }
 
-.pie-boletin p { margin: 0; font-size: 13px; color: var(--gris-500); }
-.pie-form { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-.pie-form input {
-  flex: 1; min-width: 150px; height: 42px; padding: 0 14px;
-  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16);
-  border-radius: var(--radio-sm); color: var(--blanco); font: inherit; font-size: 13.5px;
-  outline: 0; transition: border-color .18s, background .18s;
+/* El mapa reemplazó al boletín en la última columna del pie. Relación 4:3 y no
+   una altura fija: así conserva su forma cuando la columna cambia de ancho. */
+.pie-mapa-caja {
+  margin-top: 4px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radio-sm);
+  overflow: hidden;
+  background: var(--negro-suave, #1a1c1f);
+  border: 1px solid rgba(255,255,255,.14);
 }
-.pie-form input::placeholder { color: var(--gris-500); }
-.pie-form input:focus { border-color: var(--amarillo); background: rgba(255,255,255,.1); }
-.pie-mini { font-size: 11.5px !important; color: var(--gris-700) !important; }
+.pie-mapa-caja iframe { width: 100%; height: 100%; border: 0; display: block; }
+.pie-mapa-enlace {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-top: 10px; font-size: 13px; font-weight: 600;
+  color: var(--amarillo);
+}
+.pie-mapa-enlace:hover { text-decoration: underline; }
+.pie-mapa-enlace .ico { width: 15px; height: 15px; }
 
 .pie-barra { border-top: 1px solid rgba(255,255,255,.1); padding-block: 18px; }
 /* Quedó solo el aviso de derechos: se centra en vez de repartirse a los lados,

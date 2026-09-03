@@ -187,7 +187,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
           <p>Cemento, cabillas, mallas y agregados. Cotizamos tu obra completa y te la despachamos.</p>
           <div class="hero-botones">
             <a class="btn btn-amarillo" href="#construccion">Ver materiales</a>
-            <a class="btn btn-fantasma" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">Pedir cotización</a>
+            <a class="btn btn-fantasma" href="https://wa.me/584248190490" target="_blank" rel="noopener">Pedir cotización</a>
           </div>
         </div>
       </article>
@@ -232,7 +232,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
           <h2>En oferta</h2>
           <p>Rebajas que pone la tienda. <strong id="cuenta-ofertas">0</strong> <span id="cuenta-ofertas-palabra">productos</span> con precio especial, hasta agotar existencia.</p>
         </div>
-        <a class="btn btn-negro" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener"><svg class="ico"><use href="#i-chat"/></svg> Preguntar por una oferta</a>
+        <a class="btn btn-negro" href="https://wa.me/584248190490" target="_blank" rel="noopener"><svg class="ico"><use href="#i-chat"/></svg> Preguntar por una oferta</a>
       </header>
       <div class="rejilla-ofertas" id="rejilla-ofertas"></div>
     </div>
@@ -262,7 +262,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
       Estamos teniendo un problema para mostrar los productos. Escríbenos por
       WhatsApp y te atendemos igual, o vuelve a intentar en unos minutos.
     </p>
-    <a class="btn btn-amarillo" href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">
+    <a class="btn btn-amarillo" href="https://wa.me/584248190490" target="_blank" rel="noopener">
       <svg class="ico"><use href="#i-chat"/></svg> Escribir por WhatsApp
     </a>
   </section>
@@ -322,7 +322,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
         <article class="tarjeta-info" id="contacto">
           <h3><svg class="ico"><use href="#i-telefono"/></svg> Contacto</h3>
           <ul class="lista-contacto">
-            <li><svg class="ico"><use href="#i-chat"/></svg> <a href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener">WhatsApp — pedidos y cotizaciones</a></li>
+            <li><svg class="ico"><use href="#i-chat"/></svg> <a href="https://wa.me/584248190490" target="_blank" rel="noopener">WhatsApp — pedidos y cotizaciones</a></li>
             <li><svg class="ico"><use href="#i-correo"/></svg> <a href="mailto:casaherramienta@gmail.com">casaherramienta@gmail.com</a></li>
             <li><svg class="ico"><use href="#i-instagram"/></svg> <a href="https://www.instagram.com/casaherramientas.ca/" target="_blank" rel="noopener">@casaherramientas.ca</a></li>
           </ul>
@@ -344,7 +344,7 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
       <p class="pie-descripcion">Tu ferretería de Barrio Sucre. Herramientas, materiales y asesoría para que la obra salga bien a la primera.</p>
       <div class="pie-social">
         <a href="https://www.instagram.com/casaherramientas.ca/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico"><use href="#i-instagram"/></svg></a>
-        <a href="https://wa.me/message/N5EYYCMCKHH2M1" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="ico"><use href="#i-chat"/></svg></a>
+        <a href="https://wa.me/584248190490" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="ico"><use href="#i-chat"/></svg></a>
       </div>
     </div>
 
@@ -373,14 +373,22 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
       <p class="pie-dato"><svg class="ico"><use href="#i-correo"/></svg> <a href="mailto:casaherramienta@gmail.com">casaherramienta@gmail.com</a></p>
     </div>
 
-    <div class="pie-col pie-boletin">
-      <h4>Ofertas al correo</h4>
-      <p>Te avisamos cuando lleguen las promociones y la mercancía nueva.</p>
-      <form class="pie-form" id="form-boletin">
-        <input type="email" placeholder="tucorreo@ejemplo.com" aria-label="Tu correo" required>
-        <button class="btn btn-amarillo" type="submit">Suscribirme</button>
-      </form>
-      <p class="pie-mini">Al suscribirte aceptas recibir promociones. Puedes salirte cuando quieras.</p>
+    <div class="pie-col pie-mapa">
+      <h4>Cómo llegar</h4>
+      <!-- loading="lazy": el mapa de Google pesa y casi nadie llega hasta el
+           pie. Se carga recién cuando está por entrar en pantalla. -->
+      <div class="pie-mapa-caja">
+        <iframe
+          src="https://maps.google.com/maps?q=10.1482035,-64.6748066&z=17&hl=es&output=embed"
+          title="Ubicación de Casa Herramientas en Calle Guayaquil, Barrio Sucre, Barcelona"
+          loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen></iframe>
+      </div>
+      <a class="pie-mapa-enlace"
+         href="https://www.google.com/maps/place/CASA+HERRAMIENTAS,+C.A/@10.1480428,-64.6753437,19.5z/data=!4m6!3m5!1s0x8c2d72ff55af9c01:0xc74ecd4bfbba9f2a!8m2!3d10.1482035!4d-64.6748066!16s%2Fg%2F11gbfdy27p"
+         target="_blank" rel="noopener">
+        <svg class="ico"><use href="#i-ubicacion"/></svg> Abrir en Google Maps
+      </a>
     </div>
 
   </div>
@@ -486,9 +494,12 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 
 <!-- ============ CONSENTIMIENTO DE ANALÍTICA ============ -->
 <aside class="consentimiento" id="consentimiento" hidden>
+  <!-- Antes decía "no se carga nada hasta que nos digas que sí". Dejó de ser
+       cierto al poner el mapa de Google en el pie, que carga igual. Se promete
+       solo lo que se cumple: Analytics no se activa sin permiso. -->
   <p>
     Usamos Google Analytics para saber qué busca la gente y tener mejor
-    surtido. No se carga nada hasta que nos digas que sí.
+    surtido. No lo activamos hasta que nos digas que sí.
   </p>
   <div class="consentimiento-botones">
     <button class="btn" id="consent-no">Solo lo necesario</button>

@@ -405,14 +405,6 @@ document.addEventListener('click', (e) => {
   avisar('Por ahora no hay ofertas activas.');
 });
 
-/* ---------------------------------------------------------
-   11. BOLETÍN
-   --------------------------------------------------------- */
-$('#form-boletin').addEventListener('submit', (e) => {
-  e.preventDefault();
-  e.target.reset();
-  avisar('Listo, te avisamos apenas salgan las ofertas.');
-});
 
 /* ---------------------------------------------------------
    12. REVELADO AL SCROLL + BOTÓN "ARRIBA"

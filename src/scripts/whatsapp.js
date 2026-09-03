@@ -5,9 +5,8 @@
    Ese formato de invitación **no admite texto pre-cargado**, así que para que
    el mensaje llegue escrito hace falta el número en formato internacional. */
 
-// DATO PLACEHOLDER — el cliente todavía no tiene número fijo para la ferretería.
-// Formato internacional sin signos: código de país + número.
-export const NUMERO = '584120000000';
+/** Atención de la ferretería. Formato internacional sin signos, como pide wa.me. */
+export const NUMERO = '584248190490';
 
 /** wa.me se rompe con URLs muy largas. */
 const TOPE_URL = 1800;
