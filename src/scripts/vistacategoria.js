@@ -128,10 +128,13 @@ if (panel) {
     pidiendo?.abort();
   }
 
-  // "Ver todo" de cada fila de la home.
+  /* "Ver todo" y los rubros del menú son enlaces de verdad a /categoria/…, así
+     que Google los sigue y el clic medio abre pestaña. Se interceptan solo
+     para abrir la rejilla sin perder el scroll; con cualquier modificador se
+     deja pasar la navegación. */
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-ver-todo]');
-    if (!b) return;
+    if (!b || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     abrir(b.dataset.verTodo);
   });

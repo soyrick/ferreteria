@@ -35,6 +35,14 @@ if (`/producto/${tramos.join('/')}` !== canonicaRelativa) {
   return Astro.redirect(canonicaRelativa, 301);
 }
 
+/* Dos minutos en la CDN, igual que el resto del catálogo: el precio puede
+   moverse durante el día, pero una ficha sin caché es una petición a la API
+   por visita, y el límite es de 120 por minuto para todo el sitio. */
+Astro.response.headers.set(
+  'Cache-Control',
+  'public, max-age=0, s-maxage=120, stale-while-revalidate=600',
+);
+
 const precio = (n) =>
   '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
 

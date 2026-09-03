@@ -13,9 +13,9 @@ export async function GET({ site, url }) {
   if (apiLista()) {
     try {
       const { categorias } = await resumen();
-      // Las categorías son anclas de la home, no páginas propias todavía; se
-      // listan igual porque son la puerta a cada rubro.
-      rutas.push(...categorias.map((c) => `/#${ranura(c.nombre)}`));
+      // Cada rubro tiene su página desde F4; antes eran anclas de la home, que
+      // Google no indexa por separado.
+      rutas.push(...categorias.map((c) => `/categoria/${ranura(c.nombre)}`));
     } catch (e) {
       console.error('[sitemap-paginas] sin categorías:', e.message);
     }

@@ -68,7 +68,7 @@ function pintar(v) {
           <h2>${limpio(c.nombre)}</h2>
         </div>
         <div class="seccion-acciones">
-          <button class="enlace-todo" data-ver-todo="${limpio(c.nombre)}">Ver todo <svg class="ico"><use href="#i-der"/></svg></button>
+          <a class="enlace-todo" href="/categoria/${limpio(c.id)}" data-ver-todo="${limpio(c.nombre)}">Ver todo <svg class="ico"><use href="#i-der"/></svg></a>
           <button class="flecha-carrusel" data-mover="-1" data-fila="${c.id}" aria-label="Anterior"><svg class="ico"><use href="#i-izq"/></svg></button>
           <button class="flecha-carrusel" data-mover="1" data-fila="${c.id}" aria-label="Siguiente"><svg class="ico"><use href="#i-der"/></svg></button>
         </div>
@@ -102,10 +102,10 @@ function pintar(v) {
      los treinta y dos no tienen fila propia y el enlace no llevaba a ningún
      lado. */
   $('#megamenu-lista').innerHTML = (v.rubros ?? []).map((r) => `
-    <button class="megamenu-rubro" data-ver-todo="${limpio(r.nombre)}">
+    <a class="megamenu-rubro" href="/categoria/${limpio(r.id)}" data-ver-todo="${limpio(r.nombre)}">
       <strong>${limpio(r.nombre)}</strong>
       <span>${r.total}</span>
-    </button>`).join('');
+    </a>`).join('');
 
   // Estos dos dependen de que las grillas ya existan en el DOM.
   prepararCarruseles();

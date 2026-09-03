@@ -434,7 +434,7 @@ h1, h2, h3, h4, .hero-titulo {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   padding: 9px 11px; border-radius: var(--radio-sm);
   text-decoration: none; transition: background .15s var(--curva);
-  /* También pasó a <button>: abre la rejilla del rubro. */
+  /* Enlace a /categoria/… que el JS intercepta para abrir la rejilla. */
   border: 0; background: none; font-family: inherit; cursor: pointer;
   width: 100%; text-align: left;
 }
@@ -634,13 +634,14 @@ h1, h2, h3, h4, .hero-titulo {
 .seccion-cabeza p { margin: 7px 0 0; color: var(--gris-500); font-size: 14px; max-width: 62ch; }
 .seccion-acciones { display: flex; align-items: center; gap: 8px; }
 
-/* Pasó de <a> a <button>: abre la rejilla completa, no navega. Hay que
-   repetirle los estilos que el navegador no le da a un botón. */
+/* Es un <a> a /categoria/… que el JS intercepta para abrir la rejilla. Los
+   estilos de botón quedan porque también se usó como <button> un tiempo. */
 .enlace-todo {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 13.5px; font-weight: 700; color: var(--negro);
   border: 0; border-bottom: 2px solid var(--amarillo); padding: 0 0 2px;
   background: none; font-family: inherit; cursor: pointer;
+  text-decoration: none;
   transition: gap .18s;
 }
 .enlace-todo:hover { gap: 11px; }
@@ -1532,4 +1533,31 @@ body.con-carrito .flotante-arriba { bottom: calc(86px + var(--sube-flotantes, 0p
     color: var(--negro);
     box-shadow: 0 4px 16px rgba(212, 160, 23, .5);
   }
+}
+
+/* ============ PÁGINA DE CATEGORÍA ============ */
+.cat-pagina { padding-block: 26px 70px; }
+.cat-cabeza { margin-bottom: 26px; }
+.cat-cabeza h1 { font-family: var(--display); font-size: 32px; }
+.cat-cabeza p { margin: 6px 0 0; font-size: 13.5px; color: var(--gris-500); }
+
+.cat-rejilla {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+.cat-paginas {
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  padding: 34px 0 8px; font-size: 13.5px; color: var(--gris-500);
+}
+.cat-paginas a {
+  padding: 9px 16px; border: 1px solid var(--gris-300); border-radius: 99px;
+  text-decoration: none; color: var(--negro); font-weight: 600;
+}
+.cat-paginas a:hover { border-color: var(--negro); background: var(--gris-100); }
+
+@media (max-width: 560px) {
+  .cat-cabeza h1 { font-size: 25px; }
+  .cat-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cat-paginas { gap: 10px; font-size: 12.5px; }
 }

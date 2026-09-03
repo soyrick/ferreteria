@@ -13,28 +13,24 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
-**Lo que bloquea, y depende de terceros:** los puntos 1 y 2. Sin ellos la
-tienda funciona, pero le falta lo que más se nota —las fotos— y dos botones no
-llevan a ningún lado.
+**Lo único bloqueado por terceros son las fotos.** El número de WhatsApp ya
+está puesto y F4 quedó cerrada el 2026-09-02.
 
 1. **Pedir las imágenes oficiales a los distribuidores.** INGCO, Truper y
    Stanley se las dan a sus clientes, y el negocio lo es. Cubren el 14 % del
    catálogo, que es lo máximo alcanzable hoy. Cargarlas **en la API**, no por
    un lado paralelo. Ver «El problema de las fotos», más abajo.
-2. **Reemplazar el número de WhatsApp de ejemplo** (`584120000000` en
-   `src/scripts/whatsapp.js`) por el real. Lo esperan el carrito y las
-   consultas de producto agotado: esos dos botones no funcionan hasta entonces.
-3. **Terminar de curar las vitrinas.** *Lo más vendido* y *En oferta* tienen un
+2. **Terminar de curar las vitrinas.** *Lo más vendido* y *En oferta* tienen un
    producto cada una; las secciones se ocultan solas si quedan vacías.
-4. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
+3. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
    registran; falta ver que aparezcan `add_to_cart` y `search`.
-5. **Escribir la política de privacidad.** Su enlace se quitó del pie el
+4. **Escribir la política de privacidad.** Su enlace se quitó del pie el
    2026-09-01 junto con los de términos y reclamos, que llevaban a `#nosotros`
    y no prometían nada real. Pero **Google Analytics sigue corriendo**, y eso
    pide una política de verdad: qué se mide, para qué y cómo negarse. El
    banner de consentimiento ya está; falta el documento al que debería apuntar.
-6. **Cerrar F4:** metadatos y `LocalBusiness` en la home, páginas de categoría,
-   y medir Core Web Vitals.
+5. **Seguir con F9 (accesibilidad) y F10 (seguridad)**, las dos que quedan sin
+   bloqueo. Después F11, que necesita el dominio.
 
 ---
 
@@ -119,7 +115,7 @@ mover solo ese sector sin tocar la tienda.
 | F1 Base técnica | ✅ hecha | — |
 | F2 Carrito de compras | ✅ hecha (número de WhatsApp de ejemplo) | — |
 | ~~F3 Ventana de chat~~ | ⛔ **cancelada** el 2026-09-01 | — |
-| F4 SEO base y rendimiento | 🟡 fichas y sitemap hechos | — |
+| F4 SEO base y rendimiento | ✅ cerrada el 2026-09-02 | — |
 | F5 Analítica | ✅ hecha y verificada midiendo | — |
 | F6 API de productos y catálogo real | ✅ integrada · faltan las fotos | el negocio no cargó fotos |
 | ~~F7 Conexión del chatbot~~ | ⛔ **cancelada** el 2026-09-01 | — |
@@ -204,7 +200,7 @@ Si algún día vuelve, está en la historia de git antes de ese commit.
 
 ---
 
-### F4 — SEO base y rendimiento · **en curso**
+### F4 — SEO base y rendimiento · **cerrada el 2026-09-02**
 
 Se saltó en su momento y quedó como la única fase sin bloqueo. Rindió más que
 entonces: con la API integrada hay `codigo` estable, así que el `Product`
@@ -238,13 +234,41 @@ Hecho y verificado entre el 2026-08-31 y el 2026-09-01:
   negro; queda la lupa. Se busca escribiendo o con Enter.
 - ✅ **Ofertas en dorado** en el menú, y avisa cuando no hay ninguna publicada.
 
-Falta:
+Cerrado el 2026-09-02:
 
-- ⏳ Metadatos y canónica de la home.
-- ⏳ `LocalBusiness` para la ficha del negocio.
-- ⏳ Páginas de categoría (`/categoria/[ranura]`), que además le darían destino
-  propio al menú de 32 rubros; hoy son anclas de la home.
-- ⏳ Core Web Vitals medidos, no estimados.
+- ✅ **Metadatos de la home**: canónica, Open Graph y descripción. Open Graph no
+  es cosmético acá: es lo que se ve cuando alguien pega el enlace en WhatsApp,
+  que es por donde se mueve la venta.
+- ✅ **Ficha del negocio para Google**, como `HardwareStore` —más preciso que
+  `LocalBusiness`— con dirección, coordenadas, horario, teléfono y mapa.
+- ✅ **Páginas de categoría** en `/categoria/[ranura]`, con paginación, miga
+  estructurada y `noindex` de la página 2 en adelante. Los 32 rubros pasaron de
+  ser anclas de la home a tener dirección propia, y el sitemap las lista.
+- ✅ **Caché de dos minutos** en las páginas de categoría y de producto.
+- ✅ Core Web Vitals: lo que se pudo medir está abajo.
+
+**Los datos del negocio viven en `datos/negocio.js`.** Estaban repetidos en la
+tarjeta de ubicación, el pie y los enlaces de contacto; ahora los pide también
+el dato estructurado. Con tres copias, a Google le podía llegar un horario
+distinto del que ve el visitante, que es justo lo que penaliza.
+
+#### Lo que se midió
+
+| | |
+|---|---|
+| Lo que baja el visitante en la home | **56 KB** (42 de CSS, 14 de JS) |
+| Respuesta de la home | 6 ms |
+| Ficha de producto | 160 ms |
+| Página de categoría | 513 ms (dos consultas a la API) |
+
+Los 513 ms de las categorías son el motivo del caché: **cada visita costaba dos
+peticiones** —el resumen y el listado— sobre un límite de 120 por minuto para
+todo el sitio. Sesenta visitas en un minuto nos dejaban afuera. Con dos minutos
+de caché, todas las de ese lapso cuestan una sola.
+
+**No se midieron LCP, CLS ni INP.** Hacen falta un navegador que componga la
+página —el de pruebas no lo hace— y el sitio en su dominio. Van en F11, con
+Lighthouse sobre producción.
 
 **Por qué el sitemap va partido.** Recorrer el catálogo entero son 85
 peticiones y la API admite 120 por minuto por IP. Hacerlas de una sola vez nos

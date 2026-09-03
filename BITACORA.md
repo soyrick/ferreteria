@@ -61,6 +61,7 @@ src/
     ofertas.astro            Ofertas con precio, descuento y vencimiento
     salir.astro
   pages/producto/[...ruta].astro  la ficha · /producto/nombre/CODIGO
+  pages/categoria/[ranura].astro  el rubro · /categoria/plomeria
   pages/api/vitrinas.json.js sirve las vitrinas ya armadas a la tienda
   pages/api/catalogo.json.js PROXY del catálogo · impide que el token se filtre
   pages/sitemap.xml.js       índice de sitemaps
@@ -70,6 +71,7 @@ src/
   components/MenuProducto.astro   el menú ⋯ (usa <details>, sin JS)
   datos/api.js               cliente del catálogo de kafe · SOLO SERVIDOR
   datos/curaduria.js         qué se muestra en la home · Vercel Blob
+  datos/negocio.js           dirección, horario, contacto y ficha para Google
   lib/sesion.js              cookie firmada con HMAC (Web Crypto)
   lib/sitemap.js             tamaños, caché y tandas de los sitemaps
   middleware.js              puerta única de /admin
@@ -162,6 +164,32 @@ a la vez, gana agotado.
 
 `disponible` puede no venir; en ese caso el producto se ofrece. Es peor
 esconder algo que sí hay por un campo ausente.
+
+### Las páginas de categoría
+
+`/categoria/plomeria` y las otras 31. Se renderizan en servidor, con paginación
+de 24 productos y `noindex` de la página 2 en adelante: esas se recorren para
+llegar a los productos, no compiten como resultado.
+
+Los enlaces del menú y los «Ver todo» apuntan ahí de verdad —Google los sigue y
+el clic medio abre pestaña— pero el JavaScript los intercepta para abrir la
+rejilla sin perder el scroll. Es el mismo patrón que las fichas.
+
+**Las tres páginas del catálogo llevan caché de dos minutos.** No es
+optimización prematura: sin ella, cada visita a una categoría cuesta **dos**
+peticiones a la API —el resumen y el listado— sobre un límite de 120 por
+minuto para todo el sitio. Sesenta visitas en un minuto nos dejaban afuera.
+
+### Lo que ve Google del negocio
+
+`datos/negocio.js` tiene dirección, coordenadas, horario, teléfono y correo, y
+arma la ficha `HardwareStore` de la home. **Un solo lugar a propósito:** esos
+datos estaban repetidos en la tarjeta de ubicación, el pie y los contactos, y
+con tres copias a Google podía llegarle un horario distinto del que ve el
+visitante — que es justo lo que penaliza.
+
+`HardwareStore` y no `LocalBusiness`: es un subtipo, más preciso, y Google
+prefiere el tipo más específico que aplique.
 
 ### El sitemap, y por qué está partido
 
@@ -400,16 +428,12 @@ home empieza a devolver `503`. No es un bug: es esperar un minuto.
 
 Buscar `DATO PLACEHOLDER` en el repo.
 
-- **Número de WhatsApp: `584120000000` en `src/scripts/whatsapp.js`.** Es el
-  único placeholder que queda. Lo esperan el carrito y las consultas de
-  producto agotado: hasta que llegue el real, esos dos botones no funcionan.
-  Los enlaces genéricos usan `wa.me/message/N5EYYCMCKHH2M1`, que sí funciona
-  pero no admite texto pre-cargado.
 - Las métricas y la serie de visitas del panel (`pages/admin/index.astro`)
 - Las imágenes del hero: licencias variadas de Wikimedia Commons, ver `CREDITOS.txt`
 
-**Datos reales al 2026-09-01:** correo `casaherramienta@gmail.com`, horario de
-lunes a sábado de 8:00 a 4:50, sin teléfono de llamadas. Los productos y las
+**Datos reales al 2026-09-02:** todos en `datos/negocio.js` — WhatsApp
+`+584248190490`, correo `casaherramienta@gmail.com`, horario de lunes a sábado
+de 8:00 a 16:50, coordenadas de la ficha de Google Maps. Los productos y las
 marcas salen de la API.
 
 ## Variables de entorno
@@ -500,10 +524,9 @@ F7 conexión del bot, F8 cifras reales de GA4 y Search Console en el panel.
 - **Ningún producto tiene foto.** Ver «El problema de las fotos» en
   [PLAN.md](PLAN.md): está medido y con la pregunta que hay que hacerle al
   encargado.
-- **Faltan las páginas de categoría** (`/categoria/[ranura]`). Hoy los 32 rubros
-  del menú son anclas de la home, no páginas propias.
-- **La home no tiene metadatos propios** más allá del título y la descripción:
-  falta canónica, Open Graph y el `LocalBusiness`.
+- **Faltan Core Web Vitals medidos.** LCP, CLS e INP necesitan un navegador que
+  componga la página —el de pruebas no lo hace— y el sitio en su dominio. Van
+  en F11, con Lighthouse sobre producción.
 - El login no tiene límite de intentos (va en F10; en serverless un contador en
   memoria no sirve).
 - Las métricas del panel son de muestra hasta F8.

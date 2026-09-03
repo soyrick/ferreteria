@@ -1,0 +1,172 @@
+---
+/* Página de un rubro del catálogo.
+
+   Los 32 rubros ya se podían mirar en la rejilla que abre "Ver todo", pero esa
+   rejilla no tiene dirección: no existe para Google ni se puede compartir. Acá
+   cada uno tiene su URL, su título y su lista de productos servida en HTML.
+
+   Se renderiza en el servidor y no se prerenderiza, por lo mismo que las
+   fichas: los precios y la disponibilidad cambian durante el día. */
+export const prerender = false;
+
+import { resumen, productos, apiLista, ranura, urlProducto } from '../../datos/api.js';
+import { NEGOCIO } from '../../datos/negocio.js';
+import '../../styles/styles.css';
+
+const POR_PAGINA = 24;
+
+if (!apiLista()) return new Response(null, { status: 503 });
+
+const pedida = Astro.params.ranura;
+const pagina = Math.max(Number(Astro.url.searchParams.get('pagina')) || 1, 1);
+
+let info;
+try {
+  info = await resumen();
+} catch {
+  return new Response(null, { status: 503 });
+}
+
+/* La dirección lleva la ranura; el nombre real es el que entiende la API. */
+const rubro = info.categorias.find((c) => ranura(c.nombre) === pedida);
+if (!rubro) return new Response(null, { status: 404 });
+
+let lista;
+try {
+  lista = await productos({
+    categoria: rubro.nombre,
+    limit: POR_PAGINA,
+    offset: (pagina - 1) * POR_PAGINA,
+  });
+} catch {
+  return new Response(null, { status: 502 });
+}
+
+if (!lista.productos.length && pagina > 1) return new Response(null, { status: 404 });
+
+/* Dos minutos en la CDN. Cada visita a esta página cuesta dos peticiones a la
+   API —el resumen y el listado—, y el límite es de 120 por minuto para todo el
+   sitio: sin caché, sesenta visitas en un minuto nos dejarían fuera. Con esto,
+   todas las de esos dos minutos cuestan una sola. */
+Astro.response.headers.set(
+  'Cache-Control',
+  'public, max-age=0, s-maxage=120, stale-while-revalidate=600',
+);
+
+const base = (Astro.site ?? new URL(Astro.url).origin).toString().replace(/\/$/, '');
+const ruta = `/categoria/${pedida}`;
+const canonica = `${base}${ruta}${pagina > 1 ? `?pagina=${pagina}` : ''}`;
+const paginas = Math.ceil(lista.total / POR_PAGINA);
+
+const bonito = (t) => t.charAt(0) + t.slice(1).toLowerCase();
+const nombre = bonito(rubro.nombre);
+
+const titulo = pagina > 1
+  ? `${nombre} — página ${pagina} | ${NEGOCIO.nombreCorto}`
+  : `${nombre} en Barcelona, Anzoátegui | ${NEGOCIO.nombreCorto}`;
+
+const descripcion =
+  `${rubro.total.toLocaleString('es-VE')} productos de ${nombre.toLowerCase()} en `
+  + `${NEGOCIO.nombreCorto}, ${NEGOCIO.direccion.ciudad}. Precios en dólares, `
+  + 'entrega en la zona y asesoría antes de comprar.';
+
+const precio = (n) =>
+  '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
+
+/* Miga de pan estructurada: le dice a Google dónde encaja esta página y le
+   permite mostrar la ruta en vez de la URL cruda en los resultados. */
+const miga = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: base },
+    { '@type': 'ListItem', position: 2, name: nombre, item: `${base}${ruta}` },
+  ],
+};
+---
+<!doctype html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{titulo}</title>
+<meta name="description" content={descripcion}>
+<link rel="canonical" href={canonica}>
+{/* Las páginas 2 en adelante no aportan nada distinto a Google: se recorren
+    para llegar a los productos, pero no compiten como resultado. */}
+{pagina > 1 && <meta name="robots" content="noindex, follow" />}
+<meta property="og:type" content="website">
+<meta property="og:title" content={titulo}>
+<meta property="og:description" content={descripcion}>
+<meta property="og:url" content={canonica}>
+<meta property="og:image" content={`${base}/assets/logo.png`}>
+<meta name="theme-color" content="#FFDD00">
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<script type="application/ld+json" set:html={JSON.stringify(miga)} />
+</head>
+<body class="pagina-producto">
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-herramienta" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-izq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+</svg>
+
+<header class="producto-cabecera">
+  <div class="contenedor producto-cabecera-int">
+    <a href="/" class="marca">
+      <img src="/assets/logo.png" alt="" class="marca-logo">
+      <span class="marca-texto">
+        <strong>CASA HERRAMIENTAS</strong>
+        <small>{NEGOCIO.rubro}</small>
+      </span>
+    </a>
+    <a class="btn btn-negro" href="/"><svg class="ico"><use href="#i-izq"/></svg> Volver a la tienda</a>
+  </div>
+</header>
+
+<main class="contenedor cat-pagina">
+  <nav class="miga" aria-label="Dónde estás">
+    <a href="/">Inicio</a> · <span>{nombre}</span>
+  </nav>
+
+  <header class="cat-cabeza">
+    <h1>{nombre}</h1>
+    <p>{rubro.total.toLocaleString('es-VE')} productos{paginas > 1 && ` · página ${pagina} de ${paginas}`}</p>
+  </header>
+
+  <div class="cat-rejilla">
+    {lista.productos.map((p) => (
+      <article class={`producto${p.disponible && p.precio > 0 ? '' : ' agotado'}`}>
+        <a class="producto-enlace" href={urlProducto(p)}>
+          <div class="producto-foto vacia">
+            {!(p.disponible && p.precio > 0) && <span class="sello-agotado">Agotado</span>}
+            <span class="producto-sinfoto" aria-hidden="true">
+              <svg class="ico"><use href="#i-herramienta"/></svg>
+            </span>
+          </div>
+          <div class="producto-cuerpo">
+            <span class="producto-marca">{p.marca || p.categoria}</span>
+            <h2 class="producto-nombre">{p.nombre}</h2>
+            <div class="producto-precios">
+              <span class="producto-precio">{p.precio > 0 ? precio(p.precio) : 'Consultar'}</span>
+            </div>
+          </div>
+        </a>
+      </article>
+    ))}
+  </div>
+
+  {paginas > 1 && (
+    <nav class="cat-paginas" aria-label="Páginas">
+      {pagina > 1 && <a rel="prev" href={`${ruta}${pagina - 1 > 1 ? `?pagina=${pagina - 1}` : ''}`}>← Anterior</a>}
+      <span>Página {pagina} de {paginas.toLocaleString('es-VE')}</span>
+      {pagina < paginas && <a rel="next" href={`${ruta}?pagina=${pagina + 1}`}>Siguiente →</a>}
+    </nav>
+  )}
+</main>
+
+</body>
+</html>

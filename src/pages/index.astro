@@ -2,10 +2,15 @@
 // ponytail: todo el marcado vive acá a propósito. Sin layout ni componentes
 // hasta que exista una segunda página que los justifique.
 import '../styles/styles.css';
+import { NEGOCIO, datosNegocio } from '../datos/negocio.js';
 
 // La verificación de Search Console es una etiqueta que Google busca en el
 // <head>. Sale del entorno: no se escribe a mano en el repo.
 const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
+
+const base = (Astro.site ?? new URL(Astro.url).origin).toString().replace(/\/$/, '');
+const titulo = `${NEGOCIO.nombre} — ${NEGOCIO.rubro} | Barcelona, Anzoátegui`;
+const portada = `${base}/assets/logo.png`;
 ---
 <!doctype html>
 <html lang="es-VE">
@@ -13,10 +18,24 @@ const GSC = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {GSC && <meta name="google-site-verification" content={GSC} />}
-<title>Casa Herramientas, C.A. — Ferretería y Construcción C.H | Barcelona, Anzoátegui</title>
-<meta name="description" content="Ferretería y construcción en Barcelona, estado Anzoátegui. Herramientas, materiales, plomería, electricidad y todo para el hogar. Calle Guayaquil, frente al estadio de béisbol de Barrio Sucre.">
+<title>{titulo}</title>
+<meta name="description" content={NEGOCIO.descripcion}>
+<link rel="canonical" href={base + '/'}>
+
+<!-- Lo que se ve cuando alguien pega el enlace en WhatsApp, que es por donde
+     se mueve la venta acá. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content={NEGOCIO.nombreCorto}>
+<meta property="og:title" content={titulo}>
+<meta property="og:description" content={NEGOCIO.descripcion}>
+<meta property="og:url" content={base + '/'}>
+<meta property="og:image" content={portada}>
+<meta property="og:locale" content="es_VE">
+<meta name="twitter:card" content="summary">
+
 <meta name="theme-color" content="#FFDD00">
 <link rel="icon" href="/assets/logo.png">
+<script type="application/ld+json" set:html={JSON.stringify(datosNegocio(base))} />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
