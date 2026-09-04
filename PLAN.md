@@ -681,6 +681,31 @@ Elegir rubro: cierra el menú y navega a /categoria/herramientas-manuales
 Móvil 375:   32 rubros en dos columnas, con scroll, sin desborde
 ```
 
+#### Las categorías del pie tampoco llevaban a ningún lado · 2026-09-04
+
+Mismo error, tercera vez: eran anclas de la propia home. Y acá era peor, porque
+**dependían de la curaduría**: la home pinta ocho categorías con `id` igual a su
+ranura, así que `#plomeria` existía o no según lo que tuviera puesto el panel
+ese día. Cambiar la selección rompía el pie sin que nadie tocara el pie.
+
+«Construcción» ni siquiera era un rubro del catálogo; se llama **Albañilería**,
+que es a donde apunta ahora.
+
+| Enlace | Iba a | Va a |
+|---|---|---|
+| Hogar | `#hogar` | `/categoria/hogar` |
+| ~~Construcción~~ → Albañilería | `#construccion` | `/categoria/albanileria` |
+| Herramientas eléctricas | `#electricas` | `/categoria/herramientas-electricas` |
+| Plomería | `#plomeria` | `/categoria/plomeria` |
+| Electricidad | `#electricidad` | `/categoria/electricidad` |
+| En oferta | `#ofertas` | igual, ya tenía su aviso |
+
+```
+HTML construido: los 5 enlaces salen a /categoria/…
+ranura():        los 5 nombres del catálogo dan exactamente esas ranuras
+La empresa:      #nosotros · #horarios · #contacto existen los tres
+```
+
 
 ---
 

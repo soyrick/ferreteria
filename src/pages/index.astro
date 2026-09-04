@@ -382,11 +382,15 @@ const portada = `${base}/assets/logo.png`;
 
     <div class="pie-col">
       <h4>Categorías</h4>
-      <a href="#hogar">Hogar</a>
-      <a href="#construccion">Construcción</a>
-      <a href="#electricas">Herramientas eléctricas</a>
-      <a href="#plomeria">Plomería</a>
-      <a href="#electricidad">Electricidad</a>
+      {/* A la página del rubro, no a un ancla de esta página. Las anclas
+          dependían de cuáles ocho categorías tuviera puestas el panel: cuando
+          cambiaba la selección, estos enlaces dejaban de llevar a ningún lado.
+          «Construcción» ni siquiera era un rubro del catálogo. */}
+      <a href="/categoria/hogar">Hogar</a>
+      <a href="/categoria/albanileria">Albañilería</a>
+      <a href="/categoria/herramientas-electricas">Herramientas eléctricas</a>
+      <a href="/categoria/plomeria">Plomería</a>
+      <a href="/categoria/electricidad">Electricidad</a>
       <a href="#ofertas">En oferta</a>
     </div>
 
