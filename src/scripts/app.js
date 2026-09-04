@@ -110,9 +110,10 @@ function pintar(v) {
   /* Las cifras de "Somos Casa Herramientas": salen del catálogo, no escritas a
      mano. Si la API no contestó, el bloque no se muestra. */
   if (v.cifras) {
-    $('#cifra-productos').textContent = v.cifras.productos.toLocaleString('es-VE');
-    $('#cifra-rubros').textContent = v.cifras.rubros;
-    $('#cifra-marcas').textContent = v.cifras.marcas;
+    const mil = (n) => n.toLocaleString('es-VE');
+    $('#cifra-productos').textContent = mil(v.cifras.productos);
+    $('#cifra-rubros').textContent = mil(v.cifras.rubros);
+    $('#cifra-marcas').textContent = mil(v.cifras.marcas);
     $('#info-numeros').hidden = false;
   }
 

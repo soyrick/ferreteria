@@ -615,8 +615,11 @@ h1, h2, h3, h4, .hero-titulo {
    FRANJA DE CONFIANZA
    ========================================================= */
 .franja { background: var(--gris-100); border-bottom: 1px solid var(--gris-200); }
+/* auto-fit y no un número fijo: la franja tenía cuatro columnas y quedó con
+   tres al sacar las promesas que nadie confirmó. Con esto se reparte sola si
+   mañana entra o sale alguna. */
 .franja-int {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px;
   padding-block: 18px;
 }
 .franja-item { display: flex; align-items: center; gap: 13px; padding-inline: 4px; }

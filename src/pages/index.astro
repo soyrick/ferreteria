@@ -82,13 +82,15 @@ const portada = `${base}/assets/logo.png`;
   <!-- Aviso corredizo -->
   <div class="aviso">
     <div class="aviso-pista">
-      <span><svg class="ico"><use href="#i-camion"/></svg> Delivery en Barcelona, Lechería y Puerto La Cruz</span>
-      <span><svg class="ico"><use href="#i-etiqueta"/></svg> Precios especiales para maestros de obra y contratistas</span>
-      <span><svg class="ico"><use href="#i-tarjeta"/></svg> Aceptamos pago móvil, divisas, débito y Zelle</span>
+      <!-- Solo lo confirmado por el negocio. Se fueron el delivery propio y
+           los precios especiales para maestros: nadie los confirmó nunca.
+           Los tres pares están repetidos porque la cinta se desplaza en bucle:
+           la copia lleva aria-hidden para que no se lea dos veces. -->
+      <span><svg class="ico"><use href="#i-tarjeta"/></svg> Aceptamos pago móvil, divisas, débito, Zelle y Binance</span>
+      <span><svg class="ico"><use href="#i-etiqueta"/></svg> Cotizaciones para constructoras y contratistas</span>
       <span><svg class="ico"><use href="#i-herramienta"/></svg> Más de 8.000 artículos en existencia</span>
-      <span aria-hidden="true"><svg class="ico"><use href="#i-camion"/></svg> Delivery en Barcelona, Lechería y Puerto La Cruz</span>
-      <span aria-hidden="true"><svg class="ico"><use href="#i-etiqueta"/></svg> Precios especiales para maestros de obra y contratistas</span>
-      <span aria-hidden="true"><svg class="ico"><use href="#i-tarjeta"/></svg> Aceptamos pago móvil, divisas, débito y Zelle</span>
+      <span aria-hidden="true"><svg class="ico"><use href="#i-tarjeta"/></svg> Aceptamos pago móvil, divisas, débito, Zelle y Binance</span>
+      <span aria-hidden="true"><svg class="ico"><use href="#i-etiqueta"/></svg> Cotizaciones para constructoras y contratistas</span>
       <span aria-hidden="true"><svg class="ico"><use href="#i-herramienta"/></svg> Más de 8.000 artículos en existencia</span>
     </div>
   </div>
@@ -241,10 +243,12 @@ const portada = `${base}/assets/logo.png`;
   <!-- ============ FRANJA DE CONFIANZA ============ -->
   <section class="franja">
     <div class="contenedor franja-int">
-      <div class="franja-item"><svg class="ico"><use href="#i-camion"/></svg><div><strong>Delivery propio</strong><span>Barcelona, Lechería y P.L.C.</span></div></div>
+      <!-- Se fueron "Delivery propio" y "Garantía real con respaldo de
+           fábrica": eran del demo y nadie las confirmó. Quedan las tres que sí
+           se sostienen. -->
       <div class="franja-item"><svg class="ico"><use href="#i-tarjeta"/></svg><div><strong>Paga como puedas</strong><span>Pago móvil, divisas, débito, Zelle y Binance</span></div></div>
-      <div class="franja-item"><svg class="ico"><use href="#i-escudo"/></svg><div><strong>Garantía real</strong><span>Respaldo directo de fábrica</span></div></div>
-      <div class="franja-item"><svg class="ico"><use href="#i-herramienta"/></svg><div><strong>Asesoría técnica</strong><span>Te guiamos para tomar la mejor decisión</span></div></div>
+      <div class="franja-item"><svg class="ico"><use href="#i-etiqueta"/></svg><div><strong>Cotizamos tu obra</strong><span>Para constructoras y contratistas</span></div></div>
+      <div class="franja-item"><svg class="ico"><use href="#i-reloj"/></svg><div><strong>Lunes a sábado</strong><span>8:00 a.m. – 4:50 p.m.</span></div></div>
     </div>
   </section>
 
@@ -314,9 +318,9 @@ const portada = `${base}/assets/logo.png`;
         <p>Nacimos atendiendo a la industria: petroleras, talleres automotrices, el campo y la manufactura. Ahí aprendimos a responder cuando una parada de planta se mide en horas y no hay margen para el «vuelva mañana».</p>
         <p>Después de la pandemia nos mudamos a un local mucho más grande y abrimos las puertas a todo el mundo. Hoy somos una ferretería completa —construcción, electricidad, plomería, herrería y bricolaje— sin haber soltado a la industria que nos formó. Lo mismo resolvemos el arreglo del sábado en tu casa que el pedido de una planta, y con el mismo criterio: primero entender qué necesitas, después vender.</p>
         <ul class="info-lista">
+          <!-- "Despacho a obra en toda la zona norte" salió: era del demo. -->
           <li><svg class="ico"><use href="#i-check"/></svg> Más de 8.000 artículos en existencia</li>
           <li><svg class="ico"><use href="#i-check"/></svg> Cotizaciones para constructoras y contratistas</li>
-          <li><svg class="ico"><use href="#i-check"/></svg> Despacho a obra en toda la zona norte de Anzoátegui</li>
           <li><svg class="ico"><use href="#i-check"/></svg> Atención por WhatsApp de lunes a sábado</li>
         </ul>
         <!-- Los rellena app.js con el catálogo en vivo. Antes decían "17K+
