@@ -1557,6 +1557,15 @@ body.con-carrito .flotante-arriba { bottom: calc(86px + var(--sube-flotantes, 0p
 /* Cabecera de la página de rubro: volver a la tienda y el pedido. */
 .cat-cabecera-acciones { display: flex; align-items: center; gap: 12px; }
 
+/* Hay rubros de nombre largo ("Sanitarios, fregaderos, bateas y acces."). El
+   botón se recorta con puntos suspensivos en vez de empujar la cabecera; el
+   nombre completo va en el aria-label, así que quien lo escucha lo recibe
+   entero. */
+.volver-rubro .btn-volver-largo {
+  max-width: 34ch;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
 /* En el teléfono los tres no entran: el nombre quedaba en "CA…", que no dice
    nada. Se va el texto de la marca —el logo ya identifica la tienda y sigue
    siendo el enlace a la home— y el botón se queda con "Volver". */

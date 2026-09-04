@@ -83,7 +83,7 @@ src/
   scripts/tarjeta.js         la tarjeta de producto · home, rubros y servidor
   scripts/vistaproducto.js   el panel de la ficha, sin recargar
   scripts/categoria.js       buscador, filtro y "ver más" del rubro
-  scripts/ficha.js           la página de producto (solo agregar al pedido)
+  scripts/ficha.js           la página de producto: agregar y el pedido
   scripts/tostada.js         el aviso corto de abajo, compartido
   scripts/whatsapp.js        el número y los mensajes pre-armados
   scripts/carrito.js         carrito → WhatsApp
@@ -206,6 +206,26 @@ cuántos hay.
 
 `noindex` de la página 2 en adelante: esas se recorren para llegar a los
 productos, no compiten como resultado.
+
+### Volver de la ficha al rubro
+
+**El botón de la cabecera de la ficha vuelve al rubro, no al inicio.** Arma su
+destino con `p.categoria`, así que vale igual llegando desde Google o desde un
+enlace pegado en WhatsApp, no solo navegando desde el rubro. Para ir al inicio
+está el logo. Los nombres largos —«Sanitarios, fregaderos, bateas y acces.»— se
+recortan con puntos suspensivos; el completo va en el `aria-label`.
+
+**Y vuelve donde se había quedado.** Al abrir un producto se sale de la página y
+el navegador la rehace desde cero: las tandas de «ver más» se perdían y la vista
+arrancaba arriba. `categoria.js` guarda `{traidos, término, filtro, scroll}` en
+`sessionStorage` al salir y lo repone **solo si el referrer es una ficha** —
+entrando desde el menú se empieza arriba, que es lo que uno espera. Reponer
+gasta una sola petición, con tope de 100 productos porque es el límite de la
+API: quien haya cargado más vuelve con 100 y el botón puesto.
+
+Se probó antes con `history.back()`, que sale gratis y deja que el navegador
+restaure todo solo. **No sirvió:** rehizo la página igual y volvió a quedar en
+24 productos.
 
 **Las tres páginas del catálogo llevan caché de dos minutos.** No es
 optimización prematura: sin ella, cada visita a una categoría cuesta **dos**

@@ -615,6 +615,52 @@ Móvil 375:  no desborda · dos columnas · buscador de extremo a extremo
 Rutas:      / 200 · 3 rubros 200 · rubro inexistente 404 · sitemap 200
 ```
 
+#### De la ficha no se podía volver al rubro
+
+Reportado por Ricardo el mismo día: entrando a `/categoria/automotriz` y
+abriendo un producto, el único botón de la cabecera llevaba al **inicio**. Había
+que rehacer todo el camino.
+
+- El botón ahora dice «Volver a Automotriz» y va a `/categoria/automotriz`. Sale
+  de `p.categoria`, no de cómo se haya llegado: funciona igual entrando desde
+  Google. Para ir al inicio está el logo.
+- La miga de pan apuntaba a `/#automotriz`, un ancla de la home. **Para 24 de
+  los 32 rubros esa ancla no existe** — el mismo error que los botones del hero.
+  Ahora va a la página del rubro.
+- **Vuelve donde se había quedado**: `categoria.js` guarda tandas, búsqueda,
+  filtro y posición en `sessionStorage` al salir, y los repone solo si se viene
+  de una ficha.
+
+Primero se probó `history.back()`, que sale gratis. **No sirvió**: el navegador
+rehizo la página y volvió a quedar en 24 productos. Se cambió por el guardado
+explícito, que sí se puede comprobar.
+
+```
+Volver:     72 tandas cargadas → ficha → volver → 72 de nuevo
+Con filtro: "aceite" + solo disponibles → ficha → volver → idéntico (3 de 9)
+Desde menú: entrando desde la home arranca en 24, sin reponer
+Nombre largo: "Sanitarios, fregaderos, bateas y acces." recortado, sin desborde
+Slugs:      7 rubros de nombre difícil → 200
+Móvil 375:  no desborda · el botón queda en "Volver" · el logo va al inicio
+```
+
+#### La ficha tampoco tenía carrito
+
+Se podía agregar —quedaba guardado y salía el aviso— pero no había dónde ver el
+pedido ni cómo mandarlo: había que volver al rubro para eso. Ahora la ficha
+lleva el mismo `<Carrito />` que la home y los rubros: botón con contador en la
+cabecera, panel lateral y atajo flotante. Y sus `add_to_cart` ya llegan a GA4,
+que hasta ahora tampoco corría en esta pantalla.
+
+```
+Agregar ×2:  contador 2 · flotante $8,12 · aviso con el nombre
+Panel:       1 renglón, cantidad 2, total $8,12, enlace a wa.me correcto
+Quitar uno:  contador 2 → 1
+Cerrar:      panel oculto y el fondo vuelve a scrollear
+Agotado:     sin botón de agregar, con "consultar disponibilidad"
+Móvil 375:   logo + "Volver" + carrito, sin desborde
+```
+
 
 ---
 

@@ -65,7 +65,7 @@ if (rejilla) {
     cuenta.textContent = total === 1 ? '1 producto' : `${total.toLocaleString('es-VE')} productos`;
   };
 
-  async function traerMas() {
+  async function traerMas(cuantos = POR_TANDA) {
     if (cargando || (traidos && traidos >= total)) return;
     cargando = true;
     boton.disabled = true;
@@ -76,7 +76,7 @@ if (rejilla) {
 
     const params = new URLSearchParams({
       categoria,
-      limit: String(POR_TANDA),
+      limit: String(cuantos),
       offset: String(traidos),
     });
     if (termino) params.set('q', termino);
@@ -180,9 +180,72 @@ if (rejilla) {
     evento('add_to_cart', { item_name: b.dataset.nombre });
   });
 
+  /* ---------- Volver donde se había quedado ----------
+
+     Al abrir un producto se sale de esta página, y al volver el navegador la
+     rehace desde cero: las tandas que se habían cargado con "ver más" se
+     pierden y la vista arranca arriba. Quien venía mirando el producto 60
+     tenía que apretar el botón tres veces otra vez.
+
+     Se guarda al salir y se repone al volver, y solo al volver **de una
+     ficha**: entrando al rubro desde el menú se empieza arriba, que es lo que
+     uno espera. La memoria es de la pestaña (sessionStorage), no del
+     navegador: mañana no aparece un rubro a mitad de camino. */
+  const CLAVE = `ch_rubro:${location.pathname}${location.search}`;
+
+  /* La API no acepta un limit mayor que 100. Quien haya cargado más que eso
+     vuelve con 100 y el botón puesto: es un apretón, no tres, y no vale gastar
+     varias peticiones del límite compartido en reponer una pantalla. */
+  const TOPE_REPONER = 100;
+
+  const guardar = () => {
+    try {
+      sessionStorage.setItem(CLAVE, JSON.stringify({
+        traidos, termino, soloHay, scroll: Math.round(scrollY),
+      }));
+    } catch { /* modo privado: se pierde la posición, no es grave */ }
+  };
+  addEventListener('pagehide', guardar);
+
+  const vengoDeUnaFicha = () => {
+    if (!document.referrer) return false;
+    const de = new URL(document.referrer, location.href);
+    return de.origin === location.origin && de.pathname.startsWith('/producto/');
+  };
+
+  async function reponer() {
+    let g;
+    try {
+      g = JSON.parse(sessionStorage.getItem(CLAVE) ?? 'null');
+    } catch {
+      return;
+    }
+    if (!g) return;
+
+    termino = g.termino ?? '';
+    soloHay = Boolean(g.soloHay);
+    entrada.value = termino;
+    filtro.checked = soloHay;
+
+    /* Lo que ya pintó el servidor alcanza si no había búsqueda, ni filtro, ni
+       tandas de más: se ahorra la petición. */
+    const cuantos = Math.min(g.traidos || 0, TOPE_REPONER);
+    if (termino || soloHay || cuantos > rejilla.children.length) {
+      rejilla.innerHTML = '';
+      traidos = 0;
+      mostrados = 0;
+      total = 0;
+      await traerMas(Math.max(cuantos, POR_TANDA));
+    }
+
+    scrollTo(0, g.scroll || 0);
+  }
+
   /* No hay banner acá: esto solo carga GA si ya dijo que sí en la home. */
   iniciarConsentimiento();
   iniciarCarrito();
   contar();
   boton.hidden = traidos >= total;
+
+  if (vengoDeUnaFicha()) reponer();
 }
