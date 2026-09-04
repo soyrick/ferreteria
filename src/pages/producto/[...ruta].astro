@@ -12,6 +12,7 @@ export const prerender = false;
 
 import { producto, apiLista, ranura, urlProducto } from '../../datos/api.js';
 import { consultarAgotado, consultarProducto } from '../../scripts/whatsapp.js';
+import { comoJSONLD } from '../../datos/negocio.js';
 import '../../styles/styles.css';
 
 /* La dirección es /producto/nombre-del-producto/CODIGO, pero también entra
@@ -110,7 +111,7 @@ const datosProducto = {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
-<script type="application/ld+json" set:html={JSON.stringify(datosProducto)} />
+<script type="application/ld+json" set:html={comoJSONLD(datosProducto)} />
 </head>
 <body class="pagina-producto">
 

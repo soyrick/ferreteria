@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import { firmar, claveCorrecta, destinoSeguro } from '../../lib/sesion.js';
+import { ipDe, puedeIntentar, anotarFallo, limpiar } from '../../lib/intentos.js';
 import '../../styles/styles.css';
 import '../../styles/admin.css';
 
@@ -15,15 +16,21 @@ let error = '';
 if (Astro.request.method === 'POST') {
   const formulario = await Astro.request.formData();
   const clave = String(formulario.get('clave') ?? '');
+  const ip = ipDe(Astro.request);
+
+  /* El freno va antes de comparar la clave: si esta IP ya gastó sus intentos,
+     no se le contesta si acertó o no. */
+  const freno = await puedeIntentar(ip);
 
   if (!configurado) {
     error = 'Faltan las variables ADMIN_CLAVE y ADMIN_SECRETO en el entorno.';
+  } else if (!freno.permitido) {
+    error = `Demasiados intentos fallidos. Vuelve a probar en ${freno.minutos} minuto${freno.minutos > 1 ? 's' : ''}.`;
   } else if (!(await claveCorrecta(clave, CLAVE))) {
-    // ponytail: sin límite de intentos. En serverless un contador en memoria no
-    // sirve (cada invocación arranca limpia); el freno real va en F10, con
-    // almacenamiento compartido o el rate limiting de la plataforma.
+    await anotarFallo(ip);
     error = 'Clave incorrecta.';
   } else {
+    await limpiar(ip);
     const token = await firmar({ vence: Date.now() + HORAS * 3600_000 }, SECRETO);
     Astro.cookies.set('ch_sesion', token, {
       httpOnly: true,                      // fuera del alcance de cualquier script

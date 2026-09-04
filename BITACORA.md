@@ -18,8 +18,8 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-09-02:** F4 (SEO) y F9 (accesibilidad) cerradas. Quedan F10
-(seguridad) y F11 (producción, necesita el dominio).
+**Al 2026-09-02:** F4 (SEO), F9 (accesibilidad) y F10 (seguridad) cerradas.
+Queda **F11**, la puesta en producción, que necesita el dominio.
 
 **Ya no queda nada de prueba.** El panel mostraba métricas inventadas y la home
 tenía cifras que puse yo para el demo: todo eso salió, y lo que quedó sale del
@@ -331,6 +331,38 @@ reserva el hueco (`.producto-foto.vacia`) con el icono de la casa, del tamaño
 exacto que tendrá la foto real. `normalizar()` ya lee `imagenes[0].url`, así que
 el día que el negocio las cargue aparecen solas.
 
+## Seguridad: qué protege qué
+
+Cerrado en F10 el 2026-09-02. Lo que hay que saber antes de tocar algo de esto.
+
+**Las cabeceras salen del middleware, no de cada página.** `src/middleware.js`
+las pone en *todas* las respuestas —tienda, panel y APIs— con una sola función.
+Una página nueva nace protegida sin que nadie se acuerde de agregar nada.
+
+La CSP lleva `'unsafe-inline'` en `script-src` y `style-src`. No es descuido:
+Astro pone estilos y scripts en línea, y sacarlo obliga a generar un nonce por
+respuesta, que en una home estática no se puede. Si algún día se agrega un
+dominio nuevo —otro CDN, otro embed— hay que sumarlo a la lista o el navegador
+lo bloquea **sin avisar en la página**, solo en la consola.
+
+**Todo JSON-LD pasa por `comoJSONLD()`** (`datos/negocio.js`). Escapa `<`, `>` y
+`&`. Sin eso, un nombre de producto con la cadena de cierre de script cerraba el
+bloque y lo que siguiera se leía como HTML — y los nombres vienen de la API, o
+sea de afuera. Si aparece un `<script type="application/ld+json">` nuevo con
+`JSON.stringify` crudo, está mal.
+
+**El freno del login vive en el Blob**, no en memoria: `src/lib/intentos.js`,
+archivo `intentos.json`, 5 intentos por IP cada 15 minutos. En serverless un
+contador en memoria no frena nada porque cada petición puede caer en una
+instancia nueva. `decidir()` y `sumar()` son puras a propósito, para poder
+probarlas sin Blob. **Sin `BLOB_READ_WRITE_TOKEN` el freno deja pasar a
+todos** — deliberado: dejar a Ricardo afuera de su propio panel es peor.
+
+Aceptado y no corregido: `path-to-regexp` con ReDoS (llega por
+`@astrojs/vercel`, se usa al construir con patrones nuestros), y que Google
+Fonts y el mapa carguen sin consentimiento. El banner ya no promete lo
+contrario: dice que *Analytics* no se activa, que es lo que sí se cumple.
+
 ## Decisiones que no hay que volver a discutir
 
 | Decisión | Por qué |
@@ -352,6 +384,8 @@ el día que el negocio las cargue aparecen solas.
 | **Sin cuentas de usuario** | No va a haber inicio de sesión. Un formulario que avisaba «esto es un demo» solo generaba expectativas. |
 | **El carrito flotante aparece solo con algo dentro** | Vacío ocupa la esquina más valiosa del teléfono sin dar nada a cambio. |
 | **El buscador va abierto en móvil** | Replegado pedía dos gestos —tocar y después escribir— donde alcanzaba uno. |
+| **Las cabeceras de seguridad van en el middleware** | Una sola puerta es una sola cosa que auditar, y una página nueva nace protegida sin que nadie se acuerde. |
+| **El freno del login se guarda en el Blob** | En serverless un contador en memoria se reinicia solo: cada petición puede caer en una instancia nueva. |
 
 ## Trampas conocidas
 
@@ -447,7 +481,6 @@ home empieza a devolver `503`. No es un bug: es esperar un minuto.
 
 Buscar `DATO PLACEHOLDER` en el repo.
 
-- Las métricas y la serie de visitas del panel (`pages/admin/index.astro`)
 - Las imágenes del hero: licencias variadas de Wikimedia Commons, ver `CREDITOS.txt`
 
 **Datos reales al 2026-09-02:** todos en `datos/negocio.js` — WhatsApp
@@ -468,7 +501,9 @@ En Vercel están cargadas en **Production y Preview** (no en Development).
 | `BLOB_READ_WRITE_TOKEN`, `BLOB_STORE_ID` | los pone el store de Blob |
 | `CATALOGO_URL` | URL completa del catálogo de kafe, token incluido. **Sin `PUBLIC_`**: ese prefijo la mandaría al navegador. Marcada como sensible y cargada en los tres entornos; en local llega por `npx vercel env pull .env.local`. |
 
-Store de Blob: `ferreteria-blob` (`store_venOEHu33aAQbWxD`), privado, región `iad1`.
+Store de Blob: `ferreteria-blob` (`store_venOEHu33aAQbWxD`), privado, región
+`iad1`. Guarda dos archivos: `curaduria.json` y `intentos.json` (el freno del
+login).
 
 ## Cómo verificar sin levantar el servidor
 
@@ -536,7 +571,9 @@ histórico por mes.
 **Bloqueado esperando al cliente:** las fotos del catálogo (D2 en el plan),
 F7 conexión del bot, F8 cifras reales de GA4 y Search Console en el panel.
 
-**Pendiente sin bloqueo:** F4 SEO, F9 accesibilidad, F10 seguridad, F11 producción.
+**Cerradas el 2026-09-02:** F4 SEO · F9 accesibilidad · F10 seguridad.
+
+**Pendiente:** F11 producción — necesita el dominio.
 
 ## Deuda conocida
 
@@ -546,7 +583,10 @@ F7 conexión del bot, F8 cifras reales de GA4 y Search Console en el panel.
 - **Faltan Core Web Vitals medidos.** LCP, CLS e INP necesitan un navegador que
   componga la página —el de pruebas no lo hace— y el sitio en su dominio. Van
   en F11, con Lighthouse sobre producción.
-- El login no tiene límite de intentos (va en F10; en serverless un contador en
-  memoria no sirve).
-- Las métricas del panel son de muestra hasta F8.
+- **La CSP lleva `unsafe-inline`** en scripts y estilos: Astro los pone en línea
+  y sacarlo pide un nonce por respuesta. Se revisa si alguna vez el sitio deja
+  de ser mayormente estático.
+- **`path-to-regexp` con ReDoS**, por `@astrojs/vercel`. Solo se usa al
+  construir, con patrones nuestros. Se corrige cuando Astro actualice.
+- Las cifras del panel esperan las APIs de Google (F8).
 - `rg -n "ponytail:" src/` lista los atajos deliberados.

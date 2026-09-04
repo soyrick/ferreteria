@@ -35,8 +35,10 @@ src/
   datos/
     api.js              cliente del catálogo de kafe — SOLO SERVIDOR
     curaduria.js        qué se muestra en la home (se guarda en Blob)
-  lib/sesion.js         cookie de sesión firmada con HMAC
-  middleware.js         puerta única de /admin
+  lib/
+    sesion.js           cookie de sesión firmada con HMAC
+    intentos.js         freno de fuerza bruta del login (5 por IP / 15 min)
+  middleware.js         puerta única de /admin + cabeceras de seguridad
   scripts/              app.js (tienda) y analitica.js (GA4 + consentimiento)
   styles/               styles.css (tienda) y admin.css (panel)
 public/assets/          logo, imágenes del hero y CREDITOS.txt
@@ -79,7 +81,10 @@ credenciales acotadas al store.
   variadas (CC BY, CC BY-SA, dominio público). Hay que revisarlas una por una y dar
   la atribución que cada una exija, o —mejor— reemplazarlas por fotos reales del
   local. Ver [CREDITOS.txt](public/assets/img/CREDITOS.txt).
-- **Datos de contacto.** Teléfono, correo y horarios son de ejemplo. Están marcados
-  en el HTML con `<!-- DATO PLACEHOLDER -->`.
 - **Política de privacidad.** Google Analytics está corriendo y no hay documento
   que explique qué se mide ni cómo negarse. El banner de consentimiento ya está.
+- **Dominio propio y HTTPS**, con Lighthouse y los Core Web Vitals medidos sobre
+  el sitio real. Es lo único que le falta a F11.
+
+Los datos de contacto ya son los reales y viven en un solo lugar,
+[`src/datos/negocio.js`](src/datos/negocio.js).

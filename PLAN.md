@@ -29,8 +29,9 @@ está puesto y F4 quedó cerrada el 2026-09-02.
    y no prometían nada real. Pero **Google Analytics sigue corriendo**, y eso
    pide una política de verdad: qué se mide, para qué y cómo negarse. El
    banner de consentimiento ya está; falta el documento al que debería apuntar.
-5. **Seguir con F9 (accesibilidad) y F10 (seguridad)**, las dos que quedan sin
-   bloqueo. Después F11, que necesita el dominio.
+5. **F11, la puesta en producción.** Es la única fase que queda: dominio
+   propio, HTTPS, Lighthouse sobre el sitio real, monitoreo de errores y una
+   prueba de rollback. Necesita el dominio para arrancar.
 
 ---
 
@@ -108,7 +109,7 @@ mover solo ese sector sin tocar la tienda.
 >
 > **El chatbot se canceló el 2026-09-01.** F3 y F7 quedan cerradas sin hacer:
 > la atención va por WhatsApp, que es donde el negocio ya conversa con sus
-> clientes. De once fases quedan nueve.
+> clientes. De once fases queda una: la puesta en producción.
 
 | Fase | Estado | Bloqueada por |
 |------|--------|---------------|
@@ -121,7 +122,7 @@ mover solo ese sector sin tocar la tienda.
 | ~~F7 Conexión del chatbot~~ | ⛔ **cancelada** el 2026-09-01 | — |
 | F8 Panel de administración | ✅ muestra solo lo comprobable | APIs de Google para las visitas |
 | F9 Auditoría de accesibilidad y UI | ✅ cerrada el 2026-09-02 | — |
-| F10 Auditoría de ciberseguridad | ⬜ pendiente | — |
+| F10 Auditoría de ciberseguridad | ✅ cerrada el 2026-09-02 | — |
 | F11 Puesta en producción | ⬜ pendiente | dominio |
 
 ---
@@ -392,8 +393,9 @@ recurrente del proyecto.
   qué está publicado en la portada. Se fue con eso la dependencia `chart.js`.
 - ⏳ Falta: traer las cifras reales de la GA4 Data API y la Search Console API.
   Ambas piden credenciales de cuenta de servicio.
-- ⏳ Falta: límite de intentos en el login (va en F10; en serverless un contador
-  en memoria no sirve).
+- ✅ Límite de intentos en el login: 5 por IP cada 15 minutos, con el registro en
+  el Blob. Se hizo en F10 — en serverless un contador en memoria no sirve porque
+  cada petición puede caer en una instancia nueva.
 
 **Cierre:** sin sesión válida no se accede ni a la vista ni a los datos.
 Verificado pegándole directo con curl y con cookies manipuladas.
@@ -446,24 +448,80 @@ al abrir y vuelve al cerrar.
 
 ---
 
-### F10 — Auditoría de ciberseguridad
-**Como especialista en seguridad, sobre el sitio completo.** Esta fase asume que
-el resto ya funciona: se audita lo construido, no se construye.
+### F10 — Auditoría de ciberseguridad · **cerrada el 2026-09-02**
 
-| Frente | Qué se revisa |
-|--------|---------------|
-| Cabeceras | CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
-| Entradas | Validación y saneamiento en toda ruta de API. Inyección en los parámetros del catálogo |
-| XSS | Todo punto donde entra contenido del usuario o de la API al DOM: el buscador, las tarjetas y la ficha |
-| Autenticación | Cookies de sesión, `HttpOnly`/`Secure`/`SameSite`, expiración, fuerza bruta en el login |
-| APIs | Límite de peticiones, CORS, autorización por ruta, fuga de datos en respuestas de error |
-| Secretos | Que ninguna clave viaje al cliente ni quede en el repo |
-| Dependencias | `npm audit` y revisión de lo que efectivamente se instaló |
+Se revisaron los ocho frentes. **Tres hallazgos altos y medios, los tres
+corregidos**; dos bajos, documentados y aceptados.
 
-| Terceros | Qué carga y qué envía GA4; que el consentimiento se respete de verdad |
+#### ALTO · El sitio no mandaba ninguna cabecera de seguridad
 
-**Cierre:** informe con severidad por hallazgo, corrección de todo lo crítico y
-alto, y decisión explícita sobre lo medio y bajo.
+Ni una: la única era `content-type`. Ahora el middleware las agrega a **todas**
+las respuestas —tienda, panel y APIs— porque una sola puerta es una sola cosa
+que auditar, y una página nueva nace protegida.
+
+| Cabecera | Para qué |
+|---|---|
+| `Content-Security-Policy` | Si algo inyecta un `<script>` ajeno, el navegador se niega a ejecutarlo |
+| `Strict-Transport-Security` | HTTPS obligatorio por un año |
+| `X-Content-Type-Options` | El navegador no adivina tipos: un `.txt` con HTML deja de ejecutarse |
+| `Referrer-Policy` | Al salir del sitio se manda el dominio, no qué producto se miraba |
+| `Permissions-Policy` | Cámara, micrófono, ubicación y pagos apagados de entrada |
+| `X-Frame-Options` + `frame-ancestors` | Nadie mete la tienda en un iframe: así se arman las estafas de clics |
+
+La CSP lleva `'unsafe-inline'` en scripts y estilos porque Astro los pone en
+línea; sacarlo pide nonces por respuesta y la home es estática. **Verificado que
+no rompe nada:** tipografías, mapa y Analytics siguen cargando.
+
+#### ALTO · El dato estructurado era inyectable
+
+`JSON.stringify` dentro de `<script type="application/ld+json">`: si un nombre
+de producto trajera la cadena de cierre de script, el navegador cerraba el
+bloque ahí y **todo lo que siguiera se interpretaba como HTML**. Los nombres los
+manda la API del negocio, o sea texto que nosotros no controlamos.
+
+Ahora lo serializa `comoJSONLD()`, que escapa los signos de menor, mayor y
+ampersand: sigue siendo JSON válido y el texto se lee igual, pero ya no forma
+etiquetas.
+
+#### MEDIO · El acceso al panel no tenía freno
+
+Se podían probar claves sin límite contra un panel que tiene una sola. Ahora hay
+**5 intentos por IP cada 15 minutos**, con el registro en el mismo Blob que
+guarda la curaduría: en serverless un contador en memoria no sirve, porque cada
+petición puede caer en una instancia nueva.
+
+La decisión vive en `decidir()` y `sumar()`, funciones puras probadas con 13
+casos —incluido que sumar un fallo **no reinicie la ventana**, que si no cada
+intento extendería el bloqueo para siempre.
+
+**Sin Blob configurado el freno deja pasar.** Es deliberado: dejar a Ricardo
+afuera de su propio panel sería peor que no tener el freno.
+
+#### BAJO · Aceptados, con su razón
+
+- **`path-to-regexp` con ReDoS** (aviso *high* de npm), llega por
+  `@astrojs/vercel`. Se usa al **construir** las rutas, con patrones que
+  escribimos nosotros: un atacante no controla esa entrada. Se corrige cuando
+  Astro actualice su adaptador; forzarlo hoy rompe el despliegue.
+- **Google Fonts y el mapa cargan sin consentimiento** y ven la IP del
+  visitante. El banner ya no promete lo contrario: dice que *Analytics* no se
+  activa, que es lo que se cumple. Quitarlos costaría la tipografía de la marca
+  y el mapa del pie.
+
+#### Lo que ya estaba bien
+
+- **Secretos:** nada sensible en lo que baja el navegador, y el token del
+  catálogo no aparece en ningún commit de la historia.
+- **XSS en el DOM:** los doce puntos que escriben HTML pasan por `limpio()`.
+- **Entradas:** el path traversal en `?codigo=` devuelve 404, `limit` se recorta
+  a 1–100 y `offset` a cero o más, y el proxy no refleja lo que le mandan.
+- **Cookie de sesión:** `HttpOnly`, `Secure` en producción, `SameSite=lax`,
+  `Path=/admin` —no viaja en las peticiones de la tienda— y expira a las 8 h. La
+  firma se verifica con `crypto.subtle.verify`, que compara en tiempo constante.
+- **Errores:** devuelven un mensaje genérico; el detalle solo va al log.
+- **CORS:** cerrado. Otro sitio no puede leer nuestras respuestas por `fetch`.
+- **Consentimiento:** con rechazo, cero scripts de Google, `gtag` sin definir y
+  cero peticiones a Analytics.
 
 ---
 

@@ -2,7 +2,7 @@
 // ponytail: todo el marcado vive acá a propósito. Sin layout ni componentes
 // hasta que exista una segunda página que los justifique.
 import '../styles/styles.css';
-import { NEGOCIO, datosNegocio } from '../datos/negocio.js';
+import { NEGOCIO, datosNegocio, comoJSONLD } from '../datos/negocio.js';
 
 // La verificación de Search Console es una etiqueta que Google busca en el
 // <head>. Sale del entorno: no se escribe a mano en el repo.
@@ -35,7 +35,7 @@ const portada = `${base}/assets/logo.png`;
 
 <meta name="theme-color" content="#FFDD00">
 <link rel="icon" href="/assets/logo.png">
-<script type="application/ld+json" set:html={JSON.stringify(datosNegocio(base))} />
+<script type="application/ld+json" set:html={comoJSONLD(datosNegocio(base))} />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">

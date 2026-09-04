@@ -39,6 +39,20 @@ export const NEGOCIO = {
   pagos: 'Pago móvil, divisas, débito, Zelle y Binance',
 };
 
+/* Serializa un dato estructurado para meterlo dentro de <script>.
+
+   El escape de `<` no es adorno: si un nombre de producto trajera la cadena
+   `</script>`, el navegador cerraría el bloque ahí y todo lo que siguiera se
+   interpretaría como HTML. Los nombres los manda la API del negocio, o sea que
+   son texto que nosotros no controlamos.
+
+   `<` es JSON válido y se lee igual, pero ya no forma esa etiqueta. */
+export const comoJSONLD = (dato) =>
+  JSON.stringify(dato)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
+
 /** Ficha del negocio para Google. HardwareStore es más preciso que LocalBusiness. */
 export function datosNegocio(base) {
   const n = NEGOCIO;

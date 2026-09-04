@@ -10,7 +10,7 @@
 export const prerender = false;
 
 import { resumen, productos, apiLista, ranura, urlProducto } from '../../datos/api.js';
-import { NEGOCIO } from '../../datos/negocio.js';
+import { NEGOCIO, comoJSONLD } from '../../datos/negocio.js';
 import '../../styles/styles.css';
 
 const POR_PAGINA = 24;
@@ -105,7 +105,7 @@ const miga = {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
-<script type="application/ld+json" set:html={JSON.stringify(miga)} />
+<script type="application/ld+json" set:html={comoJSONLD(miga)} />
 </head>
 <body class="pagina-producto">
 
