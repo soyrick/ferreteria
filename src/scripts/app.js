@@ -1,13 +1,12 @@
 /* =========================================================
-   Casa Herramientas — demo de interfaz
-   Datos de ejemplo + comportamiento de la home.
+   Casa Herramientas — comportamiento de la home.
    ========================================================= */
 
 import { iniciarConsentimiento, evento } from './analitica.js';
 import { agregar, iniciar as iniciarCarrito } from './carrito.js';
 import { tarjetaProducto, precio, limpio } from './tarjeta.js';
+import { avisar } from './tostada.js';
 import './vistaproducto.js';
-import './vistacategoria.js';
 
 /* ---------------------------------------------------------
    1. CATÁLOGO
@@ -68,7 +67,7 @@ function pintar(v) {
           <h2>${limpio(c.nombre)}</h2>
         </div>
         <div class="seccion-acciones">
-          <a class="enlace-todo" href="/categoria/${limpio(c.id)}" data-ver-todo="${limpio(c.nombre)}">Ver todo <svg class="ico"><use href="#i-der"/></svg></a>
+          <a class="enlace-todo" href="/categoria/${limpio(c.id)}">Ver todo <svg class="ico"><use href="#i-der"/></svg></a>
           <button class="flecha-carrusel" data-mover="-1" data-fila="${c.id}" aria-label="Anterior"><svg class="ico"><use href="#i-izq"/></svg></button>
           <button class="flecha-carrusel" data-mover="1" data-fila="${c.id}" aria-label="Siguiente"><svg class="ico"><use href="#i-der"/></svg></button>
         </div>
@@ -98,11 +97,10 @@ function pintar(v) {
 
   /* El menú lista las categorías completas del negocio, no solo las ocho que
      salen en la portada: son los 32 rubros reales que maneja la tienda.
-     Abren la rejilla completa y no un ancla de la home, porque veinticuatro de
-     los treinta y dos no tienen fila propia y el enlace no llevaba a ningún
-     lado. */
+     Llevan a la página del rubro y no a un ancla de la home, porque
+     veinticuatro de los treinta y dos no tienen fila propia. */
   $('#megamenu-lista').innerHTML = (v.rubros ?? []).map((r) => `
-    <a class="megamenu-rubro" href="/categoria/${limpio(r.id)}" data-ver-todo="${limpio(r.nombre)}">
+    <a class="megamenu-rubro" href="/categoria/${limpio(r.id)}">
       <strong>${limpio(r.nombre)}</strong>
       <span>${r.total}</span>
     </a>`).join('');
@@ -403,39 +401,14 @@ document.addEventListener('click', (e) => {
   evento('add_to_cart', { item_name: btn.dataset.nombre });
 });
 
-/* El aviso dura tres segundos y después se desvanece, no desaparece de golpe:
-   un corte seco parece un parpadeo y deja dudando si de verdad decía algo. */
-const VISIBLE = 3000;
-const DESVANECIDO = 400;
+/* Cualquier enlace que apunte a las ofertas: el botón del menú y el del hero.
+   Sin ofertas publicadas la sección está escondida, así que el clic no llevaría
+   a ningún lado y parecería que la página no responde.
 
-let relojTostada;
-let relojSalida;
-
-function avisar(texto) {
-  const t = $('#tostada');
-  clearTimeout(relojTostada);
-  clearTimeout(relojSalida);
-
-  t.classList.remove('saliendo');
-  t.innerHTML = `<svg class="ico"><use href="#i-check"/></svg> ${limpio(texto)}`;
-  t.hidden = false;
-
-  relojTostada = setTimeout(() => {
-    t.classList.add('saliendo');
-    // Se esconde recién cuando terminó de desvanecerse; si no, el elemento
-    // desaparecería a mitad de la transición y el efecto no se vería.
-    relojSalida = setTimeout(() => {
-      t.hidden = true;
-      t.classList.remove('saliendo');
-    }, DESVANECIDO);
-  }, VISIBLE);
-}
-
-/* El botón Ofertas del menú, el que está al lado de Productos: es por donde
-   entra el cliente. Sin ofertas publicadas la sección está escondida, así que
-   el clic no llevaría a ningún lado y parecería que la página no responde. */
+   Se mira el destino y no una clase: el del hero no la tiene, y era la razón
+   de que ese botón no hiciera nada. */
 document.addEventListener('click', (e) => {
-  const enlace = e.target.closest('.nav-destacada');
+  const enlace = e.target.closest('a[href="#ofertas"]');
   if (!enlace || hayOfertas) return;
   e.preventDefault();
   avisar('Por ahora no hay ofertas activas.');

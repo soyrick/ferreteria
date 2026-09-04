@@ -1,7 +1,6 @@
 ---
-// ponytail: todo el marcado vive acá a propósito. Sin layout ni componentes
-// hasta que exista una segunda página que los justifique.
 import '../styles/styles.css';
+import Carrito from '../components/Carrito.astro';
 import { NEGOCIO, datosNegocio, comoJSONLD } from '../datos/negocio.js';
 
 // La verificación de Search Console es una etiqueta que Google busca en el
@@ -179,7 +178,7 @@ const portada = `${base}/assets/logo.png`;
           <h1>Todo para tu obra<br>en un solo sitio</h1>
           <p>Ferretería, construcción, plomería y electricidad. Lo que necesitas, cuando lo necesitas.</p>
           <div class="hero-botones">
-            <a class="btn btn-amarillo" href="#hogar">Ver catálogo</a>
+            <a class="btn btn-amarillo" href="#categorias">Ver catálogo</a>
             <a class="btn btn-fantasma" href="#ubicacion">Cómo llegar</a>
           </div>
         </div>
@@ -193,7 +192,7 @@ const portada = `${base}/assets/logo.png`;
           <p class="hero-titulo">Herramientas eléctricas<br>de las buenas</p>
           <p>Taladros, esmeriles, sierras y lijadoras con garantía y repuestos aquí mismo.</p>
           <div class="hero-botones">
-            <a class="btn btn-amarillo" href="#electricas">Ver herramientas</a>
+            <a class="btn btn-amarillo" href="/categoria/herramientas-electricas">Ver herramientas</a>
             <a class="btn btn-fantasma" href="#ofertas">Ver lo que está en oferta</a>
           </div>
         </div>
@@ -207,7 +206,7 @@ const portada = `${base}/assets/logo.png`;
           <p class="hero-titulo">Materiales de construcción<br>al mejor precio</p>
           <p>Cemento, cabillas, mallas y agregados. Cotizamos tu obra completa y te la despachamos.</p>
           <div class="hero-botones">
-            <a class="btn btn-amarillo" href="#construccion">Ver materiales</a>
+            <a class="btn btn-amarillo" href="/categoria/albanileria">Ver materiales</a>
             <a class="btn btn-fantasma" href="https://wa.me/584248190490" target="_blank" rel="noopener">Pedir cotización</a>
           </div>
         </div>
@@ -434,68 +433,7 @@ const portada = `${base}/assets/logo.png`;
 </footer>
 
 <!-- ============ CARRITO ============ -->
-<div class="carrito" id="panel-carrito" hidden>
-  <div class="carrito-fondo" id="carrito-fondo"></div>
-  <aside class="carrito-panel" role="dialog" aria-modal="true" aria-labelledby="carrito-titulo">
-    <header class="carrito-cabecera">
-      <h2 id="carrito-titulo">Tu pedido</h2>
-      <button class="carrito-cerrar" id="carrito-cerrar" aria-label="Cerrar el pedido">
-        <svg class="ico"><use href="#i-cerrar"/></svg>
-      </button>
-    </header>
-
-    <p class="carrito-sin" id="carrito-vacio">
-      Todavía no has agregado nada. Busca lo que necesitas y toca <strong>Agregar</strong>.
-    </p>
-
-    <ul class="carrito-lista" id="carrito-items"></ul>
-
-    <footer class="carrito-pie" id="carrito-pie" hidden>
-      <div class="carrito-total">
-        <span>Total</span>
-        <strong id="carrito-total">$0,00</strong>
-      </div>
-      <a class="btn btn-amarillo btn-ancho" id="carrito-enviar" href="#" target="_blank" rel="noopener">
-        <svg class="ico"><use href="#i-chat"/></svg> Hacer el pedido
-      </a>
-      <p class="carrito-nota">Se abre WhatsApp con la lista lista para mandar. El precio final te lo confirmamos ahí.</p>
-      <button class="carrito-vaciar" id="carrito-vaciar">Vaciar el pedido</button>
-    </footer>
-  </aside>
-</div>
-
-<!-- ============ CATEGORÍA COMPLETA ============
-     Lo que abre "Ver todo". Los productos los carga vistacategoria.js de a
-     tandas: una categoría puede tener más de mil. -->
-<div class="vista-cat" id="vista-categoria" hidden>
-  <div class="vista-cat-fondo" id="categoria-fondo"></div>
-  <section class="vista-cat-panel" role="dialog" aria-modal="true" aria-labelledby="categoria-titulo">
-    <header class="vista-cat-cabecera">
-      <div class="vista-cat-quien">
-        <h2 id="categoria-titulo"></h2>
-        <span id="categoria-cuenta" class="vista-cat-cuenta"></span>
-      </div>
-      <div class="vista-cat-buscar">
-        <svg class="ico"><use href="#i-buscar"/></svg>
-        <label class="visualmente-oculto" for="categoria-buscar">Buscar en esta categoría</label>
-        <input type="search" id="categoria-buscar" placeholder="Buscar en esta categoría…" autocomplete="off">
-      </div>
-      <label class="vista-cat-filtro">
-        <input type="checkbox" id="categoria-solo-hay">
-        <span>Solo disponibles</span>
-      </label>
-      <button class="carrito-cerrar" id="categoria-cerrar" aria-label="Cerrar">
-        <svg class="ico"><use href="#i-cerrar"/></svg>
-      </button>
-    </header>
-
-    <div class="vista-cat-cuerpo" id="categoria-cuerpo">
-      <p class="panel-sin" id="categoria-aviso" hidden>No hay productos que coincidan con esa búsqueda.</p>
-      <div class="vista-cat-rejilla" id="categoria-rejilla"></div>
-      <p class="vista-cat-mas" id="categoria-mas"></p>
-    </div>
-  </section>
-</div>
+<Carrito />
 
 <!-- ============ FICHA RÁPIDA ============
      El contenido lo pinta vistaproducto.js. La página real de cada producto
@@ -514,20 +452,10 @@ const portada = `${base}/assets/logo.png`;
   </aside>
 </div>
 
-<!-- ============ FLOTANTES ============ -->
-<!-- El carrito solo aparece cuando hay algo dentro. Ocupa el lugar de abajo,
-     que es el más fácil de alcanzar con el pulgar en un teléfono. -->
-<button class="flotante-carrito" id="flotante-carrito" hidden aria-controls="panel-carrito">
-  <svg class="ico"><use href="#i-carrito"/></svg>
-  <span class="flotante-carrito-n" id="flotante-carrito-n">0</span>
-  <span class="flotante-carrito-total" id="flotante-carrito-total">$0,00</span>
-</button>
-
+<!-- El flotante del carrito y la tostada los trae <Carrito />. -->
 <button class="flotante-arriba" id="btn-arriba" aria-label="Volver arriba" hidden>
   <svg class="ico"><use href="#i-arriba"/></svg>
 </button>
-
-<div class="tostada" id="tostada" role="status" aria-live="polite" hidden></div>
 
 <!-- ============ CONSENTIMIENTO DE ANALÍTICA ============ -->
 <aside class="consentimiento" id="consentimiento" hidden>
