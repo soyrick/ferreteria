@@ -4,7 +4,7 @@ Documento de recuperación de contexto. Si empezás una sesión nueva o se vaci�
 contexto, leé **esto primero** y después [PLAN.md](PLAN.md). Con esos dos
 archivos alcanza para retomar sin preguntar nada.
 
-Última actualización: 2026-09-01
+Última actualización: 2026-09-02
 
 ---
 
@@ -18,13 +18,13 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-09-01:** todo mergeado a `main` y pusheado, árbol limpio. La rama
-`products` queda apuntando al mismo commit que `main`.
+**Al 2026-09-02:** F4 (SEO) y F9 (accesibilidad) cerradas. Quedan F10
+(seguridad) y F11 (producción, necesita el dominio).
 
-La jornada dejó: catálogo real integrado, fichas de producto con su URL,
-sitemap, rejilla de categoría, sello de agotado, consultas de WhatsApp con el
-mensaje escrito, carrito flotante, y fuera el chatbot y el inicio de sesión.
-Para ver dónde quedó: `git log --oneline -18`.
+**Ya no queda nada de prueba.** El panel mostraba métricas inventadas y la home
+tenía cifras que puse yo para el demo: todo eso salió, y lo que quedó sale del
+catálogo en vivo o está verificado. El único dato pendiente son las fotos, que
+la API todavía no trae.
 
 **Lo primero al retomar:** la lista de «Para mañana» en [PLAN.md](PLAN.md).
 
@@ -47,15 +47,18 @@ Están como R13–R16 en [PLAN.md](PLAN.md).
 Astro 7 híbrido sobre Vercel. La tienda se prerenderiza; solo `/admin` y `/api`
 corren en servidor (`export const prerender = false` en esas páginas).
 
-Cuatro dependencias: `astro`, `@astrojs/vercel`, `@vercel/blob`, `chart.js`
-(la última solo se carga en `/admin`; la tienda va con 18,7 KB de JS).
+Tres dependencias: `astro`, `@astrojs/vercel` y `@vercel/blob`. La tienda baja
+**56 KB**: 42 de CSS y 14 de JavaScript.
+
+`chart.js` se fue el 2026-09-02 con la gráfica de visitas, que dibujaba datos
+inventados. Vuelve si algún día se conecta la GA4 Data API.
 
 ```
 src/
   pages/index.astro          la tienda entera (sin componentes, a propósito)
   pages/admin/
     entrar.astro             login
-    index.astro              estadísticas + gráfica de visitas por mes
+    index.astro              estado: conexiones, catálogo y qué se publica
     categorias.astro         PRODUCTOS: busca en los 8.437, filtra y pagina
     topventas.astro          Lo más vendido (10 cupos)
     ofertas.astro            Ofertas con precio, descuento y vencimiento
@@ -83,7 +86,6 @@ src/
   scripts/whatsapp.js        el número y los mensajes pre-armados
   scripts/carrito.js         carrito → WhatsApp
   scripts/analitica.js       GA4 + consentimiento
-  scripts/grafica.js         gráfica del panel (Chart.js) + selector de mes
   scripts/panel.js           buscador, menús ⋯ y descuento en vivo
   styles/styles.css          tienda
   styles/admin.css           panel
@@ -190,6 +192,23 @@ visitante — que es justo lo que penaliza.
 
 `HardwareStore` y no `LocalBusiness`: es un subtipo, más preciso, y Google
 prefiere el tipo más específico que aplique.
+
+### El gris tiene dos versiones, y no es capricho
+
+`--gris-500` es el texto secundario sobre fondo **claro**; `--gris-en-negro`, el
+mismo papel sobre el negro del pie y las cabeceras oscuras.
+
+Están separados porque un solo gris no puede servir a los dos: el que pasa
+4,5:1 contra blanco no llega contra negro, y al revés.
+
+| | Sobre blanco | Sobre negro |
+|---|---|---|
+| `--gris-500: #6B717B` | 4,91 ✓ | 3,24 ✗ |
+| `--gris-en-negro: #7C828C` | 3,87 ✗ | 4,85 ✓ |
+
+**Al escribir CSS nuevo: fijarse en qué fondo cae el texto.** Poner
+`--gris-500` sobre algo oscuro rompe el contraste sin que se note a simple
+vista. Ya pasó una vez con el aviso de derechos del pie.
 
 ### El sitemap, y por qué está partido
 

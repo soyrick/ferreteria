@@ -229,6 +229,12 @@ const portada = `${base}/assets/logo.png`;
 
     <button class="hero-flecha izq" id="hero-anterior" aria-label="Lámina anterior"><svg class="ico"><use href="#i-izq"/></svg></button>
     <button class="hero-flecha der" id="hero-siguiente" aria-label="Lámina siguiente"><svg class="ico"><use href="#i-der"/></svg></button>
+    <!-- Obligatorio: cualquier cosa que se mueva sola más de cinco segundos
+         tiene que poder detenerse. Con el mouse ya paraba al pasar por encima,
+         pero eso no existe con teclado ni en un teléfono. -->
+    <button class="hero-pausa" id="hero-pausa" aria-label="Pausar el carrusel">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>
+    </button>
     <div class="hero-puntos" id="hero-puntos" role="tablist" aria-label="Seleccionar lámina"></div>
   </section>
 
@@ -313,10 +319,14 @@ const portada = `${base}/assets/logo.png`;
           <li><svg class="ico"><use href="#i-check"/></svg> Despacho a obra en toda la zona norte de Anzoátegui</li>
           <li><svg class="ico"><use href="#i-check"/></svg> Atención por WhatsApp de lunes a sábado</li>
         </ul>
-        <div class="info-numeros">
-          <div><strong>17K+</strong><span>Clientes en Instagram</span></div>
-          <div><strong>8.000+</strong><span>Artículos en catálogo</span></div>
-          <div><strong>100%</strong><span>Asesoría antes de vender</span></div>
+        <!-- Los rellena app.js con el catálogo en vivo. Antes decían "17K+
+             clientes en Instagram" y "100 % asesoría", cifras inventadas para
+             el demo; la sección se esconde si la API no responde, que es mejor
+             que mostrar un número sacado de la nada. -->
+        <div class="info-numeros" id="info-numeros" hidden>
+          <div><strong id="cifra-productos">—</strong><span>Productos en catálogo</span></div>
+          <div><strong id="cifra-rubros">—</strong><span>Rubros distintos</span></div>
+          <div><strong id="cifra-marcas">—</strong><span>Marcas que trabajamos</span></div>
         </div>
       </div>
 
@@ -466,6 +476,10 @@ const portada = `${base}/assets/logo.png`;
         <label class="visualmente-oculto" for="categoria-buscar">Buscar en esta categoría</label>
         <input type="search" id="categoria-buscar" placeholder="Buscar en esta categoría…" autocomplete="off">
       </div>
+      <label class="vista-cat-filtro">
+        <input type="checkbox" id="categoria-solo-hay">
+        <span>Solo disponibles</span>
+      </label>
       <button class="carrito-cerrar" id="categoria-cerrar" aria-label="Cerrar">
         <svg class="ico"><use href="#i-cerrar"/></svg>
       </button>

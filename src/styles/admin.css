@@ -87,12 +87,6 @@
   display: flex; align-items: center; gap: 9px;
 }
 .admin-fuente { margin: 0 0 14px; font-size: 12.5px; color: var(--gris-500); }
-.admin-muestra {
-  font-family: var(--texto); font-size: 10px; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase;
-  background: var(--gris-200); color: var(--gris-700);
-  padding: 3px 8px; border-radius: 99px;
-}
 
 /* ---------- Conexiones ---------- */
 .admin-conexiones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 12px; }
@@ -229,24 +223,7 @@
 .admin-cuerpo { flex: 1; min-width: 0; max-width: none; margin: 0; }
 
 /* ---------- Gráfica de visitas ---------- */
-.grafica-cabeza {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 20px; flex-wrap: wrap; margin-bottom: 14px;
-}
-.grafica-resumen { text-align: right; display: flex; flex-direction: column; gap: 2px; }
-.grafica-resumen strong { font-family: var(--display); font-size: 34px; font-weight: 800; color: var(--negro); line-height: 1; }
-.grafica-resumen span { font-size: 12.5px; font-weight: 700; }
-.grafica-resumen .sube { color: var(--verde); }
-.grafica-resumen .baja { color: var(--rojo); }
 
-.grafica {
-  position: relative;
-  height: 300px;
-  background: var(--blanco);
-  border: 1px solid var(--gris-200);
-  border-radius: var(--radio);
-  padding: 14px 16px 10px;
-}
 
 @media (max-width: 860px) {
   /* En pantalla angosta la barra vuelve a ser una fila arriba del contenido.
@@ -265,25 +242,9 @@
   }
   .admin-lateral::-webkit-scrollbar { display: none; }
   .admin-lateral a { white-space: nowrap; }
-  .grafica-cabeza { flex-direction: column; }
-  .grafica-resumen { text-align: left; }
-  .grafica { height: 230px; padding-inline: 10px; }
 }
 
 /* ---------- Selector de mes ---------- */
-.grafica-mes { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.grafica-mes label {
-  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--gris-500);
-}
-.grafica-mes select {
-  height: 34px; padding: 0 10px;
-  border: 1.5px solid var(--gris-200); border-radius: var(--radio-sm);
-  background: var(--blanco); font: inherit; font-size: 13px;
-  color: var(--negro); cursor: pointer; text-transform: capitalize;
-}
-.grafica-mes select:focus { border-color: var(--amarillo); outline: 0; }
-.grafica-mes .btn { height: 34px; padding: 0 14px; font-size: 13px; }
 .admin-fuente a { color: var(--gris-700); border-bottom: 1px solid var(--amarillo); }
 .admin-fuente a:hover { color: var(--negro); }
 

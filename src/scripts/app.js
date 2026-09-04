@@ -107,6 +107,15 @@ function pintar(v) {
       <span>${r.total}</span>
     </a>`).join('');
 
+  /* Las cifras de "Somos Casa Herramientas": salen del catálogo, no escritas a
+     mano. Si la API no contestó, el bloque no se muestra. */
+  if (v.cifras) {
+    $('#cifra-productos').textContent = v.cifras.productos.toLocaleString('es-VE');
+    $('#cifra-rubros').textContent = v.cifras.rubros;
+    $('#cifra-marcas').textContent = v.cifras.marcas;
+    $('#info-numeros').hidden = false;
+  }
+
   // Estos dos dependen de que las grillas ya existan en el DOM.
   prepararCarruseles();
   observarRevelado();
@@ -173,6 +182,27 @@ $$('.producto-foto img, .hero-lamina img').forEach((img) => {
   seccion.addEventListener('mouseenter', parar);
   seccion.addEventListener('mouseleave', arrancar);
   document.addEventListener('visibilitychange', () => (document.hidden ? parar() : arrancar()));
+
+  /* Pausa explícita. El hover ya paraba el carrusel, pero con teclado o en un
+     teléfono no hay hover: quien necesite tiempo para leer una lámina no tenía
+     forma de detenerla.
+
+     `detenido` manda sobre el hover: si alguien pausó a propósito, salir con el
+     mouse no lo vuelve a arrancar. */
+  const botonPausa = $('#hero-pausa');
+  let detenido = false;
+
+  const original = { arrancar, parar };
+  const arrancarSiCorresponde = () => { if (!detenido) original.arrancar(); };
+  seccion.removeEventListener('mouseleave', arrancar);
+  seccion.addEventListener('mouseleave', arrancarSiCorresponde);
+
+  botonPausa.addEventListener('click', () => {
+    detenido = !detenido;
+    if (detenido) original.parar(); else original.arrancar();
+    botonPausa.classList.toggle('pausado', detenido);
+    botonPausa.setAttribute('aria-label', detenido ? 'Reanudar el carrusel' : 'Pausar el carrusel');
+  });
 
   arrancar();
 })();

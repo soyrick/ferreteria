@@ -5,10 +5,12 @@
    acerca al final. El buscador de arriba filtra dentro de la categoría, contra
    el servidor, porque tampoco están todos acá para filtrarlos en memoria.
 
-   No cambia la dirección del navegador. Las páginas de categoría todavía no
-   existen —son deuda anotada—, así que poner /categoria/algo en la barra
-   dejaría un 404 esperando a quien recargara. La ficha que abre encima sí
-   cambia la URL, y al cerrarla esta rejilla sigue abierta detrás. */
+   Es un atajo sobre /categoria/…, que desde F4 existe como página propia: los
+   enlaces apuntan ahí de verdad y esto solo evita perder el scroll. La ficha
+   que abre encima sí cambia la URL, y al cerrarla la rejilla sigue detrás.
+
+   El filtro de disponibles se aplica acá porque la API no sabe hacerlo: hay
+   que pedir tandas y descartar, no preguntar por los que hay. */
 
 import { tarjetaProducto, desdeApi, limpio, trabarFondo } from './tarjeta.js';
 
@@ -21,6 +23,7 @@ if (panel) {
   const titulo = $('#categoria-titulo');
   const cuenta = $('#categoria-cuenta');
   const buscador = $('#categoria-buscar');
+  const filtro = $('#categoria-solo-hay');
   const centinela = $('#categoria-mas');
   const aviso = $('#categoria-aviso');
 
@@ -29,8 +32,10 @@ if (panel) {
 
   let categoria = '';
   let termino = '';
-  let traidos = 0;
+  let traidos = 0;     // cuántos se le pidieron a la API
+  let mostrados = 0;   // cuántos quedaron después del filtro
   let total = 0;
+  let soloHay = false;
   let cargando = false;
   let pidiendo;
   let relojBusca;
@@ -75,12 +80,24 @@ if (panel) {
       total = datos.total ?? 0;
       traidos += datos.productos.length;
 
-      rejilla.insertAdjacentHTML('beforeend',
-        datos.productos.map((p) => tarjetaProducto(desdeApi(p))).join(''));
+      /* La API no sabe filtrar por disponibilidad, así que se filtra acá. Por
+         eso el contador dice cuántos se están viendo y no cuántos hay: con el
+         filtro puesto, de una tanda de 24 pueden entrar 13. */
+      const entran = soloHay
+        ? datos.productos.filter((p) => p.disponible && p.precio > 0)
+        : datos.productos;
+      mostrados += entran.length;
 
-      cuenta.textContent = total === 1 ? '1 producto' : `${total.toLocaleString('es-VE')} productos`;
-      aviso.hidden = total > 0;
-      centinela.textContent = traidos >= total ? '' : ' ';
+      rejilla.insertAdjacentHTML('beforeend',
+        entran.map((p) => tarjetaProducto(desdeApi(p))).join(''));
+
+      cuenta.textContent = soloHay
+        ? `${mostrados.toLocaleString('es-VE')} disponibles de ${total.toLocaleString('es-VE')}`
+        : (total === 1 ? '1 producto' : `${total.toLocaleString('es-VE')} productos`);
+
+      const fin = traidos >= total;
+      aviso.hidden = mostrados > 0 || !fin;
+      centinela.textContent = fin ? '' : ' ';
     } catch (e) {
       if (e.name === 'AbortError') return;
       centinela.textContent = 'No pudimos cargar más productos.';
@@ -88,9 +105,10 @@ if (panel) {
       cargando = false;
     }
 
-    /* Si la tanda que acaba de entrar no llenó la pantalla, no va a haber
-       scroll que dispare la siguiente: se encadena acá. */
-    if (cerca()) traerMas();
+    /* Se encadena la siguiente tanda en dos casos: cuando lo que entró no llenó
+       la pantalla —no habría scroll que la dispare— y cuando el filtro descartó
+       toda la tanda, que si no dejaría la rejilla vacía habiendo más adelante. */
+    if (traidos < total && (cerca() || mostrados === 0)) traerMas();
   }
 
   function reiniciar() {
@@ -100,6 +118,7 @@ if (panel) {
     // con la vista a mitad de camino de la lista anterior.
     cuerpo.scrollTop = 0;
     traidos = 0;
+    mostrados = 0;
     total = 0;
     cargando = false;
     traerMas();
@@ -147,6 +166,14 @@ if (panel) {
       termino = t;
       reiniciar();
     }, ESPERA_TECLA);
+  });
+
+  /* Solo disponibles. Vuelve a pedir desde cero en vez de esconder lo que ya
+     está: si solo se ocultaran las tarjetas agotadas, una tanda de 24 podría
+     dejar tres visibles y parecería que la categoría casi no tiene nada. */
+  filtro.addEventListener('change', () => {
+    soloHay = filtro.checked;
+    reiniciar();
   });
 
   $('#categoria-cerrar').addEventListener('click', cerrar);

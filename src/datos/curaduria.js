@@ -255,6 +255,13 @@ export async function vitrinas() {
     ofertas,
     // Los 32 rubros del negocio, para el menú. Las filas de la home son ocho.
     rubros: info.categorias.map((c) => ({ ...c, id: ranura(c.nombre) })),
+    // Las cifras que la home muestra en "Somos Casa Herramientas". Van acá y
+    // no en el HTML para que no queden congeladas en el momento del build.
+    cifras: {
+      productos: info.totalProductos,
+      rubros: info.categorias.length,
+      marcas: info.marcas?.length ?? 0,
+    },
   };
 }
 

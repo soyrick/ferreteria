@@ -2,8 +2,19 @@
 export const prerender = false;
 
 import Admin from '../../layouts/Admin.astro';
+import { resumen, apiLista } from '../../datos/api.js';
+import { leer, almacenListo } from '../../datos/curaduria.js';
 
-// Estado real de la configuración: se lee del entorno, no está inventado.
+/* Esta pantalla solo muestra lo que se puede comprobar.
+
+   Tenía métricas, una gráfica de visitas y dos tablas de páginas y búsquedas
+   más vistas: todo inventado, con un cartelito de "muestra" al lado. Servía
+   para ver cómo iba a quedar, pero un panel con números falsos es peor que uno
+   vacío — se los termina leyendo como si fueran ciertos.
+
+   Las cifras de verdad llegan cuando se conecten la GA4 Data API y la Search
+   Console API, que piden credenciales de cuenta de servicio. */
+
 const GA_ID = import.meta.env.PUBLIC_GA_ID ?? '';
 const GSC_TOKEN = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 
@@ -11,215 +22,127 @@ const conexiones = [
   {
     nombre: 'Google Analytics 4',
     variable: 'PUBLIC_GA_ID',
-    valor: GA_ID,
     listo: Boolean(GA_ID),
-    detalle: GA_ID ? `Midiendo con ${GA_ID}` : 'Falta el ID de medición (G-XXXXXXXXXX)',
+    detalle: GA_ID
+      ? `Midiendo con ${GA_ID}. Las visitas se registran; las cifras se ven en analytics.google.com`
+      : 'Falta el ID de medición (G-XXXXXXXXXX)',
   },
   {
     nombre: 'Google Search Console',
     variable: 'PUBLIC_GSC_VERIFICACION',
-    valor: GSC_TOKEN,
     listo: Boolean(GSC_TOKEN),
-    detalle: GSC_TOKEN ? 'Etiqueta de verificación publicada' : 'Falta el token de verificación del dominio',
+    detalle: GSC_TOKEN
+      ? 'Etiqueta de verificación publicada'
+      : 'Falta el token de verificación del dominio',
+  },
+  {
+    nombre: 'Catálogo de productos',
+    variable: 'CATALOGO_URL',
+    listo: apiLista(),
+    detalle: apiLista() ? 'Conectado' : 'Falta la URL del catálogo',
+  },
+  {
+    nombre: 'Almacenamiento de la curaduría',
+    variable: 'BLOB_READ_WRITE_TOKEN',
+    listo: almacenListo(),
+    detalle: almacenListo()
+      ? 'Vercel Blob conectado: los cambios se guardan'
+      : 'Sin token: los cambios se pierden al reiniciar',
   },
 ];
 
+/* Lo único medible desde acá: qué hay en el catálogo y qué está publicado. */
+let catalogo = null;
+if (apiLista()) {
+  try {
+    const info = await resumen();
+    catalogo = {
+      productos: info.totalProductos,
+      categorias: info.categorias.length,
+      marcas: info.marcas?.length ?? 0,
+    };
+  } catch { /* si la API no responde, la tarjeta no se muestra */ }
+}
 
-/* --- Mes que se está mirando ---
-   Viaja por la URL (?mes=2026-07). Cuando en F8 entre la GA4 Data API, este
-   mismo parámetro se traduce al rango de fechas que se le pide a Google. */
-const MESES_ATRAS = 12;
-const ahora = new Date();
-
-const claveMes = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-const nombreMes = (d) => d.toLocaleDateString('es-VE', { month: 'long', year: 'numeric' });
-
-const disponibles = Array.from({ length: MESES_ATRAS }, (_, i) => {
-  const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
-  return { valor: claveMes(d), nombre: nombreMes(d), fecha: d };
-});
-
-const pedido = Astro.url.searchParams.get('mes');
-const mes = disponibles.find((m) => m.valor === pedido) ?? disponibles[0];
-const esMesActual = mes.valor === disponibles[0].valor;
-
-/* DATOS DE MUESTRA — reemplazar por la GA4 Data API en F8.
-   La curva se genera a partir del año y el mes, así cada mes tiene siempre la
-   misma forma: si fuera aleatoria, cambiaría en cada recarga y no parecería
-   un histórico. */
-const primerDia = new Date(mes.fecha.getFullYear(), mes.fecha.getMonth(), 1);
-const diasDelMes = new Date(mes.fecha.getFullYear(), mes.fecha.getMonth() + 1, 0).getDate();
-// Del mes en curso solo hay datos hasta hoy.
-const DIAS = esMesActual ? ahora.getDate() : diasDelMes;
-const semilla = mes.fecha.getFullYear() * 12 + mes.fecha.getMonth();
-
-const serie = Array.from({ length: DIAS }, (_, i) => {
-  const fecha = new Date(primerDia);
-  fecha.setDate(i + 1);
-  const finde = [0, 6].includes(fecha.getDay()) ? 0.62 : 1;   // los sábados y domingos baja
-  const base = 20 + (semilla % 17) * 1.4 + i * 1.5;
-  const ruido = Math.sin((i + semilla) * 1.7) * 7 + Math.cos((i + semilla) * 0.9) * 4;
-  return { fecha, valor: Math.max(8, Math.round((base + ruido) * finde)) };
-});
-
-/* Chart.js dibuja; acá solo se preparan los datos y el resumen. */
-const puntos = serie.map((d) => ({
-  fecha: d.fecha.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' }),
-  corta: d.fecha.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' }),
-  valor: d.valor,
-}));
-const valores = serie.map((d) => d.valor);
-
-const totalMes = valores.reduce((a, b) => a + b, 0);
-const mitad = Math.floor(DIAS / 2);
-const primeraMitad = valores.slice(0, mitad).reduce((a, b) => a + b, 0) || 1;
-const segundaMitad = valores.slice(mitad).reduce((a, b) => a + b, 0);
-const variacion = Math.round(((segundaMitad - primeraMitad) / primeraMitad) * 100);
-
-/* DATOS DE MUESTRA — no salen de ninguna API.
-   Existen para que la interfaz esté construida y probada. En F8 los reemplaza
-   la GA4 Data API y la Search Console API, que necesitan credenciales de
-   servicio: por eso esa parte sigue bloqueada. */
-const visitas = [
-  { etiqueta: 'Usuarios', valor: '1.284', delta: '+12,4 %', sube: true },
-  { etiqueta: 'Sesiones', valor: '1.907', delta: '+8,1 %', sube: true },
-  { etiqueta: 'Vistas de página', valor: '5.412', delta: '+15,3 %', sube: true },
-  { etiqueta: 'Duración media', valor: '2m 18s', delta: '−4,0 %', sube: false },
-];
-
-const buscador = [
-  { etiqueta: 'Clics', valor: '342', delta: '+22,0 %', sube: true },
-  { etiqueta: 'Impresiones', valor: '9.806', delta: '+31,5 %', sube: true },
-  { etiqueta: 'CTR', valor: '3,49 %', delta: '−0,6 %', sube: false },
-  { etiqueta: 'Posición media', valor: '14,2', delta: '+2,1', sube: true },
-];
-
-const paginasTop = [
-  { ruta: '/', vistas: '2.140' },
-  { ruta: '/categoria/herramientas-electricas', vistas: '861' },
-  { ruta: '/categoria/construccion', vistas: '714' },
-  { ruta: '/categoria/plomeria', vistas: '498' },
-  { ruta: '/categoria/electricidad', vistas: '402' },
-];
-
-const consultasTop = [
-  { consulta: 'ferretería barcelona anzoátegui', clics: '78', impresiones: '1.902' },
-  { consulta: 'casa herramientas', clics: '64', impresiones: '810' },
-  { consulta: 'taladro percutor barcelona', clics: '41', impresiones: '1.140' },
-  { consulta: 'cemento precio anzoátegui', clics: '35', impresiones: '1.688' },
-  { consulta: 'cabilla 3/8 barcelona', clics: '28', impresiones: '992' },
-];
+const estado = await leer();
+const vitrinas = {
+  categorias: estado.categorias.length,
+  topventas: estado.topventas.length,
+  ofertas: estado.ofertas.length,
+};
 ---
 <Admin titulo="Estadísticas">
-  <div class="admin-aviso" role="status">
-      <strong>Los números de abajo son de muestra.</strong>
-      La interfaz ya está construida, pero traer las cifras reales necesita
-      credenciales de servicio de Google (GA4 Data API y Search Console API).
-      Eso se conecta en la fase 8.
+  <header class="admin-titulo">
+    <div>
+      <h1>Estado de la tienda</h1>
+      <p>Lo que está conectado y lo que hay publicado ahora mismo.</p>
     </div>
+  </header>
 
-    <section class="admin-seccion">
-      <h2>Estado de las conexiones</h2>
-      <div class="admin-conexiones">
-        {conexiones.map((c) => (
-          <article class={`conexion ${c.listo ? 'lista' : 'pendiente'}`}>
-            <span class="conexion-punto"></span>
-            <div>
-              <strong>{c.nombre}</strong>
-              <span>{c.detalle}</span>
-              <code>{c.variable}</code>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <section class="admin-seccion">
-      <div class="grafica-cabeza">
-        <div>
-          <h2>Visitas <span class="admin-muestra">muestra</span></h2>
-          <p class="admin-fuente">
-            {DIAS} días · pasa el mouse por la curva para ver cada día
-            {!esMesActual && <> · <a href="/admin">volver al mes actual</a></>}
-          </p>
-          <form method="GET" class="grafica-mes" id="form-mes">
-            <label for="mes">Mes</label>
-            <select name="mes" id="mes">
-              {disponibles.map((m) => (
-                <option value={m.valor} selected={m.valor === mes.valor}>{m.nombre}</option>
-              ))}
-            </select>
-            <button type="submit" class="btn btn-negro">Ver</button>
-          </form>
-        </div>
-        <div class="grafica-resumen">
-          <strong>{totalMes.toLocaleString('es-VE')}</strong>
-          <span class={variacion >= 0 ? 'sube' : 'baja'}>
-            {variacion >= 0 ? '▲' : '▼'} {Math.abs(variacion)}% vs. la quincena anterior
-          </span>
-        </div>
-      </div>
-
-      <div class="grafica">
-        <canvas data-grafica={JSON.stringify(puntos)}
-                aria-label={`Visitas diarias de los últimos ${DIAS} días`} role="img"></canvas>
-      </div>
-    </section>
-
-    <section class="admin-seccion">
-      <h2>Visitas <span class="admin-muestra">muestra</span></h2>
-      <p class="admin-fuente">Google Analytics 4 · últimos 28 días</p>
-      <div class="admin-metricas">
-        {visitas.map((m) => (
-          <article class="metrica">
-            <span class="metrica-etiqueta">{m.etiqueta}</span>
-            <strong class="metrica-valor">{m.valor}</strong>
-            <span class={`metrica-delta ${m.sube ? 'sube' : 'baja'}`}>{m.delta}</span>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <section class="admin-seccion">
-      <h2>Búsqueda en Google <span class="admin-muestra">muestra</span></h2>
-      <p class="admin-fuente">Search Console · últimos 28 días</p>
-      <div class="admin-metricas">
-        {buscador.map((m) => (
-          <article class="metrica">
-            <span class="metrica-etiqueta">{m.etiqueta}</span>
-            <strong class="metrica-valor">{m.valor}</strong>
-            <span class={`metrica-delta ${m.sube ? 'sube' : 'baja'}`}>{m.delta}</span>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <div class="admin-dos">
-      <section class="admin-seccion">
-        <h2>Páginas más vistas <span class="admin-muestra">muestra</span></h2>
-        <table class="admin-tabla">
-          <thead><tr><th>Ruta</th><th>Vistas</th></tr></thead>
-          <tbody>
-            {paginasTop.map((p) => (
-              <tr><td><code>{p.ruta}</code></td><td>{p.vistas}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <section class="admin-seccion">
-        <h2>Búsquedas que traen gente <span class="admin-muestra">muestra</span></h2>
-        <table class="admin-tabla">
-          <thead><tr><th>Consulta</th><th>Clics</th><th>Impr.</th></tr></thead>
-          <tbody>
-            {consultasTop.map((c) => (
-              <tr><td>{c.consulta}</td><td>{c.clics}</td><td>{c.impresiones}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+  <section class="admin-seccion">
+    <h2>Conexiones</h2>
+    <div class="admin-conexiones">
+      {conexiones.map((c) => (
+        <article class={`conexion ${c.listo ? 'lista' : 'pendiente'}`}>
+          <span class="conexion-punto"></span>
+          <div>
+            <strong>{c.nombre}</strong>
+            <span>{c.detalle}</span>
+            <code>{c.variable}</code>
+          </div>
+        </article>
+      ))}
     </div>
-  <script>
-    import '../../scripts/grafica.js';
-  </script>
+  </section>
+
+  {catalogo && (
+    <section class="admin-seccion">
+      <h2>El catálogo</h2>
+      <p class="admin-fuente">Lo que trae la API del negocio en este momento.</p>
+      <div class="admin-metricas">
+        <article class="metrica">
+          <span class="metrica-etiqueta">Productos</span>
+          <strong class="metrica-valor">{catalogo.productos.toLocaleString('es-VE')}</strong>
+        </article>
+        <article class="metrica">
+          <span class="metrica-etiqueta">Categorías</span>
+          <strong class="metrica-valor">{catalogo.categorias}</strong>
+        </article>
+        <article class="metrica">
+          <span class="metrica-etiqueta">Marcas</span>
+          <strong class="metrica-valor">{catalogo.marcas}</strong>
+        </article>
+      </div>
+    </section>
+  )}
+
+  <section class="admin-seccion">
+    <h2>Lo que se ve en la página principal</h2>
+    <p class="admin-fuente">Lo que elegiste en las otras pantallas.</p>
+    <div class="admin-metricas">
+      <article class="metrica">
+        <span class="metrica-etiqueta">Categorías en la portada</span>
+        <strong class="metrica-valor">{vitrinas.categorias || 'Las 8 más grandes'}</strong>
+      </article>
+      <article class="metrica">
+        <span class="metrica-etiqueta">Lo más vendido</span>
+        <strong class="metrica-valor">{vitrinas.topventas}</strong>
+      </article>
+      <article class="metrica">
+        <span class="metrica-etiqueta">En oferta</span>
+        <strong class="metrica-valor">{vitrinas.ofertas}</strong>
+      </article>
+    </div>
+  </section>
+
+  <section class="admin-seccion">
+    <h2>Visitas y búsquedas</h2>
+    <div class="admin-aviso">
+      <strong>Todavía no se ven acá.</strong>
+      Las visitas ya se están registrando: se consultan en
+      <a href="https://analytics.google.com" target="_blank" rel="noopener">analytics.google.com</a>.
+      Traerlas a esta pantalla necesita credenciales de cuenta de servicio de
+      Google, que es lo que falta.
+    </div>
+  </section>
 </Admin>

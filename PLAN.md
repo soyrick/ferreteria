@@ -119,8 +119,8 @@ mover solo ese sector sin tocar la tienda.
 | F5 Analítica | ✅ hecha y verificada midiendo | — |
 | F6 API de productos y catálogo real | ✅ integrada · faltan las fotos | el negocio no cargó fotos |
 | ~~F7 Conexión del chatbot~~ | ⛔ **cancelada** el 2026-09-01 | — |
-| F8 Panel de administración | 🟡 completo salvo las cifras reales | APIs de Google |
-| F9 Auditoría de accesibilidad y UI | ⬜ pendiente | — |
+| F8 Panel de administración | ✅ muestra solo lo comprobable | APIs de Google para las visitas |
+| F9 Auditoría de accesibilidad y UI | ✅ cerrada el 2026-09-02 | — |
 | F10 Auditoría de ciberseguridad | ⬜ pendiente | — |
 | F11 Puesta en producción | ⬜ pendiente | dominio |
 
@@ -383,6 +383,13 @@ recurrente del proyecto.
 - ✅ Acceso con clave y cookie firmada (HMAC), `HttpOnly` y con `Path=/admin`.
 - ✅ Puerta única en middleware: una página nueva bajo `/admin` nace protegida.
 - ✅ Tablero con estado de conexiones, métricas y tablas, con datos de muestra rotulados.
+- ✅ **El 2026-09-02 se sacaron todas las cifras inventadas.** El tablero tenía
+  usuarios, sesiones, CTR, una gráfica de visitas y dos tablas de páginas y
+  búsquedas más vistas: todo falso, con un cartelito de «muestra» al lado.
+  Servía para ver cómo iba a quedar, pero un panel con números inventados es
+  peor que uno vacío — se los termina leyendo como si fueran ciertos.
+  Ahora muestra lo comprobable: qué está conectado, cuánto hay en el catálogo y
+  qué está publicado en la portada. Se fue con eso la dependencia `chart.js`.
 - ⏳ Falta: traer las cifras reales de la GA4 Data API y la Search Console API.
   Ambas piden credenciales de cuenta de servicio.
 - ⏳ Falta: límite de intentos en el login (va en F10; en serverless un contador
@@ -393,14 +400,49 @@ Verificado pegándole directo con curl y con cookies manipuladas.
 
 ---
 
-### F9 — Auditoría de accesibilidad y UI
-Con la skill `web-design-guidelines`.
+### F9 — Auditoría de accesibilidad y UI · **cerrada el 2026-09-02**
 
-- Navegación completa por teclado, foco visible, lectores de pantalla.
-- Contraste de toda la paleta.
-- Responsive revisado en los seis tamaños que ya tenemos medidos.
+Se auditaron 38 combinaciones de color, los 220 elementos enfocables y los tres
+paneles que se superponen. **Dos hallazgos reales**, los dos corregidos.
 
-**Cierre:** informe de hallazgos y corrección de los bloqueantes.
+#### 1 · El gris del texto secundario no llegaba al mínimo
+
+`--gris-500` era `#7C828C`: **3,87:1 contra blanco**, cuando AA pide 4,5. Se lo
+veía en la marca de cada producto, en los nombres de las marcas, en las notas y
+en las cifras — o sea, en toda la tienda.
+
+El arreglo obligó a partir el token en dos, porque **un mismo gris no puede
+servir para los dos fondos**: oscurecerlo mejora sobre blanco y empeora sobre el
+negro del pie.
+
+| | Sobre blanco | Sobre el negro del pie |
+|---|---|---|
+| `#7C828C` (el de antes) | 3,87 ✗ | 4,85 ✓ |
+| `--gris-500: #6B717B` | **4,91 ✓** | 3,24 ✗ |
+| `--gris-en-negro: #7C828C` | — | **4,85 ✓** |
+
+Los nombres de las marcas estaban peor: en `--gris-300` daban **1,59:1**, casi
+invisibles.
+
+**Cuidado al tocar `--gris-500`:** si se usa en algo con fondo oscuro hay que
+poner `--gris-en-negro`. Pasó al hacer este mismo cambio — el aviso de derechos
+del pie quedó en 3,81 y hubo que corregirlo aparte.
+
+#### 2 · El carrusel no se podía detener
+
+Gira solo cada 5 segundos. Paraba al pasar el mouse por encima, pero **con
+teclado o en un teléfono no hay mouse**: quien necesitara más tiempo para leer
+una lámina no tenía forma de frenarla. Ahora hay un botón de pausa, siempre
+visible —un control de accesibilidad que solo aparece al pasar el mouse no le
+sirve a quien lo necesita— y la pausa manual gana sobre el hover.
+
+#### Lo que ya estaba bien
+
+Un solo `<h1>`, jerarquía de encabezados sin saltos, `lang="es-VE"`, enlace de
+saltar al contenido, todas las imágenes con `alt`, todos los controles con
+nombre accesible, `:focus-visible` definido, ningún `tabindex` positivo, y los
+tres paneles con `role="dialog"`, etiqueta, cierre con Escape y foco que entra
+al abrir y vuelve al cerrar.
 
 ---
 
