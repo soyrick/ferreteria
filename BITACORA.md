@@ -4,7 +4,7 @@ Documento de recuperación de contexto. Si empezás una sesión nueva o se vaci�
 contexto, leé **esto primero** y después [PLAN.md](PLAN.md). Con esos dos
 archivos alcanza para retomar sin preguntar nada.
 
-Última actualización: 2026-09-02
+Última actualización: 2026-09-03
 
 ---
 
@@ -72,6 +72,7 @@ src/
   pages/sitemap-productos-[tramo].xml.js  1.000 productos por tramo
   layouts/Admin.astro        cabecera + barra lateral
   components/MenuProducto.astro   el menú ⋯ (usa <details>, sin JS)
+  components/Carrito.astro   el pedido: panel, flotante y tostada
   datos/api.js               cliente del catálogo de kafe · SOLO SERVIDOR
   datos/curaduria.js         qué se muestra en la home · Vercel Blob
   datos/negocio.js           dirección, horario, contacto y ficha para Google
@@ -79,10 +80,11 @@ src/
   lib/sitemap.js             tamaños, caché y tandas de los sitemaps
   middleware.js              puerta única de /admin
   scripts/app.js             interacción de la tienda
-  scripts/tarjeta.js         la tarjeta de producto · la usan home y rejilla
+  scripts/tarjeta.js         la tarjeta de producto · home, rubros y servidor
   scripts/vistaproducto.js   el panel de la ficha, sin recargar
-  scripts/vistacategoria.js  la rejilla completa que abre "Ver todo"
+  scripts/categoria.js       buscador, filtro y "ver más" del rubro
   scripts/ficha.js           la página de producto (solo agregar al pedido)
+  scripts/tostada.js         el aviso corto de abajo, compartido
   scripts/whatsapp.js        el número y los mensajes pre-armados
   scripts/carrito.js         carrito → WhatsApp
   scripts/analitica.js       GA4 + consentimiento
@@ -142,19 +144,17 @@ rg -l "kafe_cat_" dist/client/     # no debe encontrar nada
   enlace real. Si el JavaScript falla, el enlace navega y se ve la misma ficha.
   Google sigue el `href` y nunca pasa por el panel.
 
-### Las capas: rejilla, ficha y carrito
+### Las capas: ficha y carrito
 
-Tres paneles que se enciman, en este orden: la **rejilla de categoría**
-(z-index 145), la **ficha** (150) y el **carrito** (140).
+Dos paneles que se enciman: la **ficha** (z-index 150) y el **carrito** (140).
 
 - `trabarFondo()` en `tarjeta.js` decide si el fondo scrollea **mirando qué
   capas hay abiertas**. Cada panel llamándolo al abrir y al cerrar alcanza: sin
-  eso, cerrar la ficha soltaba el fondo con la rejilla todavía abierta.
+  eso, cerrar una soltaba el fondo con la otra todavía abierta.
 - Escape cierra **la capa de arriba**, no las dos.
-- La rejilla carga de a 24 productos con un **listener de scroll**, no un
-  IntersectionObserver. Ver «Los observadores no se pueden probar acá».
-- Si una tanda no llena la pantalla, se encadena la siguiente sola; si no, no
-  habría scroll que disparara nada.
+
+Hubo una tercera, la rejilla de categoría, que abría encima de la home al tocar
+«Ver todo». Se fue el 2026-09-03: ver «Las páginas de categoría».
 
 ### El sello de agotado
 
@@ -167,20 +167,51 @@ a la vez, gana agotado.
 `disponible` puede no venir; en ese caso el producto se ofrece. Es peor
 esconder algo que sí hay por un campo ausente.
 
+**Precio en cero cuenta como agotado.** No es que el producto valga nada: es que
+el negocio todavía no lo cargó. Un botón que suma $0,00 al pedido termina en un
+reclamo cuando llega la cuenta de verdad.
+
 ### Las páginas de categoría
 
-`/categoria/plomeria` y las otras 31. Se renderizan en servidor, con paginación
-de 24 productos y `noindex` de la página 2 en adelante: esas se recorren para
-llegar a los productos, no compiten como resultado.
+`/categoria/plomeria` y las otras 31. **Son la pantalla del rubro, no un
+resumen**: buscador dentro de la categoría, filtro de solo disponibles, botón
+de agregar en cada tarjeta, carrito propio y «ver más» por tandas de 24.
 
-Los enlaces del menú y los «Ver todo» apuntan ahí de verdad —Google los sigue y
-el clic medio abre pestaña— pero el JavaScript los intercepta para abrir la
-rejilla sin perder el scroll. Es el mismo patrón que las fichas.
+Hasta el 2026-09-03 eso vivía en una **ventana flotante** que abría encima de la
+home. Funcionaba, pero era invisible: sin dirección propia no hay nada que
+Google indexe, nada que pegar en un grupo de WhatsApp y nada a lo que volver con
+el botón de atrás. La página ya existía desde F4 y los enlaces apuntaban ahí de
+verdad — pero el JavaScript los interceptaba, así que nadie llegaba nunca.
+
+Cómo está armada, de abajo hacia arriba:
+
+1. **El servidor pinta las primeras 24 tarjetas** y los enlaces de página. Eso
+   es lo que lee Google y lo que se ve con el JavaScript apagado: el buscador
+   es un `<form method="get">` que recarga con `?q=…`, y la paginación son
+   enlaces con `rel="prev"`/`rel="next"`.
+2. **`categoria.js` se monta encima.** Cambia los enlaces de página por un botón
+   de «ver más», esconde el botón de enviar del formulario y busca solo mientras
+   se escribe. Los enlaces siguen en el HTML servido, que es lo que recorre el
+   rastreador.
+3. **Las tarjetas las arma `tarjeta.js`**, el mismo módulo que la home. Es un
+   template de texto, así que sirve igual del lado del servidor: la primera
+   tanda la renderiza Astro y las siguientes el navegador, con una sola tarjeta
+   escrita en un solo lugar.
+
+El filtro de disponibles vuelve a pedir desde cero en vez de esconder lo que ya
+está: si solo se ocultaran las tarjetas agotadas, una tanda de 24 podría dejar
+tres visibles y parecería que el rubro casi no tiene nada. Y como la API no sabe
+filtrar por disponibilidad, el contador dice **cuántos se están viendo**, no
+cuántos hay.
+
+`noindex` de la página 2 en adelante: esas se recorren para llegar a los
+productos, no compiten como resultado.
 
 **Las tres páginas del catálogo llevan caché de dos minutos.** No es
 optimización prematura: sin ella, cada visita a una categoría cuesta **dos**
 peticiones a la API —el resumen y el listado— sobre un límite de 120 por
 minuto para todo el sitio. Sesenta visitas en un minuto nos dejaban afuera.
+
 
 ### Lo que ve Google del negocio
 

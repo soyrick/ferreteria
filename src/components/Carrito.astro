@@ -1,0 +1,48 @@
+---
+/* El pedido: panel lateral, atajo flotante y la tostada de avisos.
+
+   Vive acá porque lo usan la home y las páginas de categoría. Antes estaba
+   escrito entero dentro de index.astro; al aparecer la segunda pantalla desde
+   donde se puede agregar, copiarlo habría dejado dos markups que tienen que
+   quedar iguales para que carrito.js encuentre sus ids. */
+---
+
+<div class="carrito" id="panel-carrito" hidden>
+  <div class="carrito-fondo" id="carrito-fondo"></div>
+  <aside class="carrito-panel" role="dialog" aria-modal="true" aria-labelledby="carrito-titulo">
+    <header class="carrito-cabecera">
+      <h2 id="carrito-titulo">Tu pedido</h2>
+      <button class="carrito-cerrar" id="carrito-cerrar" aria-label="Cerrar el pedido">
+        <svg class="ico"><use href="#i-cerrar"/></svg>
+      </button>
+    </header>
+
+    <p class="carrito-sin" id="carrito-vacio">
+      Todavía no has agregado nada. Busca lo que necesitas y toca <strong>Agregar</strong>.
+    </p>
+
+    <ul class="carrito-lista" id="carrito-items"></ul>
+
+    <footer class="carrito-pie" id="carrito-pie" hidden>
+      <div class="carrito-total">
+        <span>Total</span>
+        <strong id="carrito-total">$0,00</strong>
+      </div>
+      <a class="btn btn-amarillo btn-ancho" id="carrito-enviar" href="#" target="_blank" rel="noopener">
+        <svg class="ico"><use href="#i-chat"/></svg> Hacer el pedido
+      </a>
+      <p class="carrito-nota">Se abre WhatsApp con la lista lista para mandar. El precio final te lo confirmamos ahí.</p>
+      <button class="carrito-vaciar" id="carrito-vaciar">Vaciar el pedido</button>
+    </footer>
+  </aside>
+</div>
+
+<!-- El atajo solo aparece cuando hay algo dentro. Ocupa el lugar de abajo, que
+     es el más fácil de alcanzar con el pulgar en un teléfono. -->
+<button class="flotante-carrito" id="flotante-carrito" hidden aria-controls="panel-carrito">
+  <svg class="ico"><use href="#i-carrito"/></svg>
+  <span class="flotante-carrito-n" id="flotante-carrito-n">0</span>
+  <span class="flotante-carrito-total" id="flotante-carrito-total">$0,00</span>
+</button>
+
+<div class="tostada" id="tostada" role="status" aria-live="polite" hidden></div>

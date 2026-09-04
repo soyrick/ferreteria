@@ -36,8 +36,12 @@ export function tarjetaProducto(p, rango) {
 
   /* `disponible` puede no venir —las vitrinas viejas no lo mandaban—, así que
      solo se marca agotado cuando la API lo dice explícitamente. Ante la duda,
-     el producto se ofrece: es peor esconder algo que sí hay. */
-  const agotado = p.disponible === false;
+     el producto se ofrece: es peor esconder algo que sí hay.
+
+     Precio en cero también cuenta como agotado: no es que valga nada, es que
+     el negocio todavía no lo cargó. Un botón de "Agregar" que suma $0,00 al
+     pedido termina en un reclamo cuando llega la cuenta de verdad. */
+  const agotado = p.disponible === false || !(p.p > 0);
 
   return `
   <article class="producto${agotado ? ' agotado' : ''}">
@@ -55,7 +59,7 @@ export function tarjetaProducto(p, rango) {
         <span class="producto-marca">${limpio(p.m || p.cat || '')}</span>
         <h3 class="producto-nombre">${limpio(p.n)}</h3>
         <div class="producto-precios">
-          <span class="producto-precio">${precio(p.p)}</span>
+          <span class="producto-precio">${p.p > 0 ? precio(p.p) : 'Consultar'}</span>
           ${p.pa ? `<span class="producto-antes">${precio(p.pa)}</span>` : ''}
         </div>
       </div>
@@ -95,7 +99,7 @@ export const desdeApi = (p) => ({
    dos —la rejilla de categoría y la ficha— alcanza; si algún día hay más
    capas encimadas, esto pasa a ser un contador. */
 export function trabarFondo() {
-  const abiertas = ['#vista-categoria', '#vista-producto', '#panel-carrito']
+  const abiertas = ['#vista-producto', '#panel-carrito']
     .filter((s) => document.querySelector(s)?.hidden === false).length;
   document.body.classList.toggle('sin-scroll', abiertas > 0);
 }

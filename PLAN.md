@@ -13,8 +13,9 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
-**Lo único bloqueado por terceros son las fotos.** El número de WhatsApp ya
-está puesto y F4 quedó cerrada el 2026-09-02.
+**Lo único bloqueado por terceros son las fotos.** F4, F9 y F10 quedaron
+cerradas el 2026-09-02, y el 2026-09-03 los rubros pasaron a tener página
+propia. Queda F11, que necesita el dominio.
 
 1. **Pedir las imágenes oficiales a los distribuidores.** INGCO, Truper y
    Stanley se las dan a sus clientes, y el negocio lo es. Cubren el 14 % del
@@ -23,7 +24,8 @@ está puesto y F4 quedó cerrada el 2026-09-02.
 2. **Terminar de curar las vitrinas.** *Lo más vendido* y *En oferta* tienen un
    producto cada una; las secciones se ocultan solas si quedan vacías.
 3. **Comprobar que lleguen los eventos propios a GA4.** Las visitas ya se
-   registran; falta ver que aparezcan `add_to_cart` y `search`.
+   registran; falta ver que aparezcan `add_to_cart` y `search`. Ahora también
+   salen desde las páginas de rubro, que hasta el 2026-09-03 no medían nada.
 4. **Escribir la política de privacidad.** Su enlace se quitó del pie el
    2026-09-01 junto con los de términos y reclamos, que llevaban a `#nosotros`
    y no prometían nada real. Pero **Google Analytics sigue corriendo**, y eso
@@ -222,9 +224,10 @@ Hecho y verificado entre el 2026-08-31 y el 2026-09-01:
 - ✅ **`robots.txt`** apuntando al sitemap y cerrando `/api/`.
 - ✅ **Datos estructurados `Product`**, declarando solo lo que la API garantiza.
 - ✅ Canónicas y Open Graph en la ficha.
-- ✅ **Rejilla de categoría completa** al tocar «Ver todo», con buscador propio
-  y carga por tandas de 24. También la abren los 32 rubros del menú, que antes
-  eran anclas y en 24 casos no llevaban a ningún lado.
+- ✅ **Página propia por rubro** al tocar «Ver todo» o cualquiera de los 32 del
+  menú, que antes eran anclas y en 24 casos no llevaban a ningún lado. Empezó
+  siendo una ventana flotante; el 2026-09-03 pasó a ser una página de verdad
+  —ver «Los rubros dejan de ser una ventana», más abajo—.
 - ✅ **Sello de agotado** en los productos sin existencia, con consulta por
   WhatsApp en vez del botón de agregar.
 - ✅ Un solo `<h1>` en la home. Había cuatro, uno por lámina del hero.
@@ -525,12 +528,101 @@ afuera de su propio panel sería peor que no tener el freno.
 
 ---
 
+### Los rubros dejan de ser una ventana · 2026-09-03
+
+Dos arreglos del mismo día, pedidos juntos.
+
+#### Cuatro de los ocho botones del hero no hacían nada
+
+Medido, no supuesto: tres apuntaban a anclas que **no existen en la página**
+—`#hogar`, `#electricas`, `#construccion`— y el cuarto a `#ofertas`, que existe
+pero está escondida cuando no hay ninguna publicada.
+
+| Botón | Adónde iba | Adónde va |
+|---|---|---|
+| Ver catálogo | `#hogar` (no existe) | `#categorias` |
+| Ver herramientas | `#electricas` (no existe) | `/categoria/herramientas-electricas` |
+| Ver materiales | `#construccion` (no existe) | `/categoria/albanileria` |
+| Ver lo que está en oferta | `#ofertas`, escondida | igual, con el aviso de que no hay |
+
+El aviso de «por ahora no hay ofertas activas» ya existía, pero se enganchaba a
+`.nav-destacada`: la clase del botón del menú. El del hero no la tiene, y esa
+era exactamente la razón de que no hiciera nada. Ahora el disparador es el
+destino —`a[href="#ofertas"]`— así que cubre los dos y cualquiera que se agregue.
+
+#### La ventana flotante de categoría pasa a ser una página
+
+Al tocar «Ver todo» abría una rejilla encima de la home. Cómoda, y **invisible**:
+sin dirección propia no hay nada que Google indexe, nada que pegar en un grupo
+de WhatsApp y nada a lo que volver con el botón de atrás. La página
+`/categoria/…` existía desde F4 y los enlaces apuntaban ahí de verdad, pero el
+JavaScript los interceptaba: nadie llegaba nunca.
+
+Ahora la página es la pantalla del rubro, con todo lo que tenía la ventana y lo
+que le faltaba:
+
+| | Antes (ventana) | Ahora (página) |
+|---|---|---|
+| Dirección | ninguna | `/categoria/plomeria` |
+| Primeras 24 tarjetas | las traía el navegador | **las pinta el servidor** |
+| Buscar en el rubro | sí | sí, y sin JavaScript recarga con `?q=…` |
+| Solo disponibles | sí | sí |
+| Agregar al pedido | sí | sí, con carrito propio |
+| Más productos | scroll infinito | botón «ver más» |
+| Dato estructurado | ninguno | `BreadcrumbList` + `ItemList` |
+
+**Lo que se borró:** `vistacategoria.js` entero (189 líneas), su marcado en la
+home y 72 líneas de CSS. La página quedó con menos código del que reemplazó.
+
+**Lo que se compartió en vez de copiar:**
+
+- `components/Carrito.astro` — el panel, el flotante y la tostada. Al aparecer
+  una segunda pantalla desde donde se agrega, copiarlo habría dejado dos
+  marcados que tienen que quedar idénticos para que `carrito.js` encuentre sus
+  ids.
+- `scripts/tostada.js` — el aviso de abajo estaba escrito tres veces, con tres
+  comportamientos apenas distintos.
+- `scripts/tarjeta.js` ahora también corre **en el servidor**. Es un template de
+  texto, así que la primera tanda la renderiza Astro y las siguientes el
+  navegador, con una sola tarjeta escrita en un solo lugar.
+
+**Tres cosas que aparecieron al hacerlo:**
+
+1. **Precio en cero se ofrecía como si valiera cero.** La tarjeta marcaba
+   agotado solo si `disponible === false`, así que un producto sin precio
+   cargado mostraba «$0,00» y un botón de agregar. Corregido en la tarjeta, o
+   sea en las tres pantallas a la vez.
+2. **La analítica se cortaba fuera de la home.** `iniciarConsentimiento()`
+   salía temprano si no encontraba el banner, y el banner solo está en la home:
+   quien aceptaba y entraba a un rubro navegaba sin medición. Ahora la decisión
+   se lee antes que el banner.
+3. **Una carrera en la carga por tandas.** El `finally` de un pedido cancelado
+   soltaba la traba que ya había tomado el pedido nuevo, y entraba una tanda
+   encima de la otra: productos repetidos y el contador sumando de a dos. Solo
+   suelta la traba el pedido vigente.
+
+**Verificado midiendo**, con el servidor de Ricardo:
+
+```
+Rubro:      24 tarjetas servidas · 14 agregar + 10 consultar
+Buscar:     "taladro" en herramientas eléctricas → 42 · muestra 24
+Filtrar:    16 disponibles de las primeras 24 · cero agotados en pantalla
+Ver más:    16 → 33 · cero agotados
+Carrito:    contador 1 · flotante $184,16 · guardado en localStorage
+Encabezados: h1 → h2 → h3×24 · sin saltos
+Sin JS:     paginación con rel=prev/next en el HTML servido
+Móvil 375:  no desborda · dos columnas · buscador de extremo a extremo
+Rutas:      / 200 · 3 rubros 200 · rubro inexistente 404 · sitemap 200
+```
+
+
+---
+
 ### F11 — Puesta en producción
 - Variables de entorno en Vercel.
 - Dominio propio y HTTPS.
 - Licencias de imágenes resueltas (ver `public/assets/img/CREDITOS.txt`) o
   reemplazo por fotos reales de la mercancía.
-- Datos de contacto reales en lugar de los placeholders.
 - Monitoreo de errores y prueba de rollback.
 
 **Cierre:** sitio en el dominio real, con los datos reales, y un rollback probado.

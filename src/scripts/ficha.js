@@ -3,16 +3,7 @@
    apagado y para que Google lo lea. */
 
 import { agregar } from './carrito.js';
-
-const tostada = document.getElementById('tostada');
-let reloj;
-
-function avisar(texto) {
-  tostada.textContent = texto;
-  tostada.hidden = false;
-  clearTimeout(reloj);
-  reloj = setTimeout(() => (tostada.hidden = true), 3200);
-}
+import { avisar } from './tostada.js';
 
 document.querySelector('[data-agregar]')?.addEventListener('click', (e) => {
   const b = e.currentTarget;

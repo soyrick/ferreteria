@@ -38,15 +38,20 @@ function correrFlotantes(banner) {
 }
 
 export function iniciarConsentimiento() {
-  const banner = document.getElementById('consentimiento');
-  if (!banner) return;
-
   // Sin ID configurado no hay nada que consentir: no molestamos con el banner.
   if (!ID) return;
 
+  /* La decisión se mira antes que el banner. El banner solo está en la home,
+     pero el permiso vale para todo el sitio: sin esto, quien acepta y después
+     entra a un rubro navega sin analítica, y las búsquedas y los "agregar" de
+     esa pantalla no se contaban. */
   const decision = localStorage.getItem(CLAVE);
   if (decision === 'si') { cargarGA(); return; }
   if (decision === 'no') return;
+
+  // Todavía no respondió: solo se le puede preguntar donde está el banner.
+  const banner = document.getElementById('consentimiento');
+  if (!banner) return;
 
   banner.hidden = false;
   correrFlotantes(banner);

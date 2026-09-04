@@ -1,16 +1,21 @@
 ---
 /* Página de un rubro del catálogo.
 
-   Los 32 rubros ya se podían mirar en la rejilla que abre "Ver todo", pero esa
-   rejilla no tiene dirección: no existe para Google ni se puede compartir. Acá
-   cada uno tiene su URL, su título y su lista de productos servida en HTML.
+   Hasta ahora los rubros se miraban en una ventana flotante que abría "Ver
+   todo": cómoda, pero invisible. Sin dirección propia no hay nada que Google
+   indexe, nada que pegar en un grupo de WhatsApp y nada a lo que volver con el
+   botón de atrás. Esto es esa misma pantalla, pero siendo una página: el
+   listado lo arma el servidor y el buscador, el filtro y el "ver más" se
+   montan encima sin recargar.
 
-   Se renderiza en el servidor y no se prerenderiza, por lo mismo que las
-   fichas: los precios y la disponibilidad cambian durante el día. */
+   No se prerenderiza, por lo mismo que las fichas: los precios y la
+   disponibilidad cambian durante el día. */
 export const prerender = false;
 
-import { resumen, productos, apiLista, ranura, urlProducto } from '../../datos/api.js';
+import { resumen, productos, apiLista, ranura, urlProducto, normalizar } from '../../datos/api.js';
 import { NEGOCIO, comoJSONLD } from '../../datos/negocio.js';
+import { tarjetaProducto } from '../../scripts/tarjeta.js';
+import Carrito from '../../components/Carrito.astro';
 import '../../styles/styles.css';
 
 const POR_PAGINA = 24;
@@ -70,8 +75,11 @@ const descripcion =
   + `${NEGOCIO.nombreCorto}, ${NEGOCIO.direccion.ciudad}. Precios en dólares, `
   + 'entrega en la zona y asesoría antes de comprar.';
 
-const precio = (n) =>
-  '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(\d{2})$/, ',$1');
+/* Las tarjetas las arma el mismo módulo que las de la home. Es un template de
+   texto, así que sirve igual en el servidor: acá se renderiza el primer lote y
+   categoria.js usa la misma función para los que va sumando. Una sola tarjeta
+   en un solo lugar — si mañana cambia, cambia en las dos pantallas. */
+const tarjetas = lista.productos.map((p) => tarjetaProducto(normalizar(p))).join('');
 
 /* Miga de pan estructurada: le dice a Google dónde encaja esta página y le
    permite mostrar la ruta en vez de la URL cruda en los resultados. */
@@ -82,6 +90,22 @@ const miga = {
     { '@type': 'ListItem', position: 1, name: 'Inicio', item: base },
     { '@type': 'ListItem', position: 2, name: nombre, item: `${base}${ruta}` },
   ],
+};
+
+/* Lista de artículos: lo que Google usa para entender que esto es un listado
+   de productos y no un texto cualquiera. Solo la primera página, que es la que
+   se ofrece como resultado. */
+const listado = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: nombre,
+  numberOfItems: lista.productos.length,
+  itemListElement: lista.productos.map((p, i) => ({
+    '@type': 'ListItem',
+    position: (pagina - 1) * POR_PAGINA + i + 1,
+    url: `${base}${urlProducto(p)}`,
+    name: p.nombre,
+  })),
 };
 ---
 <!doctype html>
@@ -106,12 +130,17 @@ const miga = {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
 <script type="application/ld+json" set:html={comoJSONLD(miga)} />
+<script type="application/ld+json" set:html={comoJSONLD(listado)} />
 </head>
 <body class="pagina-producto">
 
 <svg style="display:none" aria-hidden="true">
   <symbol id="i-herramienta" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
   <symbol id="i-izq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></symbol>
+  <symbol id="i-carrito" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></symbol>
 </svg>
 
 <header class="producto-cabecera">
@@ -123,7 +152,17 @@ const miga = {
         <small>{NEGOCIO.rubro}</small>
       </span>
     </a>
-    <a class="btn btn-negro" href="/"><svg class="ico"><use href="#i-izq"/></svg> Volver a la tienda</a>
+    <div class="cat-cabecera-acciones">
+      <a class="btn btn-negro" href="/">
+        <svg class="ico"><use href="#i-izq"/></svg>
+        <span class="btn-volver-largo">Volver a la tienda</span>
+        <span class="btn-volver-corto">Volver</span>
+      </a>
+      <button class="btn-icono" id="btn-carrito" aria-label="Ver el pedido" aria-controls="panel-carrito">
+        <svg class="ico"><use href="#i-carrito"/></svg>
+        <span class="contador" id="contador-carrito" hidden>0</span>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -134,33 +173,42 @@ const miga = {
 
   <header class="cat-cabeza">
     <h1>{nombre}</h1>
-    <p>{rubro.total.toLocaleString('es-VE')} productos{paginas > 1 && ` · página ${pagina} de ${paginas}`}</p>
+    <p id="cat-cuenta">
+      {rubro.total.toLocaleString('es-VE')} productos{paginas > 1 && ` · página ${pagina} de ${paginas}`}
+    </p>
   </header>
 
-  <div class="cat-rejilla">
-    {lista.productos.map((p) => (
-      <article class={`producto${p.disponible && p.precio > 0 ? '' : ' agotado'}`}>
-        <a class="producto-enlace" href={urlProducto(p)}>
-          <div class="producto-foto vacia">
-            {!(p.disponible && p.precio > 0) && <span class="sello-agotado">Agotado</span>}
-            <span class="producto-sinfoto" aria-hidden="true">
-              <svg class="ico"><use href="#i-herramienta"/></svg>
-            </span>
-          </div>
-          <div class="producto-cuerpo">
-            <span class="producto-marca">{p.marca || p.categoria}</span>
-            <h2 class="producto-nombre">{p.nombre}</h2>
-            <div class="producto-precios">
-              <span class="producto-precio">{p.precio > 0 ? precio(p.precio) : 'Consultar'}</span>
-            </div>
-          </div>
-        </a>
-      </article>
-    ))}
-  </div>
+  {/* Buscador y filtro. Van dentro de un <form> con method GET para que
+      funcionen sin JavaScript: sin él la página recarga con ?q=…, y con él
+      categoria.js lo intercepta y repinta la rejilla en el sitio. */}
+  <form class="cat-herramientas" id="cat-herramientas" method="get" action={ruta}>
+    <div class="cat-buscar">
+      <svg class="ico"><use href="#i-buscar"/></svg>
+      <label class="visualmente-oculto" for="cat-q">Buscar en {nombre.toLowerCase()}</label>
+      <input type="search" id="cat-q" name="q" autocomplete="off"
+             placeholder={`Buscar en ${nombre.toLowerCase()}…`}>
+    </div>
+    <label class="cat-filtro">
+      <input type="checkbox" id="cat-solo-hay" name="hay" value="1">
+      <span>Solo disponibles</span>
+    </label>
+    <button type="submit" class="btn btn-negro cat-aplicar">Buscar</button>
+  </form>
 
+  <p class="panel-sin" id="cat-vacio" hidden>No hay productos que coincidan con esa búsqueda.</p>
+
+  {/* Las tarjetas son h3, como en la home. Este h2 escondido evita el salto de
+      h1 a h3, que a un lector de pantalla le suena a que se perdió una sección. */}
+  <h2 class="visualmente-oculto">Productos de {nombre.toLowerCase()}</h2>
+  <div class="cat-rejilla" id="cat-rejilla" set:html={tarjetas} />
+
+  <p class="cat-estado" id="cat-estado" hidden></p>
+
+  {/* Con JavaScript, categoria.js cambia esto por un botón de "ver más" que va
+      sumando tandas. Sin él quedan los enlaces de página, que además son los
+      que recorre Google para llegar a todo el rubro. */}
   {paginas > 1 && (
-    <nav class="cat-paginas" aria-label="Páginas">
+    <nav class="cat-paginas" id="cat-paginas" aria-label="Páginas">
       {pagina > 1 && <a rel="prev" href={`${ruta}${pagina - 1 > 1 ? `?pagina=${pagina - 1}` : ''}`}>← Anterior</a>}
       <span>Página {pagina} de {paginas.toLocaleString('es-VE')}</span>
       {pagina < paginas && <a rel="next" href={`${ruta}?pagina=${pagina + 1}`}>Siguiente →</a>}
@@ -168,5 +216,13 @@ const miga = {
   )}
 </main>
 
+<Carrito />
+
+<script define:vars={{ categoria: rubro.nombre, offsetInicial: (pagina - 1) * POR_PAGINA + lista.productos.length, totalRubro: lista.total }}>
+  window.__categoria = { categoria, offsetInicial, totalRubro };
+</script>
+<script>
+  import '../../scripts/categoria.js';
+</script>
 </body>
 </html>
