@@ -540,7 +540,7 @@ pero está escondida cuando no hay ninguna publicada.
 
 | Botón | Adónde iba | Adónde va |
 |---|---|---|
-| Ver catálogo | `#hogar` (no existe) | `#categorias` |
+| Ver catálogo | `#hogar` (no existe) | abre el menú Productos · ver abajo |
 | Ver herramientas | `#electricas` (no existe) | `/categoria/herramientas-electricas` |
 | Ver materiales | `#construccion` (no existe) | `/categoria/albanileria` |
 | Ver lo que está en oferta | `#ofertas`, escondida | igual, con el aviso de que no hay |
@@ -659,6 +659,26 @@ Quitar uno:  contador 2 → 1
 Cerrar:      panel oculto y el fondo vuelve a scrollear
 Agotado:     sin botón de agregar, con "consultar disponibilidad"
 Móvil 375:   logo + "Volver" + carrito, sin desborde
+```
+
+#### «Ver catálogo» despliega el menú de rubros · 2026-09-04
+
+Bajaba a la sección de categorías de la portada, que muestra **ocho**. Quien
+pide ver el catálogo quiere los **32**, y esos están en el menú Productos.
+Ahora el botón lo despliega.
+
+El enlace sigue apuntando a `#categorias`, que es su destino real sin
+JavaScript. El detalle que costó: el listener va **en el elemento**, no
+delegado en `document`. Desde ahí `stopPropagation` no sirve —el listener que
+cierra el menú al hacer clic afuera vive en el mismo nodo, y los del mismo nodo
+corren igual—, así que el menú se cerraba en el mismo clic que lo abría.
+
+```
+Clic:        menú abierto · aria-expanded=true · 32 rubros · sin saltar a #categorias
+Foco:        queda en el botón Productos, que es lo que quedó desplegado
+Cerrar:      clic afuera ✓ · Escape ✓ · el propio botón Productos alterna ✓
+Elegir rubro: cierra el menú y navega a /categoria/herramientas-manuales
+Móvil 375:   32 rubros en dos columnas, con scroll, sin desborde
 ```
 
 

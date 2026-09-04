@@ -382,6 +382,22 @@ function prepararCarruseles() {
     if (!e.target.closest('#desplegable-productos')) abrir(false);
   });
   document.addEventListener('keydown', (e) => e.key === 'Escape' && abrir(false));
+
+  /* "Ver catálogo" del hero abre este menú en vez de bajar a las filas de la
+     portada: ahí hay ocho categorías y acá están los 32 rubros, que es lo que
+     alguien busca cuando pide ver el catálogo.
+
+     El enlace sigue apuntando a #categorias, que es su destino real sin
+     JavaScript. Y el listener va en el elemento, no delegado en document:
+     desde ahí `stopPropagation` no serviría —el que cierra el menú vive en el
+     mismo nodo— y el menú se cerraría en el mismo clic que lo abre. */
+  $('[data-abre-productos]')?.addEventListener('click', (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    abrir(true);
+    boton.focus();   // deja el foco donde ahora hay algo desplegado
+  });
 })();
 
 
