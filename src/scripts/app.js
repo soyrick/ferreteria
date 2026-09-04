@@ -245,13 +245,18 @@ function prepararCarruseles() {
   const caja = $('#resultados-buscar');
   const limpiar = $('#btn-limpiar');
   const zona = $('.buscador');
+  const campo = $('.buscador-campo');
   const boton = $('#btn-buscar');
 
   /* Se mide el campo en vez de mirar la clase: en el teléfono el CSS lo deja
      desplegado sin que nadie toque nada, y ahí el primer envío tiene que
-     buscar, no "abrir" algo que ya está abierto. */
+     buscar, no "abrir" algo que ya está abierto.
+
+     Se mide el contenedor, no el input: el input mide 4px aun plegado, por los
+     2px de relleno que le pone el navegador por su cuenta. Midiéndolo a él,
+     esto daba «abierto» siempre y en el escritorio el botón no abría nada. */
   const desplegado = () =>
-    zona.classList.contains('abierto') || entrada.getBoundingClientRect().width > 0;
+    zona.classList.contains('abierto') || campo.getBoundingClientRect().width > 0;
 
   function desplegar() {
     zona.classList.add('abierto');
