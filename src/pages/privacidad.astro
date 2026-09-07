@@ -1,0 +1,203 @@
+---
+/* Política de privacidad.
+
+   Se escribió mirando el código, no copiando una plantilla: cada cosa que dice
+   se puede comprobar en el repo. Si mañana el sitio empieza a recoger algo más,
+   esta página se actualiza en el mismo cambio o queda mintiendo.
+
+   Es estática: no depende de la API ni de nada que se pueda caer. Una política
+   de privacidad que devuelve error 500 es peor que no tenerla. */
+
+import { NEGOCIO } from '../datos/negocio.js';
+import '../styles/styles.css';
+
+const ACTUALIZADA = '7 de septiembre de 2026';
+
+const base = (Astro.site ?? new URL(Astro.url).origin).toString().replace(/\/$/, '');
+const titulo = `Política de privacidad | ${NEGOCIO.nombreCorto}`;
+const descripcion =
+  'Qué datos recoge esta página, para qué, y cómo decir que no. '
+  + 'No hay cuentas, no se piden datos personales y no se vende información a nadie.';
+---
+<!doctype html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{titulo}</title>
+<meta name="description" content={descripcion}>
+<link rel="canonical" href={`${base}/privacidad`}>
+<meta name="theme-color" content="#FFDD00">
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+</head>
+<body class="pagina-producto">
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-izq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+</svg>
+
+<header class="producto-cabecera">
+  <div class="contenedor producto-cabecera-int">
+    <a href="/" class="marca">
+      <img src="/assets/logo.png" alt="" class="marca-logo">
+      <span class="marca-texto">
+        <strong>CASA HERRAMIENTAS</strong>
+        <small>{NEGOCIO.rubro}</small>
+      </span>
+    </a>
+    <a class="btn btn-negro" href="/">
+      <svg class="ico"><use href="#i-izq"/></svg> Volver a la tienda
+    </a>
+  </div>
+</header>
+
+<main class="contenedor legal">
+  <nav class="miga" aria-label="Dónde estás">
+    <a href="/">Inicio</a> · <span>Privacidad</span>
+  </nav>
+
+  <h1>Política de privacidad</h1>
+  <p class="legal-fecha">Última actualización: {ACTUALIZADA}</p>
+
+  <p class="legal-entrada">
+    Esta página explica qué información recoge nuestro sitio web, para qué la
+    usamos y cómo puedes decir que no. Está escrita para que se entienda,
+    no para protegernos a nosotros.
+  </p>
+
+  <h2>Lo más importante, primero</h2>
+  <ul class="legal-lista">
+    <li><strong>No hay cuentas de usuario.</strong> No te pedimos nombre, correo,
+      cédula ni dirección para usar la página.</li>
+    <li><strong>No cobramos por aquí.</strong> No pedimos datos de tarjetas ni
+      procesamos pagos en el sitio.</li>
+    <li><strong>No vendemos ni compartimos tu información con nadie</strong> para
+      publicidad.</li>
+    <li><strong>Tu pedido no sale de tu teléfono</strong> hasta que tú decides
+      enviarlo por WhatsApp.</li>
+  </ul>
+
+  <h2>Lo que se guarda en tu navegador</h2>
+  <p>
+    Dos cosas, y las dos se quedan en tu equipo. No llegan a nosotros ni a ningún
+    servidor:
+  </p>
+  <table class="legal-tabla">
+    <thead><tr><th>Qué</th><th>Para qué</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>ch_carrito</code></td>
+        <td>Los productos que vas agregando, para que no se pierdan si cierras la
+          página. Solo salen de tu equipo cuando tocas «Hacer el pedido» y se abre
+          WhatsApp con la lista escrita.</td>
+      </tr>
+      <tr>
+        <td><code>ch_consentimiento</code></td>
+        <td>Tu respuesta al aviso de medición, para no volver a preguntarte lo
+          mismo en cada visita.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Medición de visitas</h2>
+  <p>
+    Usamos <strong>Google Analytics</strong> para saber qué busca la gente y tener
+    mejor surtido. <strong>No se activa hasta que aceptas el aviso.</strong> Si
+    dices que no, no se carga nada de Google Analytics y no se registra ninguna
+    visita tuya.
+  </p>
+  <p>Cuando aceptas, se registra:</p>
+  <ul class="legal-lista">
+    <li>Qué páginas y productos se ven, y desde qué tipo de dispositivo.</li>
+    <li>Qué se escribe en el buscador de la tienda.</li>
+    <li>Qué productos se agregan al pedido.</li>
+    <li>El país o la región aproximada, con la dirección IP recortada. No se
+      guarda tu dirección IP completa.</li>
+  </ul>
+  <p>
+    Nada de eso te identifica: no sabemos quién eres, porque nunca nos lo dijiste.
+  </p>
+
+  <h2>Lo que se carga aunque digas que no</h2>
+  <p>
+    Esto casi ninguna página lo aclara, y preferimos decirlo:
+    <strong>dos cosas de Google se cargan siempre</strong>, aceptes o no.
+  </p>
+  <ul class="legal-lista">
+    <li><strong>Las tipografías</strong> con las que está escrita la página, que
+      vienen de Google Fonts.</li>
+    <li><strong>El mapa de la ubicación</strong> que aparece al final, que es un
+      mapa de Google.</li>
+  </ul>
+  <p>
+    Para entregarte esos archivos, Google ve tu dirección IP. No los usamos para
+    medir nada ni tenemos acceso a esa información. Si eso te incomoda, puedes
+    ver dónde estamos en la dirección escrita al pie, sin abrir el mapa.
+  </p>
+
+  <h2>WhatsApp</h2>
+  <p>
+    Los pedidos y las consultas se cierran por WhatsApp. Cuando tocas un botón que
+    abre un chat, la conversación pasa a ser de WhatsApp y se rige por las
+    condiciones de esa aplicación, no por esta página. Ahí sí verás nuestro número
+    y nosotros veremos el tuyo, como en cualquier conversación.
+  </p>
+
+  <h2>Alojamiento</h2>
+  <p>
+    El sitio está alojado en <strong>Vercel</strong>, que guarda registros
+    técnicos de las visitas —dirección IP, navegador y qué página se pidió— por un
+    tiempo corto, para que el servicio funcione y para detectar ataques. Es
+    información que cualquier servidor de internet necesita para responderte.
+  </p>
+
+  <h2>Cambiar de opinión</h2>
+  <p>
+    Puedes revocar tu respuesta cuando quieras. Al hacerlo se borra lo que
+    guardamos en tu navegador y se te vuelve a preguntar en la próxima visita.
+  </p>
+  <p>
+    <button type="button" class="btn btn-negro" id="olvidar">Borrar mis datos de este navegador</button>
+    <span class="legal-hecho" id="olvidado" hidden>Listo, se borró todo.</span>
+  </p>
+  <p class="legal-nota">
+    Eso borra tu pedido en curso y tu respuesta al aviso. Lo que Google Analytics
+    ya haya registrado se elimina solo, a los 14 meses.
+  </p>
+
+  <h2>Menores</h2>
+  <p>
+    Esta página es una ferretería: no está dirigida a niños y no pedimos datos a
+    nadie, sin importar la edad.
+  </p>
+
+  <h2>Preguntas</h2>
+  <p>
+    Si quieres saber algo más, escríbenos a
+    <a href={`mailto:${NEGOCIO.correo}`}>{NEGOCIO.correo}</a> o por WhatsApp al
+    <a href={`https://wa.me/${NEGOCIO.telefono.replace('+', '')}`} target="_blank" rel="noopener">{NEGOCIO.telefono}</a>.
+  </p>
+  <p class="legal-nota">
+    {NEGOCIO.nombre} — {NEGOCIO.direccion.calle}, {NEGOCIO.direccion.ciudad},
+    {NEGOCIO.direccion.estado}, {NEGOCIO.direccion.pais}.
+  </p>
+</main>
+
+<script>
+  /* El botón de olvidar. Borra las dos claves por su nombre y no con `clear()`,
+     que se llevaría también lo que hayan guardado otras páginas del mismo
+     dominio si algún día las hay. */
+  const boton = document.getElementById('olvidar');
+  boton?.addEventListener('click', () => {
+    for (const clave of ['ch_carrito', 'ch_consentimiento']) {
+      try { localStorage.removeItem(clave); } catch { /* storage bloqueado */ }
+    }
+    boton.hidden = true;
+    document.getElementById('olvidado').hidden = false;
+  });
+</script>
+</body>
+</html>

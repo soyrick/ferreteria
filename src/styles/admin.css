@@ -93,26 +93,60 @@
 .admin-subtitulo { font-size: 15px; margin: 26px 0 0; }
 
 /* ---------- Gráfico de visitas ----------
-   El SVG lo arma el servidor. `preserveAspectRatio: none` deja que se estire a
-   lo ancho del panel: las barras no tienen que mantener proporción, solo
-   comparar alturas entre ellas. */
+   Línea con área, armada por el servidor. Sin preserveAspectRatio="none":
+   el SVG lleva texto y estirarlo lo deformaría. */
 .grafico {
-  margin-top: 12px; padding: 16px 16px 10px;
+  margin-top: 12px; padding: 14px 10px 6px;
   background: var(--blanco); border: 1px solid var(--gris-200);
   border-radius: var(--radio);
 }
-.grafico-svg { display: block; width: 100%; height: 120px; }
-.grafico-svg .barra { fill: var(--amarillo); }
-.grafico-svg .barra:hover { fill: var(--negro); }
-/* Los días en cero van en gris: se ve que el día existe y no hubo visitas,
-   en vez de parecer que falta el dato. */
-.grafico-svg .barra.vacia { fill: var(--gris-200); }
+.grafico-svg { display: block; width: 100%; height: auto; }
 
-.grafico-pie {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-top: 8px; font-size: 11.5px; color: var(--gris-500);
+.grafico-svg .guia { stroke: var(--gris-200); stroke-width: 1; }
+.grafico-svg .area { fill: rgba(255,221,0,.30); stroke: none; }
+.grafico-svg .linea {
+  fill: none; stroke: var(--negro); stroke-width: 2.5;
+  stroke-linejoin: round; stroke-linecap: round;
 }
-.grafico-tope { font-weight: 700; color: var(--gris-700); }
+.grafico-svg .punto { fill: var(--negro); stroke: var(--blanco); stroke-width: 2; }
+/* 13px reales: el SVG se escala con el ancho, así que en pantallas chicas
+   encoge. Es el piso para que siga siendo legible. */
+.grafico-svg .eje { font-size: 13px; fill: var(--gris-500); font-family: var(--texto, inherit); }
+.grafico-svg .pico { font-size: 15px; font-weight: 700; fill: var(--negro); font-family: var(--texto, inherit); }
+
+/* ---------- Ranking (lo más visitado, lo más buscado) ----------
+   Lista y no tabla: son pocas filas, se leen de arriba abajo, y la barra
+   deja comparar de un vistazo sin hacer la cuenta entre números. */
+.ranking { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 2px; }
+.ranking-fila {
+  display: grid; align-items: center; gap: 14px;
+  grid-template-columns: 26px minmax(0, 1fr) 120px auto;
+  padding: 11px 12px; border-radius: var(--radio-sm);
+  background: var(--blanco); border: 1px solid var(--gris-200);
+}
+.ranking-puesto {
+  display: grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--amarillo); color: var(--negro);
+  font-size: 13px; font-weight: 800;
+}
+.ranking-datos { min-width: 0; display: flex; flex-direction: column; }
+.ranking-datos strong {
+  font-size: 15px; font-weight: 600; color: var(--negro);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ranking-datos small { font-size: 11.5px; color: var(--gris-500); }
+.ranking-barra { height: 10px; border-radius: 99px; background: var(--gris-100); overflow: hidden; }
+.ranking-relleno { display: block; height: 100%; background: var(--amarillo); border-radius: 99px; }
+.ranking-cifra { font-size: 15px; font-weight: 700; color: var(--negro); white-space: nowrap; }
+.ranking-cifra small { font-size: 11.5px; font-weight: 500; color: var(--gris-500); }
+
+@media (max-width: 700px) {
+  /* La barra se va: en poco ancho compite con el nombre, que es lo que hay
+     que poder leer. */
+  .ranking-fila { grid-template-columns: 26px minmax(0, 1fr) auto; }
+  .ranking-barra { display: none; }
+}
 
 /* ---------- Conexiones ---------- */
 .admin-conexiones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 12px; }

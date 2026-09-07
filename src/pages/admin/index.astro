@@ -101,43 +101,91 @@ if (ga4Listo()) {
 
 const mil = (n) => Number(n).toLocaleString('es-VE');
 
-/* El gráfico de visitas por día, en SVG armado acá.
+/* El gráfico de visitas por día: línea con área debajo.
 
    ponytail: sin `chart.js`. La regla R3 pide que una dependencia borre código
-   propio o resuelva algo que no se hace en cincuenta líneas; 28 barras no
-   califican. Además esto lo pinta el servidor: el panel no recibe una sola
-   línea de JavaScript por el gráfico, y se ve igual con el JS apagado.
-   El techo es si algún día hacen falta ejes, zoom o varias series encimadas —
-   ahí sí entra una librería. */
-const ALTO = 120;
-const ANCHO = 620;
-const HUECO = 3;
+   propio o resuelva algo que no se hace en cincuenta líneas. Además esto lo
+   pinta el servidor: el panel no recibe una sola línea de JavaScript por el
+   gráfico, y se ve igual con el JS apagado. El techo es si algún día hacen
+   falta zoom o varias series encimadas.
+
+   Lleva números y fechas escritos, no solo la forma. Quien mira esto quiere
+   saber cuánta gente entró tal día, y eso se responde leyendo, no midiendo a
+   ojo contra un eje. */
+const ANCHO = 720;
+const ALTO = 260;
+const M = { arriba: 26, derecha: 18, abajo: 44, izquierda: 46 };
+const AREA = { ancho: ANCHO - M.izquierda - M.derecha, alto: ALTO - M.arriba - M.abajo };
+const PISO = M.arriba + AREA.alto;
 
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const comoDia = (d) => `${d.dia} ${MESES[d.mes - 1]}`;
 
 let grafico = null;
-if (trafico?.diario?.length) {
+if (trafico?.diario?.length > 1) {
   const serie = trafico.diario;
   const tope = Math.max(...serie.map((d) => d.visitas), 1);
-  const ancho = ANCHO / serie.length;
+
+  /* El eje se redondea a un número cómodo para que las líneas guía caigan en
+     valores que se leen de un vistazo: 10 y 5, no 9,33 y 4,67. */
+  const paso = tope <= 4 ? 1 : tope <= 10 ? 2 : tope <= 30 ? 5 : 10;
+  const techo = Math.ceil(tope / paso) * paso;
+
+  const x = (i) => M.izquierda + (i / (serie.length - 1)) * AREA.ancho;
+  const y = (v) => PISO - (v / techo) * AREA.alto;
+
+  const puntos = serie.map((d, i) => ({
+    x: Number(x(i).toFixed(1)),
+    y: Number(y(d.visitas).toFixed(1)),
+    visitas: d.visitas,
+    dia: comoDia(d),
+  }));
+
+  const linea = puntos.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' ');
+
+  /* Con muchos días las fechas se amontonan y no se leen: se saltean, pero la
+     primera y la última entran siempre. */
+  const cada = Math.max(1, Math.ceil(serie.length / 7));
+
+  const guias = [];
+  for (let v = 0; v <= techo; v += paso) guias.push({ v, y: Number(y(v).toFixed(1)) });
 
   grafico = {
-    tope,
+    ancho: ANCHO, alto: ALTO, piso: PISO, techo, guias, puntos, linea,
+    area: `${linea} L${puntos[puntos.length - 1].x} ${PISO} L${puntos[0].x} ${PISO} Z`,
+    fechas: puntos.filter((_, i) => i % cada === 0 || i === puntos.length - 1),
     desde: comoDia(serie[0]),
     hasta: comoDia(serie[serie.length - 1]),
-    /* Una barra de altura cero no se ve. Los días sin visitas llevan 2px para
-       que se note que el día existe y estuvo en cero, en vez de parecer un
-       hueco en los datos. */
-    barras: serie.map((d, i) => ({
-      x: i * ancho,
-      ancho: Math.max(ancho - HUECO, 1),
-      alto: d.visitas ? Math.max((d.visitas / tope) * ALTO, 2) : 2,
-      cero: d.visitas === 0,
-      titulo: `${comoDia(d)}: ${d.visitas} ${d.visitas === 1 ? 'visita' : 'visitas'}`,
-    })),
+    total: serie.reduce((a, d) => a + d.visitas, 0),
+    pico: puntos.reduce((a, p) => (p.visitas > a.visitas ? p : a), puntos[0]),
   };
 }
+
+/* Las direcciones no le dicen nada a nadie: "/categoria/automotriz" es ruido
+   cuando lo que se quiere saber es qué mira la gente. Se traducen al nombre
+   que se ve en la tienda. */
+const capitalizar = (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+const desdeRanura = (r) => capitalizar(decodeURIComponent(r).replace(/-/g, ' '));
+
+function nombreDePagina(ruta) {
+  const limpia = (ruta || '/').split('?')[0];
+  if (limpia === '/') return { que: 'La página principal', tipo: 'Inicio' };
+  const cat = limpia.match(/^\/categoria\/([^/]+)/);
+  if (cat) return { que: desdeRanura(cat[1]), tipo: 'Categoría' };
+  const prod = limpia.match(/^\/producto\/([^/]+)\/[^/]+$/);
+  if (prod) return { que: desdeRanura(prod[1]), tipo: 'Producto' };
+  if (limpia.startsWith('/producto/')) return { que: limpia.split('/').pop(), tipo: 'Producto' };
+  if (limpia.startsWith('/privacidad')) return { que: 'Política de privacidad', tipo: 'Página' };
+  return { que: limpia, tipo: 'Página' };
+}
+
+/* Cada fila lleva una barra proporcional a la más vista: comparar largos es
+   inmediato, comparar números escritos obliga a hacer la cuenta. */
+const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
+  ...nombreDePagina(p.ruta),
+  vistas: p.vistas,
+  ancho: Math.max(Math.round((p.vistas / Math.max(todas[0].vistas, 1)) * 100), 2),
+}));
 ---
 <Admin titulo="Estadísticas">
   <header class="admin-titulo">
@@ -235,70 +283,101 @@ if (trafico?.diario?.length) {
         {grafico && (
           <>
             <h3 class="admin-subtitulo">Visitas por día</h3>
+            <p class="admin-fuente">
+              {mil(grafico.total)} visitas entre el {grafico.desde} y el {grafico.hasta}.
+              El día más movido fue el {grafico.pico.dia}, con {mil(grafico.pico.visitas)}.
+            </p>
             <div class="grafico">
-              {/* role="img" con su etiqueta: un lector de pantalla no puede leer
-                  barras, así que se le da el resumen que se ve de un vistazo. */}
-              <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} preserveAspectRatio="none"
-                   role="img" class="grafico-svg"
-                   aria-label={`Visitas por día del ${grafico.desde} al ${grafico.hasta}. Máximo ${grafico.tope} en un día.`}>
-                {grafico.barras.map((b) => (
-                  <rect x={b.x} y={ALTO - b.alto} width={b.ancho} height={b.alto}
-                        class={b.cero ? 'barra vacia' : 'barra'} rx="1">
-                    <title>{b.titulo}</title>
-                  </rect>
+              {/* Un lector de pantalla no puede leer una línea: se le da el
+                  mismo resumen que está escrito arriba. */}
+              <svg viewBox={`0 0 ${grafico.ancho} ${grafico.alto}`} class="grafico-svg" role="img"
+                   aria-label={`Visitas por día del ${grafico.desde} al ${grafico.hasta}. En total ${grafico.total}. El máximo fue ${grafico.pico.visitas} el ${grafico.pico.dia}.`}>
+
+                {grafico.guias.map((g) => (
+                  <>
+                    <line x1="46" y1={g.y} x2={grafico.ancho - 18} y2={g.y} class="guia" />
+                    <text x="38" y={g.y + 4} class="eje" text-anchor="end">{g.v}</text>
+                  </>
+                ))}
+
+                <path d={grafico.area} class="area" />
+                <path d={grafico.linea} class="linea" />
+
+                {grafico.puntos.map((p) => (
+                  <circle cx={p.x} cy={p.y} r="4.5" class="punto">
+                    <title>{p.dia}: {p.visitas} {p.visitas === 1 ? 'visita' : 'visitas'}</title>
+                  </circle>
+                ))}
+
+                {/* El número del día más alto, escrito. Es el dato que se busca
+                    al mirar el gráfico y no hay por qué estimarlo. */}
+                <text x={grafico.pico.x} y={grafico.pico.y - 13} class="pico" text-anchor="middle">
+                  {grafico.pico.visitas}
+                </text>
+
+                {grafico.fechas.map((f) => (
+                  <text x={f.x} y={grafico.piso + 26} class="eje" text-anchor="middle">{f.dia}</text>
                 ))}
               </svg>
-              <div class="grafico-pie">
-                <span>{grafico.desde}</span>
-                <span class="grafico-tope">máx. {mil(grafico.tope)} en un día</span>
-                <span>{grafico.hasta}</span>
-              </div>
             </div>
           </>
         )}
 
-        {trafico.paginas.length > 0 && (
+        {topPaginas.length > 0 && (
           <>
-            <h3 class="admin-subtitulo">Páginas más vistas</h3>
-            <table class="admin-tabla">
-              <thead><tr><th>Página</th><th>Vistas</th></tr></thead>
-              <tbody>
-                {trafico.paginas.map((p) => (
-                  <tr>
-                    <td><code>{p.ruta}</code></td>
-                    <td>{mil(p.vistas)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h3 class="admin-subtitulo">Lo más visitado</h3>
+            <p class="admin-fuente">Las páginas que más miró la gente en los últimos 28 días.</p>
+            <ol class="ranking">
+              {topPaginas.map((p, i) => (
+                <li class="ranking-fila">
+                  <span class="ranking-puesto">{i + 1}</span>
+                  <span class="ranking-datos">
+                    <strong>{p.que}</strong>
+                    <small>{p.tipo}</small>
+                  </span>
+                  <span class="ranking-barra" aria-hidden="true">
+                    <span class="ranking-relleno" style={`width:${p.ancho}%`}></span>
+                  </span>
+                  <span class="ranking-cifra">
+                    {mil(p.vistas)} <small>{p.vistas === 1 ? 'visita' : 'visitas'}</small>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </>
         )}
 
+        <h3 class="admin-subtitulo">Lo que busca la gente</h3>
         {trafico.terminos.length > 0 ? (
           <>
-            <h3 class="admin-subtitulo">Lo que busca la gente</h3>
-            <table class="admin-tabla">
-              <thead><tr><th>Término</th><th>Veces</th></tr></thead>
-              <tbody>
-                {trafico.terminos.map((t) => (
-                  <tr>
-                    <td>{t.termino}</td>
-                    <td>{mil(t.veces)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ol class="ranking">
+              {trafico.terminos.map((t, i) => (
+                <li class="ranking-fila">
+                  <span class="ranking-puesto">{i + 1}</span>
+                  <span class="ranking-datos"><strong>{t.termino}</strong></span>
+                  <span class="ranking-cifra">
+                    {mil(t.veces)} <small>{t.veces === 1 ? 'vez' : 'veces'}</small>
+                  </span>
+                </li>
+              ))}
+            </ol>
             <p class="admin-fuente">
               Sirve para saber qué te están pidiendo que no tienes en el catálogo.
             </p>
           </>
-        ) : (
-          /* Se dice qué NO se está mostrando, para que nadie lea el número de
-             búsquedas como si fuera la lista de lo que busca la gente. */
+        ) : trafico.terminosEstado === 'sin-dimension' ? (
           <p class="admin-fuente">
-            Cuántas búsquedas hubo, no cuáles. Para ver los términos hay que crear
-            una dimensión personalizada en Google Analytics con el parámetro
-            <code>search_term</code>. Google los guarda desde que se crea, no antes.
+            Para ver los términos hay que crear una dimensión personalizada en
+            Google Analytics con el parámetro <code>search_term</code>.
+          </p>
+        ) : (
+          /* La dimensión ya está creada: no hay nada que pedirle a nadie, solo
+             esperar. Decirle a alguien que cree algo que ya creó es la clase de
+             mensaje que hace desconfiar de la pantalla entera. */
+          <p class="admin-fuente">
+            Todavía no hay términos que mostrar. Google los empezó a guardar el
+            7 de septiembre y no rellena hacia atrás, así que van a ir apareciendo
+            a medida que la gente busque.
           </p>
         )}
       </>

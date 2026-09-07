@@ -172,16 +172,25 @@ async function terminos(token) {
       }),
       signal: AbortSignal.timeout(TIEMPO_LIMITE),
     });
-    if (!r.ok) return [];
+
+    /* Un 400 acá significa una cosa concreta: la dimensión no está registrada.
+       Se distingue del caso "existe pero todavía no juntó datos" porque el
+       panel tiene que decir cosas distintas — pedirle a alguien que cree algo
+       que ya creó es la clase de mensaje que hace desconfiar de la pantalla
+       entera. */
+    if (r.status === 400) return { estado: 'sin-dimension', lista: [] };
+    if (!r.ok) return { estado: 'error', lista: [] };
 
     const { rows = [] } = await r.json();
-    return rows
+    const lista = rows
       .map((f) => ({ termino: f.dimensionValues?.[0]?.value ?? '', veces: numero(f) }))
       /* GA4 devuelve "(not set)" para los eventos anteriores a la dimensión.
          No es un término que alguien buscó: es un hueco. */
       .filter((t) => t.termino && t.termino !== '(not set)');
+
+    return { estado: 'lista', lista };
   } catch {
-    return [];
+    return { estado: 'error', lista: [] };
   }
 }
 
@@ -234,7 +243,8 @@ export async function visitas() {
     eventos: Object.fromEntries(
       (eventos?.rows ?? []).map((f) => [f.dimensionValues?.[0]?.value, numero(f)]),
     ),
-    terminos: listaTerminos,
+    terminos: listaTerminos.lista,
+    terminosEstado: listaTerminos.estado,
     diario: serieDiaria(diario?.rows ?? []),
   };
 }
