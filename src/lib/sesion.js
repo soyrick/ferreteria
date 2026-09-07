@@ -6,7 +6,11 @@
 
 const TEXTO = new TextEncoder();
 
-const aBase64Url = (buffer) =>
+/* Base64 de URL: sin '+', sin '/' y sin relleno. Lo usan la cookie de sesión y
+   el JWT que `ga4.js` le firma a Google — es la misma función, así que se
+   exporta en vez de escribirla dos veces. Dos copias de un ayudante de
+   criptografía es como se cuelan los errores que nadie ve. */
+export const aBase64Url = (buffer) =>
   btoa(String.fromCharCode(...new Uint8Array(buffer)))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 

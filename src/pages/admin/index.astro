@@ -4,6 +4,7 @@ export const prerender = false;
 import Admin from '../../layouts/Admin.astro';
 import { resumen, apiLista } from '../../datos/api.js';
 import { leer, almacenListo } from '../../datos/curaduria.js';
+import { visitas, ga4Listo } from '../../lib/ga4.js';
 
 /* Esta pantalla solo muestra lo que se puede comprobar.
 
@@ -16,7 +17,6 @@ import { leer, almacenListo } from '../../datos/curaduria.js';
    Console API, que piden credenciales de cuenta de servicio. */
 
 const GA_ID = import.meta.env.PUBLIC_GA_ID ?? '';
-const GSC_TOKEN = import.meta.env.PUBLIC_GSC_VERIFICACION ?? '';
 
 const conexiones = [
   {
@@ -28,12 +28,24 @@ const conexiones = [
       : 'Falta el ID de medición (G-XXXXXXXXXX)',
   },
   {
+    /* Las cifras de visitas de esta pantalla salen de acá, no del `G-…`.
+       Son dos cosas distintas: el ID de medición hace que se registren, y la
+       cuenta de servicio es lo que deja leerlas. */
+    nombre: 'Google Analytics · lectura de datos',
+    variable: 'GA_PROPIEDAD · GA_CUENTA_CORREO · GA_CUENTA_CLAVE',
+    listo: ga4Listo(),
+    detalle: ga4Listo()
+      ? 'Cuenta de servicio configurada: las visitas se ven más abajo'
+      : 'Faltan las credenciales para leer las visitas desde acá',
+  },
+  {
+    /* El sitio se verificó con un registro TXT en el DNS, no con la etiqueta
+       en el HTML. Esta fila describe un hecho del dominio, no una conexión que
+       haga la aplicación: no consumimos la API de Search Console. */
     nombre: 'Google Search Console',
-    variable: 'PUBLIC_GSC_VERIFICACION',
-    listo: Boolean(GSC_TOKEN),
-    detalle: GSC_TOKEN
-      ? 'Etiqueta de verificación publicada'
-      : 'Falta el token de verificación del dominio',
+    variable: 'registro TXT en el DNS',
+    listo: true,
+    detalle: 'Dominio verificado el 2026-09-07. El panel todavía no lee su API.',
   },
   {
     nombre: 'Catálogo de productos',
@@ -70,6 +82,24 @@ const vitrinas = {
   topventas: estado.topventas.length,
   ofertas: estado.ofertas.length,
 };
+
+/* Las visitas. Si algo falla —faltan variables, Google dice que no, se cae la
+   red— la sección vuelve al aviso de siempre y el detalle queda en el log.
+   Nunca un número inventado: es la misma regla por la que se borraron las
+   métricas de muestra, y vale igual cuando el que falla es Google. */
+let trafico = null;
+let motivoTrafico = 'Faltan las credenciales de la cuenta de servicio de Google.';
+
+if (ga4Listo()) {
+  try {
+    trafico = await visitas();
+  } catch (e) {
+    console.error('[admin] GA4 falló:', e.message);
+    motivoTrafico = 'Google Analytics no respondió en este momento.';
+  }
+}
+
+const mil = (n) => Number(n).toLocaleString('es-VE');
 ---
 <Admin titulo="Estadísticas">
   <header class="admin-titulo">
@@ -137,12 +167,64 @@ const vitrinas = {
 
   <section class="admin-seccion">
     <h2>Visitas y búsquedas</h2>
-    <div class="admin-aviso">
-      <strong>Todavía no se ven acá.</strong>
-      Las visitas ya se están registrando: se consultan en
-      <a href="https://analytics.google.com" target="_blank" rel="noopener">analytics.google.com</a>.
-      Traerlas a esta pantalla necesita credenciales de cuenta de servicio de
-      Google, que es lo que falta.
-    </div>
+
+    {trafico ? (
+      <>
+        <p class="admin-fuente">Lo que midió Google Analytics. Últimos 28 días, salvo donde diga otra cosa.</p>
+        <div class="admin-metricas">
+          <article class="metrica">
+            <span class="metrica-etiqueta">Visitas · 7 días</span>
+            <strong class="metrica-valor">{mil(trafico.visitas7)}</strong>
+          </article>
+          <article class="metrica">
+            <span class="metrica-etiqueta">Visitas · 28 días</span>
+            <strong class="metrica-valor">{mil(trafico.visitas28)}</strong>
+          </article>
+          <article class="metrica">
+            <span class="metrica-etiqueta">Personas distintas · 28 días</span>
+            <strong class="metrica-valor">{mil(trafico.personas28)}</strong>
+          </article>
+          <article class="metrica">
+            <span class="metrica-etiqueta">Búsquedas</span>
+            <strong class="metrica-valor">{mil(trafico.eventos.search ?? 0)}</strong>
+          </article>
+          <article class="metrica">
+            <span class="metrica-etiqueta">Agregados al pedido</span>
+            <strong class="metrica-valor">{mil(trafico.eventos.add_to_cart ?? 0)}</strong>
+          </article>
+        </div>
+
+        {trafico.paginas.length > 0 && (
+          <>
+            <h3 class="admin-subtitulo">Páginas más vistas</h3>
+            <table class="admin-tabla">
+              <thead><tr><th>Página</th><th>Vistas</th></tr></thead>
+              <tbody>
+                {trafico.paginas.map((p) => (
+                  <tr>
+                    <td><code>{p.ruta}</code></td>
+                    <td>{mil(p.vistas)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* Se dice qué NO se está mostrando, para que nadie lea el número de
+            búsquedas como si fuera la lista de lo que busca la gente. */}
+        <p class="admin-fuente">
+          Cuántas búsquedas hubo, no cuáles: los términos necesitan una dimensión
+          personalizada en Google Analytics que todavía no está creada.
+        </p>
+      </>
+    ) : (
+      <div class="admin-aviso">
+        <strong>Todavía no se ven acá.</strong>
+        {motivoTrafico} Mientras tanto se consultan en
+        <a href="https://analytics.google.com" target="_blank" rel="noopener">analytics.google.com</a>,
+        donde sí se están registrando.
+      </div>
+    )}
   </section>
 </Admin>

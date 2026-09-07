@@ -783,6 +783,18 @@ solo lugar. Dos copias de la misma política terminan divergiendo, y dos CSP
 distintas se aplican como intersección, que rompe cosas sin dejar rastro. El
 middleware vuelve a hacer una sola cosa, que es cuidar /admin.
 
+Medido otra vez después de sacarlas, ya sin middleware que las ponga:
+
+```
+/  ·  /categoria/plomeria  ·  /admin  ·  /admin/entrar
+/robots.txt  ·  /sitemap.xml            → 6/6 cabeceras en todas
+/admin  → 302 a /admin/entrar?volver=%2Fadmin, con las seis puestas
+```
+
+`robots.txt` es la prueba que cierra el asunto: es un archivo estático que
+**nunca** pasó por el middleware en ninguna versión, así que sus cabeceras solo
+pueden venir del borde.
+
 #### ⬜ Lo que falta de F11
 
 - **Search Console**: verificar el dominio, cargar `PUBLIC_GSC_VERIFICACION` y
@@ -795,6 +807,169 @@ middleware vuelve a hacer una sola cosa, que es cuidar /admin.
 - **Monitoreo de errores y prueba de rollback.**
 
 **Cierre:** sitio en el dominio real, con los datos reales, y un rollback probado.
+---
+
+## Próximo tramo · plan del 2026-09-07
+
+Dos trabajos, en este orden. El monitoreo de errores queda **fuera por ahora**
+por decisión de Ricardo; sigue anotado en F11 como pendiente.
+
+### G1 — Las visitas reales en el panel
+
+Cierra el hueco que dejó F8: la pantalla dice «todavía no se ven acá» desde que
+se borraron las métricas inventadas. Ahora se conectan de verdad.
+
+#### Lo que hace falta del lado de Google (lo hace Ricardo)
+
+1. **Habilitar la API.** Google Cloud Console → APIs y servicios → Biblioteca →
+   «Google Analytics Data API» → Habilitar.
+2. **Crear una cuenta de servicio** en ese proyecto y descargar su clave JSON.
+3. **Darle acceso a la propiedad.** GA4 → Administrar → Gestión de acceso a la
+   propiedad → agregar el `client_email` de la cuenta de servicio como
+   **Lector**. Sin esto la API responde 403 aunque todo lo demás esté bien.
+4. **Buscar el ID numérico de la propiedad**, en GA4 → Administrar →
+   Configuración de la propiedad.
+
+**La trampa que se lleva a todo el mundo puesto:** la Data API pide el **ID
+numérico de propiedad**, no el ID de medición. `PUBLIC_GA_ID` es
+`G-EENVGHWLEV`, que es el de medición y **no sirve acá**. Si se manda ese, la
+API contesta que la propiedad no existe.
+
+#### Variables de entorno nuevas
+
+| Variable | Qué lleva |
+|---|---|
+| `GA_PROPIEDAD` | el ID numérico de la propiedad |
+| `GA_CUENTA_CORREO` | el `client_email` del JSON |
+| `GA_CUENTA_CLAVE` | el `private_key` del JSON |
+
+Se cargan los tres campos sueltos y no el JSON entero: meter un JSON con saltos
+de línea y comillas dentro de una variable de entorno es una fuente conocida de
+errores de escapado, y de ese archivo solo se usan dos campos. **Sin `PUBLIC_`**,
+como `CATALOGO_URL`: ese prefijo las mandaría al navegador, y la clave privada
+en el navegador es el fin de la historia.
+
+#### El código
+
+- **`src/lib/ga4.js`** — arma un JWT RS256 con Web Crypto, lo cambia por un
+  token en `oauth2.googleapis.com/token` y pega el `runReport`.
+
+  **Sin dependencia nueva.** `googleapis` pesa decenas de megas y traería el
+  cliente de todas las APIs de Google para usar un endpoint. Firmar el JWT son
+  unas cincuenta líneas con `crypto.subtle`, que ya está en el runtime — es
+  justo el caso que la regla R3 pide rechazar.
+
+- **`src/pages/admin/index.astro`** — el bloque de aviso pasa a mostrar cifras.
+
+#### Qué se muestra
+
+- **Visitas de los últimos 7 y 28 días.**
+- **Páginas más vistas**, las cinco primeras.
+- **Búsquedas**: depende de que los eventos propios estén llegando a GA4, que
+  es un pendiente abierto de la lista de «Para mañana». **Se comprueba primero**;
+  si no llegan, esa tabla no se pone. No se muestra una tabla vacía como si
+  fuera un dato.
+
+**Sin gráfica.** `chart.js` se borró en su momento junto con la gráfica de datos
+inventados y no vuelve por unos números. Si más adelante hace falta una línea de
+tendencia, es un `<polyline>` de SVG de quince líneas, no una dependencia.
+
+**Sin caché**, al principio. Cada carga del panel cuesta dos peticiones —el
+token y el informe— y al panel entran una o dos personas por día.
+`ponytail:` el techo es si alguna vez el panel se abre en un bucle o lo miran
+muchos; ahí entra guardar el token, que dura una hora.
+
+**Si algo falla —faltan variables, la API contesta 403, se cae— la pantalla
+vuelve al aviso honesto de ahora.** Nunca un número inventado: esa es la regla
+que se fijó cuando se borraron las métricas de muestra, y aplica igual cuando
+el que falla es Google.
+
+#### Hecho el 2026-09-07 · lo que apareció en el camino
+
+Medido contra la API real antes de desplegar:
+
+```
+visitas 7 días 35 · 28 días 42 · 7 personas
+búsquedas 5 · agregados al pedido 10
+páginas top: / (330) · automotriz (11) · h. eléctricas (10) · plomería (5)
+```
+
+**Los eventos propios sí llegan a GA4.** Cierra el punto 3 de «Para mañana»: se
+ven `search` y `add_to_cart` con sus cantidades.
+
+**La trampa que casi pone un número imposible en pantalla.** Con más de un
+rango de fechas, la API agrega sola una dimensión `dateRange` y **las filas no
+vuelven en el orden en que se pidieron** — medido: el rango 1 llegó primero.
+Tomándolas por posición, el panel mostraba *42 visitas en 7 días y 35 en 28*,
+que no puede ser porque el rango largo contiene al corto. Se buscan por nombre
+(`date_range_0`, `date_range_1`), nunca por índice de fila.
+
+Se encontró mirando los números, no el código. Vale como recordatorio de que la
+verificación es leer el resultado y preguntarse si tiene sentido, no confirmar
+que el código corrió sin error.
+
+**Pegar la clave privada en el prompt del CLI no funciona.** Son 1.700
+caracteres y se trunca. Va por archivo: `vercel env add NOMBRE entorno < archivo`
+desde `cmd /c` — PowerShell reserva `<` y no lo implementa, y `Get-Content` por
+tubería agrega un BOM que corrompe el valor. Las tres formas están probadas.
+
+#### Cómo se verifica
+
+- Con las variables puestas: las cifras del panel coinciden con lo que muestra
+  `analytics.google.com` para el mismo rango.
+- Sin las variables: la pantalla muestra el aviso, no rompe.
+- Con un `GA_PROPIEDAD` inválido: muestra el aviso, y el detalle queda en el
+  log del servidor, no en pantalla.
+- `node pruebas/ga4-clave.mjs` prueba el punto donde un error no se vería: leer
+  la clave PEM y firmar con ella, en las tres formas en que puede llegar.
+
+#### Queda pendiente
+
+- **El flujo de datos de GA4 apunta a `casaherramientas.vercel.app`**, no al
+  dominio propio. Mide igual —manda el `G-…`— pero los informes muestran el
+  dominio viejo.
+- **Los términos buscados**, no solo cuántos: `search_term` viaja como
+  parámetro propio y necesita una dimensión personalizada registrada en GA4.
+
+### G2 — Cambiar la clave del panel
+
+De `clave-de-prueba-1234` a la que eligió Ricardo. **Urgente por lo que es:** una
+clave de prueba en un panel que edita el catálogo de un negocio real.
+
+Verificado antes de tocar nada: la clave vieja **nunca se commiteó** —no aparece
+en ningún archivo versionado ni en la historia de git— y `.env*` está ignorado.
+
+#### Cómo está guardada
+
+`claveCorrecta()` compara los SHA-256 de las dos cadenas. El hash está para que
+la comparación no filtre el largo del original, **no** para guardarla hasheada:
+`ADMIN_CLAVE` lleva la clave en texto plano. Cambiarla es cambiar esa variable,
+no migrar nada.
+
+#### Pasos
+
+1. Ricardo la carga con `npx vercel env rm ADMIN_CLAVE` y `npx vercel env add`,
+   en los tres entornos. **La clave la escribe él**: no pasa por el asistente ni
+   por el chat.
+2. Actualizar `.env.local` para que el panel local siga entrando.
+3. **Redesplegar.** Las variables de entorno solo cambian en un despliegue
+   nuevo; sin eso, producción sigue con la vieja.
+4. Comprobar: la clave vieja rechazada, la nueva aceptada, y que el freno de
+   cinco intentos por IP sigue funcionando.
+
+#### Dos cosas que hay que decidir aparte
+
+- **Las sesiones abiertas no se caen.** La cookie se firma con `ADMIN_SECRETO`,
+  no con la clave, y dura ocho horas. Cambiar la clave no echa a nadie que ya
+  esté adentro. Si se quiere eso, hay que rotar también `ADMIN_SECRETO` — y ahí
+  sí se cae toda sesión viva, incluida la de Ricardo.
+- **La clave elegida parece derivada de un documento de identidad**: dos
+  iniciales y ocho dígitos. Eso la vuelve adivinable para cualquiera que haya
+  visto una factura, el RIF o una cédula. Recomendación: agregarle algo que no
+  salga de ningún papel. Es una recomendación, no un bloqueo; si Ricardo la
+  confirma, se pone tal cual.
+
+
 
 
 
