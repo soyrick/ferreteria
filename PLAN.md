@@ -13,9 +13,9 @@ automático hasta que lo indiques con "modo automático".
 
 ## Para mañana
 
-**Lo único bloqueado por terceros son las fotos.** F4, F9 y F10 quedaron
-cerradas el 2026-09-02, y el 2026-09-03 los rubros pasaron a tener página
-propia. Queda F11, que necesita el dominio.
+**Lo único bloqueado por terceros son las fotos.** El sitio ya vive en su
+dominio propio, **https://casaherramientasca.com**, desde el 2026-09-07. F11
+está en curso: falta Search Console, Lighthouse, monitoreo y rollback.
 
 1. **Pedir las imágenes oficiales a los distribuidores.** INGCO, Truper y
    Stanley se las dan a sus clientes, y el negocio lo es. Cubren el 14 % del
@@ -31,9 +31,9 @@ propia. Queda F11, que necesita el dominio.
    y no prometían nada real. Pero **Google Analytics sigue corriendo**, y eso
    pide una política de verdad: qué se mide, para qué y cómo negarse. El
    banner de consentimiento ya está; falta el documento al que debería apuntar.
-5. **F11, la puesta en producción.** Es la única fase que queda: dominio
-   propio, HTTPS, Lighthouse sobre el sitio real, monitoreo de errores y una
-   prueba de rollback. Necesita el dominio para arrancar.
+5. **Terminar F11.** El dominio y el HTTPS ya están. Falta verificar el sitio
+   en Search Console y mandar el sitemap, correr Lighthouse desde un navegador
+   de verdad, y dejar monitoreo de errores con un rollback probado.
 
 ---
 
@@ -125,7 +125,7 @@ mover solo ese sector sin tocar la tienda.
 | F8 Panel de administración | ✅ muestra solo lo comprobable | APIs de Google para las visitas |
 | F9 Auditoría de accesibilidad y UI | ✅ cerrada el 2026-09-02 | — |
 | F10 Auditoría de ciberseguridad | ✅ cerrada el 2026-09-02 | — |
-| F11 Puesta en producción | ⬜ pendiente | dominio |
+| F11 Puesta en producción | 🔵 en curso · dominio y HTTPS listos | — |
 
 ---
 
@@ -709,14 +709,92 @@ La empresa:      #nosotros · #horarios · #contacto existen los tres
 
 ---
 
-### F11 — Puesta en producción
-- Variables de entorno en Vercel.
-- Dominio propio y HTTPS.
-- Licencias de imágenes resueltas (ver `public/assets/img/CREDITOS.txt`) o
-  reemplazo por fotos reales de la mercancía.
-- Monitoreo de errores y prueba de rollback.
+### F11 — Puesta en producción · **en curso**
+
+#### ✅ Dominio propio y HTTPS · 2026-09-07
+
+**`casaherramientasca.com`**, comprado en Namecheap, DNS en Namecheap BasicDNS
+apuntando a Vercel.
+
+| | |
+|---|---|
+| Apex | `A` → `216.198.79.1` |
+| www | `CNAME` → `85309ef809bb7a9f.vercel-dns-017.com.` |
+| Canónico | el **apex**; `www` redirige con 308 |
+
+Dos cosas para no repetir el susto:
+
+- **El registro A no es `76.76.21.21`.** Vercel está migrando de rango; el valor
+  viejo sigue funcionando pero el que da el panel es otro. Se copia del panel,
+  nunca de un tutorial.
+- **El CNAME es único por proyecto** (`…vercel-dns-017.com.`, con punto final).
+  El genérico `cname.vercel-dns.com` de las guías no sirve.
+
+Antes se compró por error `casaherramientas.ca`, creyendo que `.ca` era la
+abreviatura de «C.A.» del nombre legal. **`.ca` es Canadá**: exige requisitos de
+presencia canadiense ante CIRA, y su geolocalización hacia Canadá es fija —
+Google la asigna sola y el ajuste manual se eliminó de Search Console en 2022.
+Habría trabajado en contra de todo el SEO local de F4. Se pidió el reembolso
+dentro de la ventana de 120 horas de Namecheap.
+
+Verificado sobre el dominio real: apex `200` con certificado válido, `www` → 308
+al apex, `http://` → 308 a `https://`, y las canónicas, `og:url`, JSON-LD,
+`robots.txt` y los tres sitemaps saliendo todos con el dominio nuevo.
+
+#### ✅ Las cabeceras de seguridad no llegaban a las páginas estáticas
+
+**Un agujero que dejó abierto F10 y que solo se veía en producción.**
+
+Medido contra el dominio real, antes del arreglo:
+
+| Ruta | Cómo la sirve Vercel | Cabeceras F10 |
+|---|---|---|
+| `/` | estática, desde la CDN (`X-Vercel-Cache: HIT`) | **ninguna** |
+| `/categoria/plomeria` | en servidor (`MISS`) | las seis |
+| `/admin/entrar` | en servidor (`MISS`) | las seis |
+
+**La causa:** el middleware de Astro solo corre en rutas que se renderizan por
+petición. La home está prerenderizada, así que Vercel la sirve como archivo
+estático desde la CDN y el middleware nunca se ejecuta. La página más visitada
+del sitio estuvo sin CSP, sin `X-Frame-Options` y sin `nosniff` desde que se
+cerró F10.
+
+**Por qué no se detectó antes:** la auditoría de F10 se verificó contra el
+servidor de desarrollo, donde *todas* las rutas pasan por el middleware. La
+verificación no probaba lo que decía probar. Es el ejemplo exacto de por qué R6
+pide medir, y de por qué medir en el entorno equivocado no cuenta.
+
+**El arreglo:** las mismas seis cabeceras declaradas en `vercel.json`, que las
+aplica en el borde a todo, estático incluido. Los valores se compararon uno por
+uno contra el middleware antes de desplegar: si difirieran, el navegador
+aplicaría la **intersección** de las dos CSP y algo se rompería en silencio.
+
+Verificado después de desplegar:
+
+```
+Cabeceras:  las 6 en / (HIT), /categoria/plomeria y /admin/entrar
+Duplicados: 1 sola CSP por respuesta — el borde reemplaza, no agrega
+Navegador:  83 tarjetas, 32 rubros, tipografía y mapa cargando, 0 errores
+Rutas:      / · rubro · ficha · sitemap 200 · /admin 302
+```
+
+**Queda:** sacar las seis del middleware, que ya está medido que sobran. Se
+dejaron duplicadas solo para no quedarnos sin ninguna si el borde fallaba.
+
+#### ⬜ Lo que falta de F11
+
+- **Search Console**: verificar el dominio, cargar `PUBLIC_GSC_VERIFICACION` y
+  mandar el sitemap.
+- **Lighthouse y Core Web Vitals** sobre el dominio real. Sigue sin poder
+  medirse desde acá: el navegador de pruebas no compone la página, así que LCP,
+  CLS e INP no se pueden leer. Necesita un navegador de verdad.
+- **Licencias de las imágenes del hero** (ver `public/assets/img/CREDITOS.txt`)
+  o reemplazo por fotos del local.
+- **Monitoreo de errores y prueba de rollback.**
 
 **Cierre:** sitio en el dominio real, con los datos reales, y un rollback probado.
+
+
 
 ---
 

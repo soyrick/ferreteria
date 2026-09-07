@@ -4,7 +4,7 @@ Documento de recuperación de contexto. Si empezás una sesión nueva o se vaci�
 contexto, leé **esto primero** y después [PLAN.md](PLAN.md). Con esos dos
 archivos alcanza para retomar sin preguntar nada.
 
-Última actualización: 2026-09-03
+Última actualización: 2026-09-07
 
 ---
 
@@ -18,8 +18,8 @@ Anzoátegui, Venezuela.
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 
-**Al 2026-09-02:** F4 (SEO), F9 (accesibilidad) y F10 (seguridad) cerradas.
-Queda **F11**, la puesta en producción, que necesita el dominio.
+**Al 2026-09-07:** el sitio vive en su dominio propio. F4, F9 y F10 cerradas;
+**F11 en curso** — falta Search Console, Lighthouse, monitoreo y rollback.
 
 **Ya no queda nada de prueba.** El panel mostraba métricas inventadas y la home
 tenía cifras que puse yo para el demo: todo eso salió, y lo que quedó sale del
@@ -628,6 +628,13 @@ F7 conexión del bot, F8 cifras reales de GA4 y Search Console en el panel.
 
 ## Deuda conocida
 
+- **Las cabeceras de seguridad están declaradas dos veces**: en `vercel.json`,
+  que las aplica en el borde a todo —estático incluido—, y en
+  `src/middleware.js`, que solo alcanza a las rutas renderizadas por petición.
+  Ya está medido en producción que las del borde llegan a todas, así que las
+  del middleware sobran. **Si tocás una, tocá la otra**: valores distintos hacen
+  que el navegador aplique la intersección de las dos CSP y algo se rompe sin
+  avisar.
 - **Ningún producto tiene foto.** Ver «El problema de las fotos» en
   [PLAN.md](PLAN.md): está medido y con la pregunta que hay que hacerle al
   encargado.
