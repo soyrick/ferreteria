@@ -923,13 +923,49 @@ tubería agrega un BOM que corrompe el valor. Las tres formas están probadas.
 - `node pruebas/ga4-clave.mjs` prueba el punto donde un error no se vería: leer
   la clave PEM y firmar con ella, en las tres formas en que puede llegar.
 
+#### El gráfico de visitas por día
+
+Sin `chart.js`, que se había borrado con las métricas inventadas y no vuelve: la
+regla R3 pide que una dependencia borre código propio o resuelva algo que no se
+hace en cincuenta líneas, y 28 barras no califican. El SVG lo arma el servidor,
+así que el panel **no recibe JavaScript** por el gráfico y se ve igual con el JS
+apagado. El techo es si algún día hacen falta ejes, zoom o varias series
+encimadas.
+
+**GA4 no devuelve los días en cero.** Medido: de 28 días pedidos llegaron 10
+filas. Pintadas seguidas mostraban una racha continua donde hubo días muertos —
+un gráfico que esconde los ceros miente sobre la tendencia, que es justo para lo
+que se lo mira. `serieDiaria()` rellena los huecos entre el primer y el último
+día con datos.
+
+No se extiende a los 28 a propósito: no sabemos la zona horaria de la propiedad
+y adivinar dónde cae «hoy» correría todas las etiquetas un día. El pie dice qué
+rango se está viendo, así que no promete más de lo que muestra.
+
+La suma diaria da 43 y el total de 28 días da 42. Es de GA4 —las sesiones que
+cruzan la medianoche se cuentan distinto en cada corte—, no un error de cálculo.
+Anotado para que nadie lo «arregle».
+
+#### Los términos buscados · dimensión creada el 2026-09-07
+
+`Término buscado`, ámbito Evento, parámetro `search_term`. La consulta va en su
+**propia petición**, no en el lote: `customEvent:search_term` no existe hasta que
+alguien registra la dimensión, y metida en el lote ese rechazo se llevaba puesto
+todo el informe, incluidas las visitas.
+
+Medido antes y después de crearla: `HTTP 400 · no es una dimensión válida` →
+`HTTP 200 · 1 fila`. Esa fila es `(not set)` con 702 eventos: todo lo anterior a
+la dimensión, que no rellena hacia atrás. Se filtra, para que un hueco no
+aparezca como el término más buscado.
+
+La tienda manda su propio evento `search` con el parámetro (`app.js` y
+`categoria.js`), no depende de la medición mejorada de GA4.
+
 #### Queda pendiente
 
 - **El flujo de datos de GA4 apunta a `casaherramientas.vercel.app`**, no al
   dominio propio. Mide igual —manda el `G-…`— pero los informes muestran el
   dominio viejo.
-- **Los términos buscados**, no solo cuántos: `search_term` viaja como
-  parámetro propio y necesita una dimensión personalizada registrada en GA4.
 
 ### G2 — Cambiar la clave del panel
 

@@ -134,28 +134,72 @@ const INFORMES = [
       },
     },
   },
+  {
+    // La serie diaria, para el gráfico. `date` vuelve como AAAAMMDD.
+    dateRanges: [HACE_28],
+    dimensions: [{ name: 'date' }],
+    metrics: [{ name: 'sessions' }],
+    orderBys: [{ dimension: { dimensionName: 'date' } }],
+  },
 ];
 
 const numero = (fila, i = 0) => Number(fila?.metricValues?.[i]?.value ?? 0);
 
-/** Devuelve `{ visitas7, personas7, visitas28, personas28, paginas, eventos }`. */
+const urlInforme = (metodo) =>
+  `https://analyticsdata.googleapis.com/v1beta/properties/${encodeURIComponent(PROPIEDAD)}:${metodo}`;
+
+/* Los términos buscados van en su propia petición y no en el lote de arriba.
+
+   `customEvent:search_term` solo existe si alguien creó la dimensión
+   personalizada en GA4; si no está, la API rechaza la consulta. Metido en el
+   lote, ese rechazo se llevaría puesto **todo** el informe y el panel perdería
+   también las visitas, que sí funcionan. Aparte, y por eso se traga el error:
+   que falte la dimensión no es una falla, es el estado normal hasta que se
+   configure.
+
+   Cuando la dimensión aparezca, la tabla se llena sola. Sin tocar nada. */
+async function terminos(token) {
+  try {
+    const r = await fetch(urlInforme('runReport'), {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dateRanges: [HACE_28],
+        dimensions: [{ name: 'customEvent:search_term' }],
+        metrics: [{ name: 'eventCount' }],
+        orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+        limit: 8,
+      }),
+      signal: AbortSignal.timeout(TIEMPO_LIMITE),
+    });
+    if (!r.ok) return [];
+
+    const { rows = [] } = await r.json();
+    return rows
+      .map((f) => ({ termino: f.dimensionValues?.[0]?.value ?? '', veces: numero(f) }))
+      /* GA4 devuelve "(not set)" para los eventos anteriores a la dimensión.
+         No es un término que alguien buscó: es un hueco. */
+      .filter((t) => t.termino && t.termino !== '(not set)');
+  } catch {
+    return [];
+  }
+}
+
+/** `{ visitas7, personas7, visitas28, personas28, paginas, eventos, terminos }`. */
 export async function visitas() {
   if (!ga4Listo()) throw new Error('Faltan las variables de GA4');
 
   const token = await tokenDeAcceso();
 
-  const r = await fetch(
-    `https://analyticsdata.googleapis.com/v1beta/properties/${encodeURIComponent(PROPIEDAD)}:batchRunReports`,
-    {
+  const [r, listaTerminos] = await Promise.all([
+    fetch(urlInforme('batchRunReports'), {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ requests: INFORMES }),
       signal: AbortSignal.timeout(TIEMPO_LIMITE),
-    },
-  );
+    }),
+    terminos(token),
+  ]);
 
   if (r.status === 403) {
     throw new Error('La cuenta de servicio no tiene acceso a la propiedad');
@@ -163,7 +207,7 @@ export async function visitas() {
   if (!r.ok) throw new Error(`La Data API respondió ${r.status}`);
 
   const { reports = [] } = await r.json();
-  const [totales, paginas, eventos] = reports;
+  const [totales, paginas, eventos, diario] = reports;
 
   /* Con más de un rango, la API agrega sola una dimensión `dateRange` con
      valores `date_range_0`, `date_range_1`… y **las filas NO vuelven en el
@@ -190,5 +234,57 @@ export async function visitas() {
     eventos: Object.fromEntries(
       (eventos?.rows ?? []).map((f) => [f.dimensionValues?.[0]?.value, numero(f)]),
     ),
+    terminos: listaTerminos,
+    diario: serieDiaria(diario?.rows ?? []),
   };
+}
+
+/* La serie de visitas por día, sin huecos.
+
+   **GA4 no devuelve los días en cero**: si un día no tuvo visitas, esa fila no
+   viene. Medido el 2026-09-07: sobre 28 días pedidos llegaron 10 filas. Pintar
+   esas 10 barras seguidas mostraría una racha continua donde en realidad hubo
+   días muertos — un gráfico que esconde los ceros miente sobre la tendencia,
+   que es justo para lo que se mira.
+
+   Se rellena entre el primer y el último día con datos. No se extiende a los 28
+   por decisión: no sabemos la zona horaria de la propiedad, y adivinar dónde
+   cae "hoy" correría todas las etiquetas un día. El pie del gráfico dice qué
+   rango se está viendo, así que no promete más de lo que muestra.
+
+   La fecha viene como "20260907" y se parte a mano: pasarla por `new Date()`
+   la interpreta como UTC y en Venezuela devuelve el día anterior. */
+function serieDiaria(filas) {
+  const conFecha = filas.map((f) => {
+    const d = f.dimensionValues?.[0]?.value ?? '';
+    return {
+      anio: Number(d.slice(0, 4)),
+      mes: Number(d.slice(4, 6)),
+      dia: Number(d.slice(6, 8)),
+      visitas: numero(f),
+    };
+  }).filter((d) => d.anio);
+
+  if (conFecha.length < 2) return conFecha;
+
+  // Date.UTC es aritmética de calendario pura acá: solo cuenta días entre dos
+  // fechas, no convierte husos.
+  const enDias = (d) => Date.UTC(d.anio, d.mes - 1, d.dia);
+  const porDia = new Map(conFecha.map((d) => [enDias(d), d.visitas]));
+
+  const inicio = enDias(conFecha[0]);
+  const fin = enDias(conFecha[conFecha.length - 1]);
+  const DIA = 86400000;
+
+  const salida = [];
+  for (let t = inicio; t <= fin; t += DIA) {
+    const f = new Date(t);
+    salida.push({
+      anio: f.getUTCFullYear(),
+      mes: f.getUTCMonth() + 1,
+      dia: f.getUTCDate(),
+      visitas: porDia.get(t) ?? 0,
+    });
+  }
+  return salida;
 }

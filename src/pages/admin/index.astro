@@ -100,6 +100,44 @@ if (ga4Listo()) {
 }
 
 const mil = (n) => Number(n).toLocaleString('es-VE');
+
+/* El gráfico de visitas por día, en SVG armado acá.
+
+   ponytail: sin `chart.js`. La regla R3 pide que una dependencia borre código
+   propio o resuelva algo que no se hace en cincuenta líneas; 28 barras no
+   califican. Además esto lo pinta el servidor: el panel no recibe una sola
+   línea de JavaScript por el gráfico, y se ve igual con el JS apagado.
+   El techo es si algún día hacen falta ejes, zoom o varias series encimadas —
+   ahí sí entra una librería. */
+const ALTO = 120;
+const ANCHO = 620;
+const HUECO = 3;
+
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const comoDia = (d) => `${d.dia} ${MESES[d.mes - 1]}`;
+
+let grafico = null;
+if (trafico?.diario?.length) {
+  const serie = trafico.diario;
+  const tope = Math.max(...serie.map((d) => d.visitas), 1);
+  const ancho = ANCHO / serie.length;
+
+  grafico = {
+    tope,
+    desde: comoDia(serie[0]),
+    hasta: comoDia(serie[serie.length - 1]),
+    /* Una barra de altura cero no se ve. Los días sin visitas llevan 2px para
+       que se note que el día existe y estuvo en cero, en vez de parecer un
+       hueco en los datos. */
+    barras: serie.map((d, i) => ({
+      x: i * ancho,
+      ancho: Math.max(ancho - HUECO, 1),
+      alto: d.visitas ? Math.max((d.visitas / tope) * ALTO, 2) : 2,
+      cero: d.visitas === 0,
+      titulo: `${comoDia(d)}: ${d.visitas} ${d.visitas === 1 ? 'visita' : 'visitas'}`,
+    })),
+  };
+}
 ---
 <Admin titulo="Estadísticas">
   <header class="admin-titulo">
@@ -194,6 +232,31 @@ const mil = (n) => Number(n).toLocaleString('es-VE');
           </article>
         </div>
 
+        {grafico && (
+          <>
+            <h3 class="admin-subtitulo">Visitas por día</h3>
+            <div class="grafico">
+              {/* role="img" con su etiqueta: un lector de pantalla no puede leer
+                  barras, así que se le da el resumen que se ve de un vistazo. */}
+              <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} preserveAspectRatio="none"
+                   role="img" class="grafico-svg"
+                   aria-label={`Visitas por día del ${grafico.desde} al ${grafico.hasta}. Máximo ${grafico.tope} en un día.`}>
+                {grafico.barras.map((b) => (
+                  <rect x={b.x} y={ALTO - b.alto} width={b.ancho} height={b.alto}
+                        class={b.cero ? 'barra vacia' : 'barra'} rx="1">
+                    <title>{b.titulo}</title>
+                  </rect>
+                ))}
+              </svg>
+              <div class="grafico-pie">
+                <span>{grafico.desde}</span>
+                <span class="grafico-tope">máx. {mil(grafico.tope)} en un día</span>
+                <span>{grafico.hasta}</span>
+              </div>
+            </div>
+          </>
+        )}
+
         {trafico.paginas.length > 0 && (
           <>
             <h3 class="admin-subtitulo">Páginas más vistas</h3>
@@ -211,12 +274,33 @@ const mil = (n) => Number(n).toLocaleString('es-VE');
           </>
         )}
 
-        {/* Se dice qué NO se está mostrando, para que nadie lea el número de
-            búsquedas como si fuera la lista de lo que busca la gente. */}
-        <p class="admin-fuente">
-          Cuántas búsquedas hubo, no cuáles: los términos necesitan una dimensión
-          personalizada en Google Analytics que todavía no está creada.
-        </p>
+        {trafico.terminos.length > 0 ? (
+          <>
+            <h3 class="admin-subtitulo">Lo que busca la gente</h3>
+            <table class="admin-tabla">
+              <thead><tr><th>Término</th><th>Veces</th></tr></thead>
+              <tbody>
+                {trafico.terminos.map((t) => (
+                  <tr>
+                    <td>{t.termino}</td>
+                    <td>{mil(t.veces)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p class="admin-fuente">
+              Sirve para saber qué te están pidiendo que no tienes en el catálogo.
+            </p>
+          </>
+        ) : (
+          /* Se dice qué NO se está mostrando, para que nadie lea el número de
+             búsquedas como si fuera la lista de lo que busca la gente. */
+          <p class="admin-fuente">
+            Cuántas búsquedas hubo, no cuáles. Para ver los términos hay que crear
+            una dimensión personalizada en Google Analytics con el parámetro
+            <code>search_term</code>. Google los guarda desde que se crea, no antes.
+          </p>
+        )}
       </>
     ) : (
       <div class="admin-aviso">
