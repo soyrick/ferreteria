@@ -1,8 +1,19 @@
 /* Dos cosas pasan por acá: la puerta de /admin y las cabeceras de seguridad.
 
-   Las dos van en middleware y no repartidas por página, por la misma razón:
-   una sola puerta es una sola cosa que auditar, y una página nueva nace
-   protegida sin que nadie se acuerde de agregarle nada. */
+   OJO con las cabeceras: **esto no alcanza en producción**. El middleware solo
+   corre en las rutas que se renderizan por petición. La home está
+   prerenderizada, así que Vercel la sirve como archivo estático desde la CDN y
+   nunca pasa por acá — se comprobó el 2026-09-07 contra el dominio real: la
+   home venía sin CSP y las rutas dinámicas con todo puesto.
+
+   Por eso las mismas seis cabeceras están declaradas en `vercel.json`, que sí
+   las aplica en el borde a todo, estático incluido. Los valores de los dos
+   lados son idénticos —si difieren, el navegador aplica la intersección de las
+   dos CSP y algo se rompe sin avisar—, así que si tocás una, tocá la otra.
+
+   Esta duplicación es temporal: una vez medido en producción que el borde las
+   pone en todas las rutas, se van de acá y el middleware vuelve a hacer una
+   sola cosa, que es cuidar /admin. */
 import { verificar } from './lib/sesion.js';
 
 const ENTRAR = '/admin/entrar';
