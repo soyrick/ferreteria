@@ -14,7 +14,7 @@ Web de **Casa Herramientas, C.A.** (Ferretería y Construcción C.H), Calle
 Guayaquil frente al estadio de béisbol de Barrio Sucre, Barcelona, estado
 Anzoátegui, Venezuela.
 
-- Producción: https://casaherramientas.vercel.app
+- Producción: https://casaherramientasca.com
 - Repo: https://github.com/soyrick/ferreteria
 - Panel: `/admin` (clave en el `.env` local y en Vercel)
 

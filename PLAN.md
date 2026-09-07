@@ -147,7 +147,7 @@ Verificado el 2026-08-24 en el sitio desplegado.
 - **Sección de Ofertas propia.** Antes cuatro enlaces llevaban a "lo más vendido".
 - **GA4 con consentimiento** — no se descarga nada de Google hasta aceptar.
   Verificado el 2026-08-24: las visitas llegan a Tiempo real.
-- **Sitio público** en https://casaherramientas.vercel.app
+- **Sitio público** en https://casaherramientasca.com
 - **Buscador replegable**, hero por tramos responsive, franjas de toque invisibles en
   el hero para móvil.
 - **Carrito** en panel lateral, con persistencia y pedido armado hacia WhatsApp,
