@@ -628,13 +628,6 @@ F7 conexión del bot, F8 cifras reales de GA4 y Search Console en el panel.
 
 ## Deuda conocida
 
-- **Las cabeceras de seguridad están declaradas dos veces**: en `vercel.json`,
-  que las aplica en el borde a todo —estático incluido—, y en
-  `src/middleware.js`, que solo alcanza a las rutas renderizadas por petición.
-  Ya está medido en producción que las del borde llegan a todas, así que las
-  del middleware sobran. **Si tocás una, tocá la otra**: valores distintos hacen
-  que el navegador aplique la intersección de las dos CSP y algo se rompe sin
-  avisar.
 - **Ningún producto tiene foto.** Ver «El problema de las fotos» en
   [PLAN.md](PLAN.md): está medido y con la pregunta que hay que hacerle al
   encargado.

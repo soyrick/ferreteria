@@ -38,7 +38,8 @@ src/
   lib/
     sesion.js           cookie de sesión firmada con HMAC
     intentos.js         freno de fuerza bruta del login (5 por IP / 15 min)
-  middleware.js         puerta única de /admin + cabeceras de seguridad
+  middleware.js         puerta única de /admin
+vercel.json             cabeceras de seguridad, aplicadas en el borde
   scripts/              app.js (tienda) y analitica.js (GA4 + consentimiento)
   styles/               styles.css (tienda) y admin.css (panel)
 public/assets/          logo, imágenes del hero y CREDITOS.txt

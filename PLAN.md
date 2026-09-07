@@ -778,8 +778,10 @@ Navegador:  83 tarjetas, 32 rubros, tipografía y mapa cargando, 0 errores
 Rutas:      / · rubro · ficha · sitemap 200 · /admin 302
 ```
 
-**Queda:** sacar las seis del middleware, que ya está medido que sobran. Se
-dejaron duplicadas solo para no quedarnos sin ninguna si el borde fallaba.
+Con eso medido, las seis salieron del middleware el mismo día: quedan en un
+solo lugar. Dos copias de la misma política terminan divergiendo, y dos CSP
+distintas se aplican como intersección, que rompe cosas sin dejar rastro. El
+middleware vuelve a hacer una sola cosa, que es cuidar /admin.
 
 #### ⬜ Lo que falta de F11
 
