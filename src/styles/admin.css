@@ -498,3 +498,21 @@
   gap: 16px; flex-wrap: wrap;
 }
 .admin-aviso-accion div { flex: 1 1 300px; }
+
+/* ---------- "Ahora mismo" ----------
+   El punto late para que se lea como un dato vivo y no como una cifra fija:
+   es la única de la pantalla que cambia sola. */
+.admin-vivo {
+  display: inline-flex; align-items: center; gap: 9px;
+  margin: 0 0 14px; padding: 8px 14px;
+  background: var(--blanco); border: 1px solid var(--gris-200);
+  border-radius: 99px; font-size: 13.5px; color: var(--gris-700);
+}
+.admin-vivo strong { font-size: 16px; color: var(--negro); }
+.admin-vivo-punto {
+  width: 9px; height: 9px; border-radius: 99px; flex: none;
+  background: var(--verde); box-shadow: 0 0 0 4px rgba(18,128,92,.15);
+  animation: latir 2s ease-in-out infinite;
+}
+@keyframes latir { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .admin-vivo-punto { animation: none; } }

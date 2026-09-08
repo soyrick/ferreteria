@@ -5,7 +5,7 @@ import Admin from '../../layouts/Admin.astro';
 import { resumen, apiLista } from '../../datos/api.js';
 import { almacenListo } from '../../datos/curaduria.js';
 import { NEGOCIO } from '../../datos/negocio.js';
-import { visitas, ga4Listo } from '../../lib/ga4.js';
+import { visitas, enVivo, ga4Listo } from '../../lib/ga4.js';
 
 /* Esta pantalla solo muestra lo que se puede comprobar.
 
@@ -83,14 +83,21 @@ if (apiLista()) {
    métricas de muestra, y vale igual cuando el que falla es Google. */
 let trafico = null;
 let motivoTrafico = 'Faltan las credenciales de la cuenta de servicio de Google.';
+let ahora = null;
 
 if (ga4Listo()) {
-  try {
-    trafico = await visitas();
-  } catch (e) {
-    console.error('[admin] GA4 falló:', e.message);
-    motivoTrafico = 'Google Analytics no respondió en este momento.';
-  }
+  /* Las dos consultas en paralelo: son independientes y la de tiempo real no
+     tiene por qué demorar la pantalla. */
+  const [t, v] = await Promise.all([
+    visitas().catch((e) => {
+      console.error('[admin] GA4 falló:', e.message);
+      motivoTrafico = 'Google Analytics no respondió en este momento.';
+      return null;
+    }),
+    enVivo(),
+  ]);
+  trafico = t;
+  ahora = v;
 }
 
 const mil = (n) => Number(n).toLocaleString('es-VE');
@@ -233,6 +240,17 @@ const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
   <section class="admin-seccion">
     <h2>Visitas y búsquedas</h2>
 
+    {ahora !== null && (
+      /* El único número que se ve al instante. Los demás vienen de los informes
+         normales, que Google procesa con horas de retraso: sin esto, entrar a
+         la tienda y no ver nada en el panel parece una falla. */
+      <p class="admin-vivo">
+        <span class="admin-vivo-punto"></span>
+        <strong>{mil(ahora)}</strong>
+        {ahora === 1 ? ' persona en la tienda ahora mismo' : ' personas en la tienda ahora mismo'}
+      </p>
+    )}
+
     {trafico && sinVisitas ? (
       /* Cinco tarjetas en cero parecen una pantalla rota. Se dice por qué están
          en cero, que es un dato en sí mismo: el dominio es nuevo. */
@@ -240,6 +258,10 @@ const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
         <strong>Todavía no hay visitas que mostrar.</strong>
         Se cuentan solo las de <code>{NEGOCIO.dominio}</code>, que se estrenó el
         7 de septiembre. Lo anterior era tráfico de pruebas y no se muestra.
+        {ahora !== null && (
+          <span> Google tarda varias horas en procesar lo del día: si acabas de
+          entrar a la tienda, tu visita va a aparecer mañana.</span>
+        )}
       </div>
     ) : trafico ? (
       <>

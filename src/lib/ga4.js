@@ -223,6 +223,35 @@ async function terminos(token) {
   }
 }
 
+/* Cuánta gente hay en el sitio en este momento.
+
+   Existe para responder una pregunta concreta que ya llevó a pensar que el
+   panel estaba roto: uno entra a su propia tienda, vuelve al panel, y no ve
+   nada. Los informes normales de GA4 tardan horas en procesarse; el de tiempo
+   real contesta al instante.
+
+   No se filtra por dominio: el informe en tiempo real acepta muchas menos
+   dimensiones que el normal y `hostName` no está entre ellas. Alcanza igual,
+   porque `PUBLIC_GA_ID` ya no está en el entorno local y el desarrollo dejó de
+   mandar datos. */
+export async function enVivo() {
+  if (!ga4Listo()) return null;
+  try {
+    const token = await tokenDeAcceso();
+    const r = await fetch(urlInforme('runRealtimeReport'), {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ metrics: [{ name: 'activeUsers' }] }),
+      signal: AbortSignal.timeout(TIEMPO_LIMITE),
+    });
+    if (!r.ok) return null;
+    const { rows = [] } = await r.json();
+    return numero(rows[0]);
+  } catch {
+    return null;
+  }
+}
+
 /** `{ visitas7, personas7, visitas28, personas28, paginas, eventos, terminos }`. */
 export async function visitas() {
   if (!ga4Listo()) throw new Error('Faltan las variables de GA4');
