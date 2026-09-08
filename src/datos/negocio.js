@@ -11,10 +11,12 @@ export const NEGOCIO = {
   nombreCorto: 'Casa Herramientas',
   rubro: 'Ferretería y Construcción C.H',
 
+  /* 152 caracteres. Google recorta la descripción alrededor de los 155 en el
+     resultado de búsqueda: la anterior tenía 198 y se cortaba a mitad de la
+     última idea, justo donde estaba el motivo para entrar. */
   descripcion:
-    'Ferretería y construcción en Barcelona, estado Anzoátegui. Herramientas, '
-    + 'materiales, plomería, electricidad y todo para el hogar, con atención '
-    + 'desde el arreglo de la casa hasta el pedido industrial.',
+    'Ferretería en Barcelona, Anzoátegui. Herramientas, materiales, plomería y '
+    + 'electricidad, con asesoría y entrega en la zona. Pedidos por WhatsApp.',
 
   direccion: {
     calle: 'Calle Guayaquil, frente al estadio de béisbol de Barrio Sucre',

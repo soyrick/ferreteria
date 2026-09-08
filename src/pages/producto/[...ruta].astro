@@ -50,6 +50,7 @@ const precio = (n) =>
 
 const vendible = p.disponible && p.precio > 0;
 const canonica = new URL(canonicaRelativa, Astro.site ?? Astro.url.origin).href;
+const base = (Astro.site ?? new URL(Astro.url).origin).toString().replace(/\/$/, '');
 
 /* A dónde vuelve el botón de la cabecera: al rubro del producto, no a la home.
    Se llega a una ficha desde la página del rubro, y mandar de vuelta al inicio
@@ -118,7 +119,15 @@ const datosProducto = {
 <meta property="og:title" content={p.nombre}>
 <meta property="og:description" content={descripcion}>
 <meta property="og:url" content={canonica}>
-{p.imagenes?.[0]?.url && <meta property="og:image" content={p.imagenes[0].url} />}
+{/* Sin foto del producto va el logo. Antes no salía ninguna etiqueta, y como
+    la API todavía no trae fotos eso era **siempre**: cada ficha pegada en un
+    grupo de WhatsApp aparecía como un enlace pelado, sin imagen. Es el canal
+    por el que vende el negocio. */}
+<meta property="og:image" content={p.imagenes?.[0]?.url ?? `${base}/assets/logo.png`}>
+<meta property="og:site_name" content="Casa Herramientas">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content={p.nombre}>
+<meta name="twitter:description" content={descripcion}>
 <meta name="theme-color" content="#FFDD00">
 <link rel="icon" href="/assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
