@@ -29,6 +29,10 @@ export const NEGOCIO = {
 
   telefono: '+584248190490',
   correo: 'casaherramienta@gmail.com',
+  /* El dominio de producción. Lo usa el panel para filtrar la analítica: sin
+     ese filtro, las cifras mezclan el desarrollo en localhost y los robots que
+     entran al viejo `casaherramientas.vercel.app` con las visitas de verdad. */
+  dominio: 'casaherramientasca.com',
   instagram: 'https://www.instagram.com/casaherramientas.ca/',
 
   /* Lunes a sábado de 8:00 a 16:50. El formato de dos letras y 24 horas es el

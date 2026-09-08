@@ -3,7 +3,8 @@ export const prerender = false;
 
 import Admin from '../../layouts/Admin.astro';
 import { resumen, apiLista } from '../../datos/api.js';
-import { leer, almacenListo } from '../../datos/curaduria.js';
+import { almacenListo } from '../../datos/curaduria.js';
+import { NEGOCIO } from '../../datos/negocio.js';
 import { visitas, ga4Listo } from '../../lib/ga4.js';
 
 /* Esta pantalla solo muestra lo que se puede comprobar.
@@ -76,13 +77,6 @@ if (apiLista()) {
   } catch { /* si la API no responde, la tarjeta no se muestra */ }
 }
 
-const estado = await leer();
-const vitrinas = {
-  categorias: estado.categorias.length,
-  topventas: estado.topventas.length,
-  ofertas: estado.ofertas.length,
-};
-
 /* Las visitas. Si algo falla —faltan variables, Google dice que no, se cae la
    red— la sección vuelve al aviso de siempre y el detalle queda en el log.
    Nunca un número inventado: es la misma regla por la que se borraron las
@@ -100,6 +94,10 @@ if (ga4Listo()) {
 }
 
 const mil = (n) => Number(n).toLocaleString('es-VE');
+
+/* Sin nada que contar todavía. Se mira el mes y no la semana: una semana floja
+   no es lo mismo que un sitio que nunca recibió a nadie. */
+const sinVisitas = Boolean(trafico) && trafico.visitas28 === 0 && trafico.paginas.length === 0;
 
 /* El gráfico de visitas por día: línea con área debajo.
 
@@ -233,30 +231,18 @@ const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
   )}
 
   <section class="admin-seccion">
-    <h2>Lo que se ve en la página principal</h2>
-    <p class="admin-fuente">Lo que elegiste en las otras pantallas.</p>
-    <div class="admin-metricas">
-      <article class="metrica">
-        <span class="metrica-etiqueta">Categorías en la portada</span>
-        <strong class="metrica-valor">{vitrinas.categorias || 'Las 8 más grandes'}</strong>
-      </article>
-      <article class="metrica">
-        <span class="metrica-etiqueta">Lo más vendido</span>
-        <strong class="metrica-valor">{vitrinas.topventas}</strong>
-      </article>
-      <article class="metrica">
-        <span class="metrica-etiqueta">En oferta</span>
-        <strong class="metrica-valor">{vitrinas.ofertas}</strong>
-      </article>
-    </div>
-  </section>
-
-  <section class="admin-seccion">
     <h2>Visitas y búsquedas</h2>
 
-    {trafico ? (
+    {trafico && sinVisitas ? (
+      /* Cinco tarjetas en cero parecen una pantalla rota. Se dice por qué están
+         en cero, que es un dato en sí mismo: el dominio es nuevo. */
+      <div class="admin-aviso">
+        <strong>Todavía no hay visitas que mostrar.</strong>
+        Se cuentan solo las de <code>{NEGOCIO.dominio}</code>, que se estrenó el
+        7 de septiembre. Lo anterior era tráfico de pruebas y no se muestra.
+      </div>
+    ) : trafico ? (
       <>
-        <p class="admin-fuente">Lo que midió Google Analytics. Últimos 28 días, salvo donde diga otra cosa.</p>
         <div class="admin-metricas">
           <article class="metrica">
             <span class="metrica-etiqueta">Visitas · 7 días</span>
@@ -347,9 +333,12 @@ const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
           </>
         )}
 
-        <h3 class="admin-subtitulo">Lo que busca la gente</h3>
-        {trafico.terminos.length > 0 ? (
+        {/* Solo cuando hay términos de verdad. Un encabezado seguido de una
+            explicación de por qué no hay nada es ruido: ocupa lugar en la
+            pantalla sin decir nada que sirva para decidir algo. */}
+        {trafico.terminos.length > 0 && (
           <>
+            <h3 class="admin-subtitulo">Lo que busca la gente</h3>
             <ol class="ranking">
               {trafico.terminos.map((t, i) => (
                 <li class="ranking-fila">
@@ -365,20 +354,6 @@ const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
               Sirve para saber qué te están pidiendo que no tienes en el catálogo.
             </p>
           </>
-        ) : trafico.terminosEstado === 'sin-dimension' ? (
-          <p class="admin-fuente">
-            Para ver los términos hay que crear una dimensión personalizada en
-            Google Analytics con el parámetro <code>search_term</code>.
-          </p>
-        ) : (
-          /* La dimensión ya está creada: no hay nada que pedirle a nadie, solo
-             esperar. Decirle a alguien que cree algo que ya creó es la clase de
-             mensaje que hace desconfiar de la pantalla entera. */
-          <p class="admin-fuente">
-            Todavía no hay términos que mostrar. Google los empezó a guardar el
-            7 de septiembre y no rellena hacia atrás, así que van a ir apareciendo
-            a medida que la gente busque.
-          </p>
         )}
       </>
     ) : (

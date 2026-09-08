@@ -14,6 +14,7 @@
    existe, que es un mensaje que no ayuda nada a entender el problema. */
 
 import { aBase64Url } from './sesion.js';
+import { NEGOCIO } from '../datos/negocio.js';
 
 const TEXTO = new TextEncoder();
 
@@ -102,6 +103,28 @@ async function tokenDeAcceso() {
 const HACE_28 = { startDate: '28daysAgo', endDate: 'today' };
 const HACE_7 = { startDate: '7daysAgo', endDate: 'today' };
 
+/* Solo el dominio de producción.
+
+   Sin este filtro el panel miente sin darse cuenta. Medido el 2026-09-07, antes
+   de ponerlo: de 42 sesiones, **23 eran de `localhost`** —el propio desarrollo,
+   que mandaba a GA4 porque `PUBLIC_GA_ID` estaba en el `.env` local— y 19 del
+   viejo `casaherramientas.vercel.app`, casi todas de robots (Estados Unidos 19,
+   Canadá 11, Países Bajos, Japón, Rusia, Singapur). Del dominio real: cero.
+
+   Las "330 vistas" de la página principal eran páginas recargadas mientras
+   programábamos. Un panel que las presenta como clientes es peor que uno vacío:
+   se toman decisiones de negocio con ellas.
+
+   El filtro va del lado de la consulta y no de GA4 porque acá es verificable y
+   viaja con el código; los filtros de tráfico interno de GA4 no se aplican
+   hacia atrás y hay que acordarse de configurarlos. */
+const SOLO_PRODUCCION = {
+  filter: {
+    fieldName: 'hostName',
+    stringFilter: { matchType: 'EXACT', value: NEGOCIO.dominio },
+  },
+};
+
 /* Los tres informes van en una sola petición. `batchRunReports` existe justo
    para esto: un viaje, un lugar donde manejar el error. */
 const INFORMES = [
@@ -109,12 +132,14 @@ const INFORMES = [
     // Visitas y personas, en los dos rangos a la vez.
     dateRanges: [HACE_7, HACE_28],
     metrics: [{ name: 'sessions' }, { name: 'activeUsers' }],
+    dimensionFilter: SOLO_PRODUCCION,
   },
   {
     dateRanges: [HACE_28],
     dimensions: [{ name: 'pagePath' }],
     metrics: [{ name: 'screenPageViews' }],
     orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+    dimensionFilter: SOLO_PRODUCCION,
     limit: 5,
   },
   {
@@ -128,9 +153,11 @@ const INFORMES = [
     dimensions: [{ name: 'eventName' }],
     metrics: [{ name: 'eventCount' }],
     dimensionFilter: {
-      filter: {
-        fieldName: 'eventName',
-        inListFilter: { values: ['search', 'add_to_cart'] },
+      andGroup: {
+        expressions: [
+          SOLO_PRODUCCION,
+          { filter: { fieldName: 'eventName', inListFilter: { values: ['search', 'add_to_cart'] } } },
+        ],
       },
     },
   },
@@ -140,6 +167,7 @@ const INFORMES = [
     dimensions: [{ name: 'date' }],
     metrics: [{ name: 'sessions' }],
     orderBys: [{ dimension: { dimensionName: 'date' } }],
+    dimensionFilter: SOLO_PRODUCCION,
   },
 ];
 
@@ -168,6 +196,7 @@ async function terminos(token) {
         dimensions: [{ name: 'customEvent:search_term' }],
         metrics: [{ name: 'eventCount' }],
         orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+        dimensionFilter: SOLO_PRODUCCION,
         limit: 8,
       }),
       signal: AbortSignal.timeout(TIEMPO_LIMITE),
