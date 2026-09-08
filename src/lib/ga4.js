@@ -223,12 +223,19 @@ async function terminos(token) {
   }
 }
 
-/* Cuánta gente hay en el sitio en este momento.
+/* Movimiento reciente en la tienda.
 
    Existe para responder una pregunta concreta que ya llevó a pensar que el
    panel estaba roto: uno entra a su propia tienda, vuelve al panel, y no ve
-   nada. Los informes normales de GA4 tardan horas en procesarse; el de tiempo
-   real contesta al instante.
+   nada. Los informes normales de GA4 tardan horas en procesarse; este contesta
+   al instante.
+
+   **No es "cuánta gente hay ahora".** Google cuenta las personas activas en los
+   últimos 30 minutos, así que alguien que cerró el navegador sigue contando
+   hasta que pasan esos 30. Se devuelve también hace cuántos minutos fue la
+   última señal: sin ese dato, el número parece congelado y se desconfía de la
+   pantalla. Pasó el 2026-09-07 — decía 2 con la última actividad hacía 11
+   minutos, y la tarjeta afirmaba "ahora mismo".
 
    No se filtra por dominio: el informe en tiempo real acepta muchas menos
    dimensiones que el normal y `hostName` no está entre ellas. Alcanza igual,
@@ -238,15 +245,31 @@ export async function enVivo() {
   if (!ga4Listo()) return null;
   try {
     const token = await tokenDeAcceso();
-    const r = await fetch(urlInforme('runRealtimeReport'), {
+    const pedir = (cuerpo) => fetch(urlInforme('runRealtimeReport'), {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ metrics: [{ name: 'activeUsers' }] }),
+      body: JSON.stringify(cuerpo),
       signal: AbortSignal.timeout(TIEMPO_LIMITE),
     });
-    if (!r.ok) return null;
-    const { rows = [] } = await r.json();
-    return numero(rows[0]);
+
+    const [rTotal, rMinutos] = await Promise.all([
+      pedir({ metrics: [{ name: 'activeUsers' }] }),
+      pedir({ dimensions: [{ name: 'minutesAgo' }], metrics: [{ name: 'activeUsers' }] }),
+    ]);
+    if (!rTotal.ok) return null;
+
+    const personas = numero((await rTotal.json()).rows?.[0]);
+    if (!personas) return { personas: 0, haceMinutos: null };
+
+    /* `minutesAgo` viene como texto: "00" es este minuto, "29" el más viejo. */
+    let haceMinutos = null;
+    if (rMinutos.ok) {
+      const minutos = ((await rMinutos.json()).rows ?? [])
+        .map((f) => Number(f.dimensionValues?.[0]?.value))
+        .filter((n) => Number.isFinite(n));
+      if (minutos.length) haceMinutos = Math.min(...minutos);
+    }
+    return { personas, haceMinutos };
   } catch {
     return null;
   }

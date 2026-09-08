@@ -240,14 +240,23 @@ const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
   <section class="admin-seccion">
     <h2>Visitas y búsquedas</h2>
 
-    {ahora !== null && (
+    {ahora && ahora.personas > 0 && (
       /* El único número que se ve al instante. Los demás vienen de los informes
          normales, que Google procesa con horas de retraso: sin esto, entrar a
-         la tienda y no ver nada en el panel parece una falla. */
+         la tienda y no ver nada en el panel parece una falla.
+
+         Dice "últimos 30 minutos" y no "ahora mismo" porque eso es lo que
+         mide: quien cerró el navegador sigue contando hasta que pasan los 30.
+         Con "ahora mismo" el número parecía trabado. */
       <p class="admin-vivo">
         <span class="admin-vivo-punto"></span>
-        <strong>{mil(ahora)}</strong>
-        {ahora === 1 ? ' persona en la tienda ahora mismo' : ' personas en la tienda ahora mismo'}
+        <strong>{mil(ahora.personas)}</strong>
+        {ahora.personas === 1 ? ' persona' : ' personas'} en los últimos 30 minutos
+        {ahora.haceMinutos !== null && (
+          <span class="admin-vivo-cuando">
+            · {ahora.haceMinutos === 0 ? 'hay alguien navegando' : `la última señal, hace ${ahora.haceMinutos} min`}
+          </span>
+        )}
       </p>
     )}
 
@@ -258,7 +267,7 @@ const topPaginas = (trafico?.paginas ?? []).map((p, _i, todas) => ({
         <strong>Todavía no hay visitas que mostrar.</strong>
         Se cuentan solo las de <code>{NEGOCIO.dominio}</code>, que se estrenó el
         7 de septiembre. Lo anterior era tráfico de pruebas y no se muestra.
-        {ahora !== null && (
+        {ahora && (
           <span> Google tarda varias horas en procesar lo del día: si acabas de
           entrar a la tienda, tu visita va a aparecer mañana.</span>
         )}
